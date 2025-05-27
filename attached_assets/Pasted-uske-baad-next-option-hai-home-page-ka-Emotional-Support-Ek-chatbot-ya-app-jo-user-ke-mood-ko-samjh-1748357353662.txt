@@ -1,0 +1,36 @@
+uske baad next option hai home page ka Emotional Support  Ek chatbot ya app jo user ke mood ko samjhega aur instant mental support ya coping tips dega.
+ User ke voice/tone/text ko NLP se analyze karega aur real-time response dega (jaisa therapist karta hai).
+usme kuch bato ka important dhyan rkhna 
+Mood tracking algorithms lagana.
+
+
+Critical mood detect hone pe expert connect ka option.
+
+uke baad rhega Women’s Health 
+ Periods, PCOS, hormonal changes jaise issues track karega. Personalized suggestions bhi dega.
+Daily inputs (symptoms, mood, etc.) ke basis pe AI personalized alerts aur guidance dega.
+isme kuch bato ka dhyan rkhana Anonymous data handling.
+
+
+Reminder notifications daln
+aur baki options abhi dummy bnado badme bta dunga kisme ky krna hai
+
+then next page aata hai reports ka jisme jo bhi uske tests honge wo san show honge ki processing mai hai ya fir available hai to dekhne ka option aayega aur usmeagar apni profile wale page pr agar apni details dalta hai health se related toh uski sari details show kregi jaisa ui mai krr rha hai ki kaunsa blood group hai kitni height hai kitna weight hai bmi wgre 
+uske baad notification ka rhega ki sare notification aayenge medicines ke aur wo sb test ke ki reports aa gyi hai 
+prfoile maiayeg aage ki user ki sari details Name Phone umber, age,height,gender,bloodgroup,aur yha usne ye sb input diye hai wo uske prescription pr autoamtic aa jane chiye logout option aana chiye payment method ka bhi aana chiye aur iske liye jitn bhi necessary chije hai wo md era hu jaise 
+SESSION_SECRET="LpkkIv1fgmmVMBCMkniG8OVINRgCMEZRrQjBGxRTaF2qdh9vJ8/ogDycnwn7Q4lIUouRWQh5Kz9QmTu8F3GBvg=="
+GROQ_API_KEY="xai-vc9Yv1z0321VajQYNzWwEHFG6GZLmYQB0Es7lJsQB1wXU2nFhr1O3a3uPOwxzawdEAzXpgygC90QAlxd"
+FACEBOOK_APP_ID
+FACEBOOK_APP_SECRET
+GOOGLE_CLIENT_ID
+GOOGLE_CLIENT_SECRET
+JWT_SECRET
+SMTP_HOST
+SMTP_PASS
+SMTP_PORT
+SMTP_USER
+aur haan app ko aisa bnana ki usko mai kahi aur bhi deploy kr sku aisa nhi ki bss replit pr hi kr sku  
+ek aur chij isme jab signup kare to usme languag select krne ka option aana chiye 
+by default english pr rhe agar wo chooe krta hai to ye sab language mai pura app bnao wo chahe jsime app chla ske 
+Hindi, Bengali, Marathi, Telugu, Tamil, Gujarati, Urdu, Kannada, Odia, Malayalam, Punjabi, Assamese, Maithili, Santali, Kashmiri, Nepali, Konkani, Sindhi, Dogri, and Bodo.""
+

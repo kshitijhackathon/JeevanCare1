@@ -112,20 +112,54 @@ export default function AIDoctorConsultation() {
 
   const startVideoCall = async () => {
     try {
+      console.log("Starting video call...");
       const stream = await navigator.mediaDevices.getUserMedia({ 
-        video: true, 
+        video: { 
+          width: { ideal: 1280 },
+          height: { ideal: 720 },
+          facingMode: 'user'
+        }, 
         audio: true 
       });
+      
       if (videoRef.current) {
         videoRef.current.srcObject = stream;
+        console.log("Video stream started successfully");
+        
+        // Add welcome message after video starts
+        setTimeout(() => {
+          const welcomeMessage: ChatMessage = {
+            role: 'doctor',
+            content: getWelcomeMessage(),
+            timestamp: new Date(),
+            type: 'text'
+          };
+          setMessages([welcomeMessage]);
+          
+          // Text-to-speech welcome
+          if ('speechSynthesis' in window) {
+            const utterance = new SpeechSynthesisUtterance(getWelcomeMessage());
+            utterance.lang = patientDetails.language === 'hindi' ? 'hi-IN' : 'en-US';
+            utterance.rate = 0.9;
+            speechSynthesis.speak(utterance);
+          }
+        }, 1000);
       }
     } catch (error) {
       console.error("Failed to start video:", error);
       toast({
         title: "Camera Access",
-        description: "Unable to access camera. Continuing with voice only.",
+        description: "Camera permission needed for video consultation. Please allow access.",
         variant: "destructive"
       });
+      // Still show welcome message even without camera
+      const welcomeMessage: ChatMessage = {
+        role: 'doctor',
+        content: getWelcomeMessage(),
+        timestamp: new Date(),
+        type: 'text'
+      };
+      setMessages([welcomeMessage]);
     }
   };
 
@@ -327,8 +361,10 @@ export default function AIDoctorConsultation() {
                   console.log("Changing step to video-call");
                   setStep('video-call');
                   
-                  // Also call the API
-                  startConsultation.mutate(patientDetails);
+                  // Start video call immediately
+                  setTimeout(() => {
+                    startVideoCall();
+                  }, 500);
                 }}
                 disabled={startConsultation.isPending}
                 className="w-full"
@@ -366,6 +402,7 @@ export default function AIDoctorConsultation() {
         <div className="flex h-[calc(100vh-80px)]">
           {/* Main Video Area */}
           <div className="flex-1 relative">
+            {/* Patient Video (Your Camera) */}
             <video
               ref={videoRef}
               autoPlay
@@ -374,12 +411,51 @@ export default function AIDoctorConsultation() {
             />
             <canvas ref={canvasRef} className="hidden" />
             
-            {/* Doctor Avatar Overlay */}
-            <div className="absolute top-4 right-4 w-32 h-32 bg-blue-600 rounded-lg flex items-center justify-center">
-              <div className="text-center">
-                <User className="w-12 h-12 mx-auto mb-2" />
-                <p className="text-xs">AI Doctor</p>
+            {/* AI Doctor Avatar - Human-like */}
+            <div className="absolute top-4 right-4 w-48 h-64 bg-gradient-to-b from-blue-100 to-white rounded-xl shadow-lg border border-blue-200 overflow-hidden">
+              <div className="relative h-full flex flex-col items-center justify-center">
+                {/* Doctor's Face/Avatar */}
+                <div className="w-20 h-20 bg-gradient-to-br from-pink-200 to-orange-200 rounded-full mb-3 relative">
+                  {/* Face features */}
+                  <div className="absolute top-3 left-4 w-2 h-2 bg-black rounded-full"></div>
+                  <div className="absolute top-3 right-4 w-2 h-2 bg-black rounded-full"></div>
+                  <div className="absolute top-8 left-1/2 transform -translate-x-1/2 w-1 h-2 bg-pink-400 rounded-full"></div>
+                  <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 w-6 h-1 bg-red-400 rounded-full"></div>
+                </div>
+                
+                {/* Doctor's Body */}
+                <div className="w-16 h-20 bg-white rounded-lg border-2 border-blue-300 relative">
+                  {/* White coat */}
+                  <div className="absolute top-1 left-1/2 transform -translate-x-1/2 w-8 h-3 bg-blue-500 rounded"></div>
+                  {/* Stethoscope */}
+                  <div className="absolute top-3 left-1 w-3 h-3 border-2 border-gray-600 rounded-full"></div>
+                  <div className="absolute top-4 left-2 w-6 h-1 bg-gray-600"></div>
+                </div>
+                
+                {/* Doctor Info */}
+                <div className="text-center mt-2">
+                  <p className="text-xs font-medium text-blue-800">Dr. Priya Sharma</p>
+                  <p className="text-xs text-blue-600">MBBS, MD (Internal Medicine)</p>
+                  <div className="flex items-center justify-center mt-1">
+                    <div className="w-2 h-2 bg-green-500 rounded-full mr-1 animate-pulse"></div>
+                    <p className="text-xs text-green-600">Online</p>
+                  </div>
+                </div>
+                
+                {/* Speaking animation */}
+                <div className="absolute bottom-12 right-2">
+                  <div className="flex space-x-1">
+                    <div className="w-1 h-1 bg-blue-500 rounded-full animate-bounce" style={{animationDelay: '0ms'}}></div>
+                    <div className="w-1 h-1 bg-blue-500 rounded-full animate-bounce" style={{animationDelay: '150ms'}}></div>
+                    <div className="w-1 h-1 bg-blue-500 rounded-full animate-bounce" style={{animationDelay: '300ms'}}></div>
+                  </div>
+                </div>
               </div>
+            </div>
+            
+            {/* Camera Status Indicator */}
+            <div className="absolute top-4 left-4 bg-black bg-opacity-50 px-3 py-1 rounded-full text-white text-sm">
+              {isVideoOn ? "📹 Camera On" : "📷 Camera Off"}
             </div>
 
             {/* 3D Body Model */}

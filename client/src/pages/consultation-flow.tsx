@@ -36,6 +36,18 @@ export default function ConsultationFlow() {
     gender: '',
     language: 'english'
   });
+
+  // Debug: Show simple test first
+  if (!user) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <h1 className="text-2xl font-bold mb-4">Loading...</h1>
+          <p>Please wait while we prepare your consultation</p>
+        </div>
+      </div>
+    );
+  }
   
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [currentMessage, setCurrentMessage] = useState('');

@@ -38,8 +38,8 @@ export default function SignIn() {
         localStorage.setItem('authToken', data.token);
         localStorage.setItem('userData', JSON.stringify(data.user));
         
-        // Redirect to home page
-        navigate('/');
+        // Force page reload to properly update authentication state
+        window.location.href = '/';
       } else {
         toast({
           title: "Login Failed",

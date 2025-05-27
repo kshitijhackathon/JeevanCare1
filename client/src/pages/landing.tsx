@@ -1,78 +1,102 @@
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
-import { HeartHandshake, Shield, Users, Zap } from "lucide-react";
+import vectorIcon from "@assets/Vector.png";
 
 export default function Landing() {
-  const handleLogin = () => {
-    window.location.href = "/api/login";
-  };
-
   return (
-    <div className="mobile-container">
-      {/* Hero Section */}
-      <div className="min-h-screen flex flex-col justify-center p-6 bg-gradient-healthcare">
-        <div className="text-center mb-8">
-          <div className="w-20 h-20 bg-primary rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg">
-            <HeartHandshake className="w-10 h-10 text-white" />
+    <div className="min-h-screen bg-gradient-to-br from-cyan-50 via-blue-50 to-cyan-100 relative overflow-hidden">
+      {/* Status Bar */}
+      <div className="flex justify-between items-center px-4 py-2 text-black text-sm font-medium">
+        <span>9:40</span>
+        <div className="flex items-center gap-1">
+          <div className="flex gap-1">
+            <div className="w-1 h-3 bg-black rounded-full"></div>
+            <div className="w-1 h-3 bg-black rounded-full"></div>
+            <div className="w-1 h-3 bg-black rounded-full"></div>
+            <div className="w-1 h-3 bg-black/40 rounded-full"></div>
           </div>
-          <h1 className="text-3xl font-bold text-gray-800 mb-3">
-            Welcome to <span className="text-primary">JeevanCare</span>
-          </h1>
-          <p className="text-gray-600 text-lg mb-8">
-            Your AI-powered health companion for better healthcare management
-          </p>
+          <div className="ml-1">
+            <svg width="17" height="11" viewBox="0 0 17 11" fill="none">
+              <path d="M1 4h14c.6 0 1 .4 1 1v4c0 .6-.4 1-1 1H1c-.6 0-1-.4-1-1V5c0-.6.4-1 1-1z" fill="black"/>
+              <path d="M2 6h12v1H2V6z" fill="white"/>
+            </svg>
+          </div>
+          <div className="ml-1">
+            <svg width="24" height="11" viewBox="0 0 24 11" fill="none">
+              <rect x="1" y="2" width="20" height="7" rx="3.5" stroke="black" strokeWidth="1"/>
+              <rect x="3" y="4" width="16" height="3" rx="1.5" fill="black"/>
+              <rect x="21" y="4" width="2" height="3" rx="1" fill="black"/>
+            </svg>
+          </div>
+        </div>
+      </div>
+
+      {/* Background Medical Elements */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        {/* Pills scattered around */}
+        <div className="absolute top-20 right-8">
+          <div className="w-6 h-12 bg-blue-300/40 rounded-full rotate-45"></div>
+        </div>
+        <div className="absolute top-32 right-12">
+          <div className="w-4 h-8 bg-cyan-300/40 rounded-full rotate-12"></div>
+        </div>
+        <div className="absolute top-28 right-20">
+          <div className="w-5 h-10 bg-blue-400/40 rounded-full -rotate-30"></div>
+        </div>
+        
+        {/* Stethoscope */}
+        <div className="absolute bottom-20 left-4">
+          <svg width="120" height="400" viewBox="0 0 120 400" className="opacity-20">
+            <path d="M20 50 Q30 40 40 50 L40 200 Q40 220 60 220 Q80 220 80 200 L80 50 Q90 40 100 50" 
+                  stroke="#94A3B8" strokeWidth="8" fill="none" strokeLinecap="round"/>
+            <circle cx="60" cy="350" r="25" stroke="#94A3B8" strokeWidth="8" fill="none"/>
+            <path d="M60 220 L60 325" stroke="#94A3B8" strokeWidth="8" strokeLinecap="round"/>
+            <circle cx="20" cy="50" r="15" fill="#94A3B8" opacity="0.6"/>
+            <circle cx="100" cy="50" r="15" fill="#94A3B8" opacity="0.6"/>
+          </svg>
         </div>
 
-        {/* Features */}
-        <div className="space-y-4 mb-8">
-          <Card className="card-hover">
-            <CardContent className="p-4 flex items-center space-x-4">
-              <div className="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center">
-                <Zap className="w-6 h-6 text-primary" />
-              </div>
-              <div>
-                <h3 className="font-semibold text-gray-800">AI Symptom Checker</h3>
-                <p className="text-sm text-gray-600">Get instant health insights</p>
-              </div>
-            </CardContent>
-          </Card>
+        {/* Additional medical shapes */}
+        <div className="absolute top-40 left-8">
+          <div className="w-8 h-8 bg-cyan-200/30 rounded-full"></div>
+        </div>
+        <div className="absolute bottom-40 right-6">
+          <div className="w-6 h-6 bg-blue-200/30 rounded-full"></div>
+        </div>
+        <div className="absolute top-60 left-12">
+          <div className="w-4 h-4 bg-cyan-300/30 rounded-full"></div>
+        </div>
+      </div>
 
-          <Card className="card-hover">
-            <CardContent className="p-4 flex items-center space-x-4">
-              <div className="w-12 h-12 bg-success/10 rounded-lg flex items-center justify-center">
-                <Shield className="w-6 h-6 text-green-600" />
-              </div>
-              <div>
-                <h3 className="font-semibold text-gray-800">Online Pharmacy</h3>
-                <p className="text-sm text-gray-600">Order medicines safely</p>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className="card-hover">
-            <CardContent className="p-4 flex items-center space-x-4">
-              <div className="w-12 h-12 bg-secondary/10 rounded-lg flex items-center justify-center">
-                <Users className="w-6 h-6 text-secondary" />
-              </div>
-              <div>
-                <h3 className="font-semibold text-gray-800">Doctor Consultations</h3>
-                <p className="text-sm text-gray-600">Connect with professionals</p>
-              </div>
-            </CardContent>
-          </Card>
+      {/* Main Content */}
+      <div className="relative z-10 flex flex-col items-center justify-center min-h-screen px-8 text-center">
+        {/* Logo */}
+        <div className="mb-8">
+          <img 
+            src={vectorIcon} 
+            alt="JeevanCare Logo" 
+            className="w-24 h-24 mx-auto mb-6"
+          />
         </div>
 
-        {/* CTA */}
-        <Button 
-          onClick={handleLogin}
-          className="btn-primary w-full text-lg py-6"
-        >
-          Get Started
-        </Button>
-
-        <p className="text-center text-sm text-gray-500 mt-4">
-          Join thousands of users managing their health with JeevanCare
+        {/* App Name */}
+        <h1 className="text-4xl font-normal text-gray-800 mb-2 tracking-wide">
+          Jeevancare
+        </h1>
+        
+        {/* Subtitle */}
+        <p className="text-gray-600 text-lg mb-12 tracking-wide">
+          Medical app
         </p>
+
+        {/* CTA Button */}
+        <div className="w-full max-w-sm">
+          <Button
+            onClick={() => window.location.href = '/api/login'}
+            className="w-full bg-blue-600 hover:bg-blue-700 text-white py-4 text-lg font-medium rounded-xl shadow-lg transition-all duration-200 hover:shadow-xl"
+          >
+            Get Started
+          </Button>
+        </div>
       </div>
     </div>
   );

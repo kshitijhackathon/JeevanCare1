@@ -70,24 +70,33 @@ export default function Profile() {
           </Button>
           <h1 className="text-xl font-semibold text-gray-800">Profile</h1>
         </div>
-        <Button
-          variant={isEditing ? "default" : "outline"}
-          size="sm"
-          onClick={isEditing ? handleSave : () => setIsEditing(true)}
-          disabled={updateProfileMutation.isPending}
-        >
-          {isEditing ? (
-            <>
-              <Save className="w-4 h-4 mr-2" />
-              Save
-            </>
-          ) : (
-            <>
-              <Edit2 className="w-4 h-4 mr-2" />
-              Edit
-            </>
-          )}
-        </Button>
+        <div className="flex gap-2">
+          <Button
+            variant={isEditing ? "default" : "outline"}
+            size="sm"
+            onClick={isEditing ? handleSave : () => setIsEditing(true)}
+            disabled={updateProfileMutation.isPending}
+          >
+            {isEditing ? (
+              <>
+                <Save className="w-4 h-4 mr-2" />
+                Save
+              </>
+            ) : (
+              <>
+                <Edit2 className="w-4 h-4 mr-2" />
+                Edit
+              </>
+            )}
+          </Button>
+          <Button
+            variant="destructive"
+            size="sm"
+            onClick={() => window.location.href = '/api/logout'}
+          >
+            Logout
+          </Button>
+        </div>
       </div>
 
       <div className="flex-1 overflow-y-auto p-4">

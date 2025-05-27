@@ -57,6 +57,16 @@ export interface IStorage {
   createConsultation(consultation: InsertConsultation): Promise<Consultation>;
   getConsultations(userId: string): Promise<Consultation[]>;
   updateConsultation(id: number, data: Partial<Consultation>): Promise<Consultation>;
+  
+  // Email/Password Auth operations
+  getUserByEmail(email: string): Promise<User | undefined>;
+  createUserWithPassword(userData: { firstName: string; lastName: string; email: string; password: string }): Promise<User>;
+  verifyPassword(email: string, password: string): Promise<User | null>;
+  
+  // OTP operations
+  createOTP(email: string, otp: string): Promise<OtpVerification>;
+  getValidOTP(email: string, otp: string): Promise<OtpVerification | undefined>;
+  markOTPAsVerified(id: number): Promise<void>;
 }
 
 export class DatabaseStorage implements IStorage {

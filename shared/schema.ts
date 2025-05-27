@@ -32,6 +32,10 @@ export const users = pgTable("users", {
   firstName: varchar("first_name"),
   lastName: varchar("last_name"),
   profileImageUrl: varchar("profile_image_url"),
+  password: varchar("password"), // For email/password auth
+  isEmailVerified: boolean("is_email_verified").default(false),
+  provider: varchar("provider").default("email"), // email, google, facebook
+  providerId: varchar("provider_id"), // For OAuth providers
   age: integer("age"),
   weight: varchar("weight"),
   gender: varchar("gender"),
@@ -41,6 +45,16 @@ export const users = pgTable("users", {
   stripeSubscriptionId: varchar("stripe_subscription_id"),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// OTP verification table
+export const otpVerifications = pgTable("otp_verifications", {
+  id: serial("id").primaryKey(),
+  email: varchar("email").notNull(),
+  otp: varchar("otp").notNull(),
+  expiresAt: timestamp("expires_at").notNull(),
+  verified: boolean("verified").default(false),
+  createdAt: timestamp("created_at").defaultNow(),
 });
 
 // Products table
@@ -113,6 +127,7 @@ export const insertCartItemSchema = createInsertSchema(cartItems).omit({ id: tru
 export const insertOrderSchema = createInsertSchema(orders).omit({ id: true, createdAt: true });
 export const insertHealthReportSchema = createInsertSchema(healthReports).omit({ id: true, createdAt: true });
 export const insertConsultationSchema = createInsertSchema(consultations).omit({ id: true, createdAt: true });
+export const insertOtpSchema = createInsertSchema(otpVerifications).omit({ id: true, createdAt: true });
 
 // Types
 export type UpsertUser = z.infer<typeof upsertUserSchema>;
@@ -123,8 +138,10 @@ export type Order = typeof orders.$inferSelect;
 export type OrderItem = typeof orderItems.$inferSelect;
 export type HealthReport = typeof healthReports.$inferSelect;
 export type Consultation = typeof consultations.$inferSelect;
+export type OtpVerification = typeof otpVerifications.$inferSelect;
 export type InsertProduct = z.infer<typeof insertProductSchema>;
 export type InsertCartItem = z.infer<typeof insertCartItemSchema>;
 export type InsertOrder = z.infer<typeof insertOrderSchema>;
 export type InsertHealthReport = z.infer<typeof insertHealthReportSchema>;
 export type InsertConsultation = z.infer<typeof insertConsultationSchema>;
+export type InsertOtp = z.infer<typeof insertOtpSchema>;

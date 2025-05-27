@@ -547,6 +547,65 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // AI Consultation with Perplexity API
+  app.post("/api/consultations/ai-chat", isAuthenticated, async (req, res) => {
+    try {
+      const { action, message, language, patientDetails } = req.body;
+
+      if (action === 'start') {
+        res.json({ success: true, message: "Consultation started" });
+        return;
+      }
+
+      if (action === 'chat') {
+        const systemPrompt = language === 'hindi' 
+          ? `You are a helpful AI doctor assistant. Respond in Hinglish (Hindi-English mix) as requested. Patient details: Name: ${patientDetails.name}, Age: ${patientDetails.age}, Gender: ${patientDetails.gender}. Provide medical advice, ask relevant questions about symptoms, and be empathetic. Keep responses concise and helpful.`
+          : `You are a helpful AI doctor assistant. Patient details: Name: ${patientDetails.name}, Age: ${patientDetails.age}, Gender: ${patientDetails.gender}. Provide medical advice, ask relevant questions about symptoms, and be empathetic. Keep responses concise and helpful.`;
+
+        const response = await fetch('https://api.perplexity.ai/chat/completions', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${process.env.PERPLEXITY_API_KEY}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            model: 'llama-3.1-sonar-small-128k-online',
+            messages: [
+              {
+                role: 'system',
+                content: systemPrompt
+              },
+              {
+                role: 'user',
+                content: message
+              }
+            ],
+            max_tokens: 500,
+            temperature: 0.2,
+            top_p: 0.9,
+            stream: false
+          })
+        });
+
+        if (!response.ok) {
+          throw new Error('Failed to get AI response');
+        }
+
+        const data = await response.json();
+        const aiResponse = data.choices[0]?.message?.content || 'I apologize, but I could not process your message. Please try again.';
+
+        res.json({ response: aiResponse });
+      }
+    } catch (error) {
+      console.error("AI Chat error:", error);
+      res.status(500).json({ 
+        response: language === 'hindi' 
+          ? "Sorry, main abhi available nahi hun. Kripaya baad mein try kariye."
+          : "I apologize, but I'm currently unavailable. Please try again later."
+      });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }

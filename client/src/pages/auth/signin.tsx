@@ -3,29 +3,73 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Link, useLocation } from "wouter";
 import { ArrowLeft, Mail, Lock, Eye, EyeOff } from "lucide-react";
+import { apiRequest } from "@/lib/queryClient";
+import { useToast } from "@/hooks/use-toast";
 
 export default function SignIn() {
   const [, navigate] = useLocation();
+  const { toast } = useToast();
   const [showPassword, setShowPassword] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   const [formData, setFormData] = useState({
     email: "",
     password: ""
   });
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Will implement authentication
-    console.log("Sign in form submitted:", formData);
+    setIsLoading(true);
+
+    try {
+      const response = await apiRequest("POST", "/api/auth/signin", {
+        email: formData.email,
+        password: formData.password,
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        toast({
+          title: "Welcome back!",
+          description: "Login successful",
+        });
+        
+        // Store JWT token
+        localStorage.setItem('authToken', data.token);
+        
+        // Redirect to home page
+        window.location.href = '/';
+      } else {
+        toast({
+          title: "Login Failed",
+          description: data.message || "Invalid email or password",
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      console.error("Signin error:", error);
+      toast({
+        title: "Error",
+        description: "Failed to sign in. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const handleGoogleSignIn = () => {
-    // Will implement Google OAuth
-    console.log("Google sign in clicked");
+    toast({
+      title: "Coming Soon",
+      description: "Google sign in will be available soon. Please use email/password for now.",
+    });
   };
 
   const handleFacebookSignIn = () => {
-    // Will implement Facebook OAuth
-    console.log("Facebook sign in clicked");
+    toast({
+      title: "Coming Soon", 
+      description: "Facebook sign in will be available soon. Please use email/password for now.",
+    });
   };
 
   return (

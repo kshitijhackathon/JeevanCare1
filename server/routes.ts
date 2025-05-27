@@ -32,12 +32,34 @@ export async function registerRoutes(app: Express): Promise<Server> {
     });
   };
 
-  // Auth routes
-  app.get('/api/auth/user', isAuthenticated, async (req: any, res) => {
+  // JWT Authentication middleware
+  const authenticateJWT = async (req: any, res: any, next: any) => {
+    const authHeader = req.headers.authorization;
+    const token = authHeader && authHeader.split(' ')[1]; // Bearer TOKEN
+
+    if (!token) {
+      return res.status(401).json({ message: 'Access token required' });
+    }
+
     try {
-      const userId = req.user.claims.sub;
-      const user = await storage.getUser(userId);
-      res.json(user);
+      const decoded = jwt.verify(token, process.env.JWT_SECRET || 'fallback-secret') as any;
+      const user = await storage.getUser(decoded.userId);
+      
+      if (!user) {
+        return res.status(401).json({ message: 'User not found' });
+      }
+
+      req.user = user;
+      next();
+    } catch (error) {
+      return res.status(403).json({ message: 'Invalid or expired token' });
+    }
+  };
+
+  // Auth routes
+  app.get('/api/auth/user', authenticateJWT, async (req: any, res) => {
+    try {
+      res.json(req.user);
     } catch (error) {
       console.error("Error fetching user:", error);
       res.status(500).json({ message: "Failed to fetch user" });

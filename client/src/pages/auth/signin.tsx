@@ -37,8 +37,8 @@ export default function SignIn() {
         // Store JWT token
         localStorage.setItem('authToken', data.token);
         
-        // Redirect to home page
-        window.location.href = '/';
+        // Force page reload to update authentication state
+        window.location.reload();
       } else {
         toast({
           title: "Login Failed",

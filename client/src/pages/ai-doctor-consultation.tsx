@@ -77,8 +77,8 @@ export default function AIDoctorConsultation() {
       return response.json();
     },
     onSuccess: () => {
-      console.log("Consultation started successfully");
-      // Step is already changed in onClick, just add welcome message
+      console.log("Consultation started successfully, changing step to video-call");
+      setStep('video-call');
       setTimeout(() => {
         startVideoCall();
         const welcomeMessage: ChatMessage = {
@@ -88,11 +88,15 @@ export default function AIDoctorConsultation() {
           type: 'text'
         };
         setMessages([welcomeMessage]);
-      }, 500);
+      }, 100);
     },
     onError: (error) => {
       console.error("Consultation start error:", error);
-      // Don't show error toast since step change already happened
+      toast({
+        title: "Error",
+        description: "Failed to start consultation. Please try again.",
+        variant: "destructive"
+      });
     }
   });
 

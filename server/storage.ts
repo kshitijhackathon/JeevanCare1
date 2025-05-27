@@ -6,6 +6,7 @@ import {
   orderItems,
   healthReports,
   consultations,
+  otpVerifications,
   type User,
   type UpsertUser,
   type Product,
@@ -14,14 +15,17 @@ import {
   type OrderItem,
   type HealthReport,
   type Consultation,
+  type OtpVerification,
   type InsertProduct,
   type InsertCartItem,
   type InsertOrder,
   type InsertHealthReport,
   type InsertConsultation,
+  type InsertOtp,
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, desc, and } from "drizzle-orm";
+import { eq, desc, and, gt } from "drizzle-orm";
+import bcrypt from "bcryptjs";
 
 export interface IStorage {
   // User operations (mandatory for Replit Auth)
@@ -255,6 +259,79 @@ export class DatabaseStorage implements IStorage {
       .where(eq(consultations.id, id))
       .returning();
     return updatedConsultation;
+  }
+
+  // Email/Password Auth operations
+  async getUserByEmail(email: string): Promise<User | undefined> {
+    const [user] = await db.select().from(users).where(eq(users.email, email));
+    return user || undefined;
+  }
+
+  async createUserWithPassword(userData: { firstName: string; lastName: string; email: string; password: string }): Promise<User> {
+    const hashedPassword = await bcrypt.hash(userData.password, 12);
+    
+    const [user] = await db
+      .insert(users)
+      .values({
+        id: `user_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+        email: userData.email,
+        firstName: userData.firstName,
+        lastName: userData.lastName,
+        password: hashedPassword,
+        provider: "email",
+        isEmailVerified: false, // Will be set to true after OTP verification
+      })
+      .returning();
+    return user;
+  }
+
+  async verifyPassword(email: string, password: string): Promise<User | null> {
+    const user = await this.getUserByEmail(email);
+    if (!user || !user.password) {
+      return null;
+    }
+
+    const isValidPassword = await bcrypt.compare(password, user.password);
+    return isValidPassword ? user : null;
+  }
+
+  // OTP operations
+  async createOTP(email: string, otp: string): Promise<OtpVerification> {
+    const expiresAt = new Date();
+    expiresAt.setMinutes(expiresAt.getMinutes() + 10); // OTP expires in 10 minutes
+
+    const [otpRecord] = await db
+      .insert(otpVerifications)
+      .values({
+        email,
+        otp,
+        expiresAt,
+        verified: false,
+      })
+      .returning();
+    return otpRecord;
+  }
+
+  async getValidOTP(email: string, otp: string): Promise<OtpVerification | undefined> {
+    const [otpRecord] = await db
+      .select()
+      .from(otpVerifications)
+      .where(
+        and(
+          eq(otpVerifications.email, email),
+          eq(otpVerifications.otp, otp),
+          eq(otpVerifications.verified, false),
+          gt(otpVerifications.expiresAt, new Date())
+        )
+      );
+    return otpRecord || undefined;
+  }
+
+  async markOTPAsVerified(id: number): Promise<void> {
+    await db
+      .update(otpVerifications)
+      .set({ verified: true })
+      .where(eq(otpVerifications.id, id));
   }
 }
 

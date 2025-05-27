@@ -3,8 +3,10 @@ import { createServer, type Server } from "http";
 import Stripe from "stripe";
 import { storage } from "./storage";
 import { setupAuth, isAuthenticated } from "./replitAuth";
-import { insertProductSchema, insertCartItemSchema, insertConsultationSchema } from "@shared/schema";
+import { emailService } from "./email";
+import jwt from "jsonwebtoken";
 import { z } from "zod";
+import { insertProductSchema, insertCartItemSchema, insertConsultationSchema } from "@shared/schema";
 
 if (!process.env.STRIPE_SECRET_KEY) {
   throw new Error('Missing required Stripe secret: STRIPE_SECRET_KEY');
@@ -18,6 +20,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Auth middleware
   await setupAuth(app);
 
+  // Helper function to generate OTP
+  const generateOTP = () => {
+    return Math.floor(100000 + Math.random() * 900000).toString();
+  };
+
+  // Helper function to generate JWT token
+  const generateToken = (userId: string) => {
+    return jwt.sign({ userId }, process.env.JWT_SECRET || 'fallback-secret', { 
+      expiresIn: '7d' 
+    });
+  };
+
   // Auth routes
   app.get('/api/auth/user', isAuthenticated, async (req: any, res) => {
     try {
@@ -27,6 +41,134 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error fetching user:", error);
       res.status(500).json({ message: "Failed to fetch user" });
+    }
+  });
+
+  // Email/Password Authentication Routes
+  
+  // Sign up with email/password and send OTP
+  app.post('/api/auth/signup', async (req, res) => {
+    try {
+      const signupSchema = z.object({
+        firstName: z.string().min(1),
+        lastName: z.string().min(1),
+        email: z.string().email(),
+        password: z.string().min(6),
+      });
+
+      const { firstName, lastName, email, password } = signupSchema.parse(req.body);
+
+      // Check if user already exists
+      const existingUser = await storage.getUserByEmail(email);
+      if (existingUser) {
+        return res.status(400).json({ message: "User with this email already exists" });
+      }
+
+      // Generate and send OTP
+      const otp = generateOTP();
+      await storage.createOTP(email, otp);
+      
+      // Send OTP email (will need email service setup)
+      const emailSent = await emailService.sendOTP(email, otp);
+      if (!emailSent) {
+        return res.status(500).json({ message: "Failed to send verification email" });
+      }
+
+      // Store user data temporarily in session or cache
+      req.session.pendingUser = { firstName, lastName, email, password };
+
+      res.json({ 
+        message: "Verification code sent to your email",
+        email: email.replace(/(.{2})(.*)(@.*)/, '$1***$3') // Mask email for security
+      });
+    } catch (error) {
+      console.error("Signup error:", error);
+      res.status(400).json({ message: "Invalid signup data" });
+    }
+  });
+
+  // Verify OTP and complete registration
+  app.post('/api/auth/verify-otp', async (req, res) => {
+    try {
+      const verifySchema = z.object({
+        email: z.string().email(),
+        otp: z.string().length(6),
+      });
+
+      const { email, otp } = verifySchema.parse(req.body);
+
+      // Verify OTP
+      const otpRecord = await storage.getValidOTP(email, otp);
+      if (!otpRecord) {
+        return res.status(400).json({ message: "Invalid or expired verification code" });
+      }
+
+      // Get pending user data from session
+      const pendingUser = req.session.pendingUser;
+      if (!pendingUser || pendingUser.email !== email) {
+        return res.status(400).json({ message: "Session expired. Please try signing up again" });
+      }
+
+      // Create user account
+      const user = await storage.createUserWithPassword(pendingUser);
+      
+      // Mark OTP as verified
+      await storage.markOTPAsVerified(otpRecord.id);
+
+      // Clear pending user data
+      delete req.session.pendingUser;
+
+      // Generate JWT token
+      const token = generateToken(user.id);
+
+      res.json({
+        message: "Account created successfully",
+        token,
+        user: {
+          id: user.id,
+          email: user.email,
+          firstName: user.firstName,
+          lastName: user.lastName,
+        }
+      });
+    } catch (error) {
+      console.error("OTP verification error:", error);
+      res.status(400).json({ message: "Invalid verification data" });
+    }
+  });
+
+  // Sign in with email/password
+  app.post('/api/auth/signin', async (req, res) => {
+    try {
+      const signinSchema = z.object({
+        email: z.string().email(),
+        password: z.string().min(1),
+      });
+
+      const { email, password } = signinSchema.parse(req.body);
+
+      // Verify user credentials
+      const user = await storage.verifyPassword(email, password);
+      if (!user) {
+        return res.status(401).json({ message: "Invalid email or password" });
+      }
+
+      // Generate JWT token
+      const token = generateToken(user.id);
+
+      res.json({
+        message: "Login successful",
+        token,
+        user: {
+          id: user.id,
+          email: user.email,
+          firstName: user.firstName,
+          lastName: user.lastName,
+        }
+      });
+    } catch (error) {
+      console.error("Signin error:", error);
+      res.status(400).json({ message: "Invalid signin data" });
     }
   });
 

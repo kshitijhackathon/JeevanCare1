@@ -34,7 +34,7 @@ export default function GetStarted() {
         {/* Buttons */}
         <div className="w-full max-w-sm space-y-4">
           <Link href="/auth/signin">
-            <Button className="w-full bg-blue-400 hover:bg-blue-500 text-white py-4 text-lg font-medium rounded-full">
+            <Button className="w-full bg-blue-400 hover:bg-blue-500 text-white py-4 text-lg font-medium rounded-full mt-[19px] mb-[19px]">
               Login
             </Button>
           </Link>

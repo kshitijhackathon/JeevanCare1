@@ -547,6 +547,83 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Advanced AI Doctor Consultation
+  app.post("/api/ai-doctor/start", isAuthenticated, async (req, res) => {
+    try {
+      const { name, gender, age, bloodGroup, language } = req.body;
+      res.json({ 
+        success: true, 
+        message: "AI Doctor consultation started",
+        sessionId: `session_${Date.now()}`
+      });
+    } catch (error) {
+      console.error("AI Doctor start error:", error);
+      res.status(500).json({ message: "Failed to start consultation" });
+    }
+  });
+
+  app.post("/api/ai-doctor/chat", isAuthenticated, async (req, res) => {
+    try {
+      const { message, language, patientDetails, selectedBodyPart, capturedImage } = req.body;
+
+      let enhancedMessage = message;
+      if (selectedBodyPart) {
+        enhancedMessage += ` Patient pointed to their ${selectedBodyPart} on the body model.`;
+      }
+      if (capturedImage) {
+        enhancedMessage += ` Patient provided a photo for medical analysis.`;
+      }
+
+      const systemPrompt = language === 'hindi' 
+        ? `You are a highly professional, emotionally intelligent AI Doctor. Respond in Hinglish (Hindi-English mix). Patient: ${patientDetails.name}, Age: ${patientDetails.age}, Gender: ${patientDetails.gender}, Blood Group: ${patientDetails.bloodGroup}. Provide empathetic medical advice, ask specific follow-up questions about symptoms like timing, severity, and associated symptoms. Be professional like a real doctor consultation.`
+        : `You are a highly professional, emotionally intelligent AI Doctor. Patient: ${patientDetails.name}, Age: ${patientDetails.age}, Gender: ${patientDetails.gender}, Blood Group: ${patientDetails.bloodGroup}. Provide empathetic medical advice, ask specific follow-up questions about symptoms like timing, severity, and associated symptoms. Be professional like a real doctor consultation.`;
+
+      const response = await fetch('https://api.perplexity.ai/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${process.env.PERPLEXITY_API_KEY}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          model: 'llama-3.1-sonar-small-128k-online',
+          messages: [
+            {
+              role: 'system',
+              content: systemPrompt
+            },
+            {
+              role: 'user',
+              content: enhancedMessage
+            }
+          ],
+          max_tokens: 500,
+          temperature: 0.2,
+          top_p: 0.9,
+          stream: false
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to get AI response');
+      }
+
+      const data = await response.json();
+      const aiResponse = data.choices[0]?.message?.content || 
+        (language === 'hindi' 
+          ? "Main samajh sakta hoon aap pareshaan hain. Kripaya apne symptoms detail mein bataiye."
+          : "I understand your concern. Please describe your symptoms in detail.");
+
+      res.json({ response: aiResponse });
+    } catch (error) {
+      console.error("AI Doctor chat error:", error);
+      res.status(500).json({ 
+        response: language === 'hindi' 
+          ? "Maaf kariye, main abhi available nahi hun. Kripaya baad mein try kariye."
+          : "I apologize, but I'm currently unavailable. Please try again later."
+      });
+    }
+  });
+
   // AI Consultation with Perplexity API
   app.post("/api/consultations/ai-chat", isAuthenticated, async (req, res) => {
     try {

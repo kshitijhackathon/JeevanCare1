@@ -72,7 +72,7 @@ function Router() {
           <Route path="/cart" component={Cart} />
           <Route path="/checkout" component={Checkout} />
           <Route path="/profile" component={Profile} />
-          <Route path="/consultation" component={TestConsultation} />
+          <Route path="/consultation" component={AIDoctorConsultation} />
           <Route path="/book-test" component={BookTest} />
           <Route path="/delivery/:orderId" component={MedicineDelivery} />
           <Route path="/reports" component={Reports} />

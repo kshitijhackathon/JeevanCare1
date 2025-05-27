@@ -7,6 +7,9 @@ import { emailService } from "./email";
 import jwt from "jsonwebtoken";
 import { z } from "zod";
 import { insertProductSchema, insertCartItemSchema, insertConsultationSchema } from "@shared/schema";
+import passport from 'passport';
+import { Strategy as GoogleStrategy } from 'passport-google-oauth20';
+import { Strategy as FacebookStrategy } from 'passport-facebook';
 
 if (!process.env.STRIPE_SECRET_KEY) {
   throw new Error('Missing required Stripe secret: STRIPE_SECRET_KEY');
@@ -19,6 +22,77 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
 export async function registerRoutes(app: Express): Promise<Server> {
   // Auth middleware
   await setupAuth(app);
+
+  // Initialize Passport
+  app.use(passport.initialize());
+  app.use(passport.session());
+
+  // Passport serialization
+  passport.serializeUser((user: any, done) => {
+    done(null, user.id);
+  });
+
+  passport.deserializeUser(async (id: string, done) => {
+    try {
+      const user = await storage.getUser(id);
+      done(null, user);
+    } catch (error) {
+      done(error, null);
+    }
+  });
+
+  // Google OAuth Strategy
+  passport.use(new GoogleStrategy({
+    clientID: process.env.GOOGLE_CLIENT_ID!,
+    clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
+    callbackURL: "/api/auth/google/callback"
+  }, async (accessToken, refreshToken, profile, done) => {
+    try {
+      // Check if user already exists
+      let user = await storage.getUserByEmail(profile.emails?.[0]?.value || '');
+      
+      if (!user) {
+        // Create new user
+        user = await storage.createUserWithPassword({
+          firstName: profile.name?.givenName || '',
+          lastName: profile.name?.familyName || '',
+          email: profile.emails?.[0]?.value || '',
+          password: '', // No password for OAuth users
+        });
+      }
+      
+      return done(null, user);
+    } catch (error) {
+      return done(error, null);
+    }
+  }));
+
+  // Facebook OAuth Strategy  
+  passport.use(new FacebookStrategy({
+    clientID: process.env.FACEBOOK_APP_ID!,
+    clientSecret: process.env.FACEBOOK_APP_SECRET!,
+    callbackURL: "/api/auth/facebook/callback",
+    profileFields: ['id', 'emails', 'name']
+  }, async (accessToken, refreshToken, profile, done) => {
+    try {
+      // Check if user already exists
+      let user = await storage.getUserByEmail(profile.emails?.[0]?.value || '');
+      
+      if (!user) {
+        // Create new user
+        user = await storage.createUserWithPassword({
+          firstName: profile.name?.givenName || '',
+          lastName: profile.name?.familyName || '',
+          email: profile.emails?.[0]?.value || '',
+          password: '', // No password for OAuth users
+        });
+      }
+      
+      return done(null, user);
+    } catch (error) {
+      return done(error, null);
+    }
+  }));
 
   // Helper function to generate OTP
   const generateOTP = () => {
@@ -60,6 +134,54 @@ export async function registerRoutes(app: Express): Promise<Server> {
       return res.status(403).json({ message: 'Invalid or expired token' });
     }
   };
+
+  // Google OAuth routes
+  app.get('/api/auth/google', passport.authenticate('google', { scope: ['profile', 'email'] }));
+  
+  app.get('/api/auth/google/callback', 
+    passport.authenticate('google', { failureRedirect: '/auth/signin' }),
+    async (req: any, res) => {
+      try {
+        const user = req.user;
+        const token = generateToken(user.id);
+        
+        // Redirect to frontend with token
+        res.redirect(`/?token=${token}&user=${encodeURIComponent(JSON.stringify({
+          id: user.id,
+          email: user.email,
+          firstName: user.firstName,
+          lastName: user.lastName
+        }))}`);
+      } catch (error) {
+        console.error('Google OAuth callback error:', error);
+        res.redirect('/auth/signin?error=oauth_failed');
+      }
+    }
+  );
+
+  // Facebook OAuth routes
+  app.get('/api/auth/facebook', passport.authenticate('facebook', { scope: ['email'] }));
+  
+  app.get('/api/auth/facebook/callback',
+    passport.authenticate('facebook', { failureRedirect: '/auth/signin' }),
+    async (req: any, res) => {
+      try {
+        const user = req.user;
+        const token = generateToken(user.id);
+        
+        // Redirect to frontend with token
+        res.redirect(`/?token=${token}&user=${encodeURIComponent(JSON.stringify({
+          id: user.id,
+          email: user.email,
+          firstName: user.firstName,
+          lastName: user.lastName
+        }))}`);
+      } catch (error) {
+        console.error('Facebook OAuth callback error:', error);
+        res.redirect('/auth/signin?error=oauth_failed');
+      }
+    }
+  );
 
   // Auth routes
   app.get('/api/auth/user', authenticateJWT, async (req: any, res) => {

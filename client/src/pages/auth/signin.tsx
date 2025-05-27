@@ -34,11 +34,12 @@ export default function SignIn() {
           description: "Login successful",
         });
         
-        // Store JWT token
+        // Store JWT token and user data
         localStorage.setItem('authToken', data.token);
+        localStorage.setItem('userData', JSON.stringify(data.user));
         
-        // Force page reload to update authentication state
-        window.location.reload();
+        // Redirect to home page
+        navigate('/');
       } else {
         toast({
           title: "Login Failed",
@@ -59,17 +60,11 @@ export default function SignIn() {
   };
 
   const handleGoogleSignIn = () => {
-    toast({
-      title: "Coming Soon",
-      description: "Google sign in will be available soon. Please use email/password for now.",
-    });
+    window.location.href = '/api/auth/google';
   };
 
   const handleFacebookSignIn = () => {
-    toast({
-      title: "Coming Soon", 
-      description: "Facebook sign in will be available soon. Please use email/password for now.",
-    });
+    window.location.href = '/api/auth/facebook';
   };
 
   return (

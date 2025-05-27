@@ -102,7 +102,6 @@ export default function Home() {
                   <Bot className="w-6 h-6 text-blue-600" />
                 </div>
                 <p className="text-xs font-medium text-gray-700 leading-tight">AI Doctor Consultation</p>
-                <p className="text-xs text-gray-500 mt-1 leading-tight">24x7 health assistant</p>
               </div>
             </Link>
             

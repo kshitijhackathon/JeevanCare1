@@ -15,6 +15,7 @@ import NotFound from "@/pages/not-found";
 import GetStarted from "@/pages/auth/get-started";
 import SignUp from "@/pages/auth/signup";
 import SignIn from "@/pages/auth/signin";
+import OTPVerification from "@/pages/auth/otp-verification";
 
 function Router() {
   const { isAuthenticated, isLoading } = useAuth();
@@ -35,6 +36,7 @@ function Router() {
           <Route path="/auth/get-started" component={GetStarted} />
           <Route path="/auth/signup" component={SignUp} />
           <Route path="/auth/signin" component={SignIn} />
+          <Route path="/auth/otp-verification" component={OTPVerification} />
         </>
       ) : (
         <>

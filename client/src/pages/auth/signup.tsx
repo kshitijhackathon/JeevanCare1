@@ -9,18 +9,69 @@ import { useToast } from "@/hooks/use-toast";
 
 export default function SignUp() {
   const [, navigate] = useLocation();
+  const { toast } = useToast();
   const [showPassword, setShowPassword] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   const [formData, setFormData] = useState({
-    name: "",
+    firstName: "",
+    lastName: "",
     email: "",
     password: "",
     agreeToTerms: false
   });
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Will implement OTP verification next
-    console.log("Sign up form submitted:", formData);
+    
+    if (!formData.agreeToTerms) {
+      toast({
+        title: "Error",
+        description: "Please agree to the terms and conditions",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsLoading(true);
+
+    try {
+      const response = await apiRequest("POST", "/api/auth/signup", {
+        firstName: formData.firstName,
+        lastName: formData.lastName,
+        email: formData.email,
+        password: formData.password,
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        toast({
+          title: "Success!",
+          description: "Verification code sent to your email",
+        });
+        
+        // Store email for OTP verification
+        sessionStorage.setItem('pendingEmail', formData.email);
+        
+        // Navigate to OTP verification
+        navigate('/auth/otp-verification');
+      } else {
+        toast({
+          title: "Signup Failed",
+          description: data.message || "Failed to create account",
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      console.error("Signup error:", error);
+      toast({
+        title: "Error",
+        description: "Failed to create account. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -67,16 +118,31 @@ export default function SignUp() {
       {/* Form */}
       <div className="flex-1 px-6 py-6">
         <form onSubmit={handleSubmit} className="space-y-6">
-          {/* Name Input */}
+          {/* First Name Input */}
           <div className="relative">
             <div className="absolute left-3 top-1/2 transform -translate-y-1/2">
               <User className="w-5 h-5 text-gray-400" />
             </div>
             <Input
               type="text"
-              placeholder="Enter your name"
-              value={formData.name}
-              onChange={(e) => setFormData({...formData, name: e.target.value})}
+              placeholder="Enter your first name"
+              value={formData.firstName}
+              onChange={(e) => setFormData({...formData, firstName: e.target.value})}
+              className="pl-12 py-4 text-lg border-gray-300 rounded-xl"
+              required
+            />
+          </div>
+
+          {/* Last Name Input */}
+          <div className="relative">
+            <div className="absolute left-3 top-1/2 transform -translate-y-1/2">
+              <User className="w-5 h-5 text-gray-400" />
+            </div>
+            <Input
+              type="text"
+              placeholder="Enter your last name"
+              value={formData.lastName}
+              onChange={(e) => setFormData({...formData, lastName: e.target.value})}
               className="pl-12 py-4 text-lg border-gray-300 rounded-xl"
               required
             />
@@ -144,10 +210,10 @@ export default function SignUp() {
           {/* Sign Up Button */}
           <Button
             type="submit"
-            disabled={!formData.agreeToTerms}
+            disabled={!formData.agreeToTerms || isLoading}
             className="w-full bg-blue-400 hover:bg-blue-500 text-white py-4 text-lg font-medium rounded-full mt-8"
           >
-            Sign Up
+            {isLoading ? "Creating Account..." : "Sign Up"}
           </Button>
 
           {/* Sign In Link */}

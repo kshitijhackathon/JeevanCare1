@@ -12,7 +12,7 @@ import ProductDetail from "@/pages/product-detail";
 import Cart from "@/pages/cart";
 import Checkout from "@/pages/checkout";
 import Profile from "@/pages/profile-simple";
-import TestConsultation from "@/pages/test-consultation";
+import AIDoctorConsultation from "@/pages/ai-doctor-consultation";
 import BookTest from "@/pages/book-test";
 import MedicineDelivery from "@/pages/medicine-delivery";
 import Reports from "@/pages/reports";

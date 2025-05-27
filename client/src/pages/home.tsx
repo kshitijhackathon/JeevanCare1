@@ -3,6 +3,7 @@ import { useAuth } from "@/hooks/useAuth";
 import Header from "@/components/header";
 import BottomNavigation from "@/components/bottom-navigation";
 import ConsultationModal from "@/components/consultation-modal";
+import EmergencyPanel from "@/components/emergency-panel";
 import HealthMetrics from "@/components/health-metrics";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -14,6 +15,7 @@ import type { HealthReport } from "@shared/schema";
 export default function Home() {
   const { user } = useAuth();
   const [showConsultation, setShowConsultation] = useState(false);
+  const [showEmergency, setShowEmergency] = useState(false);
 
   const { data: healthReports } = useQuery<HealthReport[]>({
     queryKey: ["/api/health-reports"],
@@ -174,6 +176,13 @@ export default function Home() {
         <ConsultationModal 
           isOpen={showConsultation}
           onClose={() => setShowConsultation(false)}
+        />
+      )}
+      
+      {showEmergency && (
+        <EmergencyPanel 
+          isOpen={showEmergency}
+          onClose={() => setShowEmergency(false)}
         />
       )}
     </div>

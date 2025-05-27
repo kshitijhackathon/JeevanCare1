@@ -43,6 +43,21 @@ export default function Profile() {
     },
   });
 
+  const handleLogout = () => {
+    // Clear JWT token and user data
+    localStorage.removeItem('authToken');
+    localStorage.removeItem('userData');
+    
+    // Show logout message
+    toast({
+      title: "Logged out",
+      description: "You have been successfully logged out.",
+    });
+    
+    // Redirect to login page
+    navigate('/auth/signin');
+  };
+
   const handleSave = () => {
     updateProfileMutation.mutate(formData);
   };
@@ -92,7 +107,7 @@ export default function Profile() {
           <Button
             variant="destructive"
             size="sm"
-            onClick={() => window.location.href = '/api/logout'}
+            onClick={handleLogout}
           >
             Logout
           </Button>

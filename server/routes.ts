@@ -42,8 +42,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
 
     try {
+      console.log('Verifying token:', token);
       const decoded = jwt.verify(token, process.env.JWT_SECRET || 'fallback-secret') as any;
+      console.log('Decoded token:', decoded);
+      
       const user = await storage.getUser(decoded.userId);
+      console.log('Found user:', user);
       
       if (!user) {
         return res.status(401).json({ message: 'User not found' });
@@ -52,6 +56,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       req.user = user;
       next();
     } catch (error) {
+      console.error('JWT verification error:', error);
       return res.status(403).json({ message: 'Invalid or expired token' });
     }
   };

@@ -8,7 +8,18 @@ import HealthMetrics from "@/components/health-metrics";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Link } from "wouter";
-import { UserRound, PillBottle, Ambulance, FileText, MoreHorizontal } from "lucide-react";
+import { 
+  Bot, 
+  Search, 
+  FileText, 
+  Ambulance, 
+  TestTube, 
+  Truck, 
+  ScanFace, 
+  UserRound, 
+  FolderOpen,
+  PillBottle 
+} from "lucide-react";
 import { useState } from "react";
 import type { HealthReport } from "@shared/schema";
 
@@ -79,97 +90,108 @@ export default function Home() {
           </Link>
         </div>
 
-        {/* Services Grid - Matching Your Design */}
+        {/* Healthcare Services Grid */}
         <div className="px-4">
-          <div className="grid grid-cols-3 gap-4 mb-4">
-            <Link href="/doctors">
-              <div className="bg-white rounded-2xl p-4 text-center shadow-sm">
-                <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-2">
-                  <UserRound className="w-6 h-6 text-blue-600" />
-                </div>
-                <p className="text-sm font-medium text-gray-700">Top Doctors</p>
-              </div>
-            </Link>
-            
-            <Link href="/pharmacy">
-              <div className="bg-white rounded-2xl p-4 text-center shadow-sm">
-                <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-2">
-                  <PillBottle className="w-6 h-6 text-blue-600" />
-                </div>
-                <p className="text-sm font-medium text-gray-700">Pharmacy</p>
-              </div>
-            </Link>
-            
-            <div 
-              onClick={() => setShowEmergency(true)}
-              className="bg-white rounded-2xl p-4 text-center shadow-sm cursor-pointer hover:shadow-md transition-shadow"
-            >
-              <div className="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-2">
-                <Ambulance className="w-6 h-6 text-red-600" />
-              </div>
-              <p className="text-sm font-medium text-gray-700">Ambulance</p>
-            </div>
-          </div>
+          <h3 className="text-lg font-semibold text-gray-800 mb-4">Health Services</h3>
           
-          <div className="grid grid-cols-3 gap-4 mb-4">
-            <Link href="/pharmacy">
-              <div className="bg-white rounded-2xl p-4 text-center shadow-sm">
+          {/* Row 1 */}
+          <div className="grid grid-cols-3 gap-3 mb-4">
+            <Link href="/ai-consultation">
+              <div className="bg-white rounded-2xl p-3 text-center shadow-sm hover:shadow-md transition-shadow">
                 <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-2">
-                  <PillBottle className="w-6 h-6 text-blue-600" />
+                  <Bot className="w-6 h-6 text-blue-600" />
                 </div>
-                <p className="text-sm font-medium text-gray-700">Pharmacy</p>
+                <p className="text-xs font-medium text-gray-700 leading-tight">AI Doctor Consultation</p>
+                <p className="text-xs text-gray-500 mt-1 leading-tight">24x7 health assistant</p>
               </div>
             </Link>
             
-            <div 
-              onClick={() => setShowEmergency(true)}
-              className="bg-white rounded-2xl p-4 text-center shadow-sm cursor-pointer hover:shadow-md transition-shadow"
-            >
-              <div className="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-2">
-                <Ambulance className="w-6 h-6 text-red-600" />
-              </div>
-              <p className="text-sm font-medium text-gray-700">Ambulance</p>
-            </div>
-            
-            <Link href="/pharmacy">
-              <div className="bg-white rounded-2xl p-4 text-center shadow-sm">
-                <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-2">
-                  <PillBottle className="w-6 h-6 text-blue-600" />
+            <Link href="/symptom-checker">
+              <div className="bg-white rounded-2xl p-3 text-center shadow-sm hover:shadow-md transition-shadow">
+                <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-2">
+                  <Search className="w-6 h-6 text-green-600" />
                 </div>
-                <p className="text-sm font-medium text-gray-700">Pharmacy</p>
+                <p className="text-xs font-medium text-gray-700 leading-tight">Symptom Checker</p>
+                <p className="text-xs text-gray-500 mt-1 leading-tight">Get conditions instantly</p>
+              </div>
+            </Link>
+            
+            <Link href="/prescription">
+              <div className="bg-white rounded-2xl p-3 text-center shadow-sm hover:shadow-md transition-shadow">
+                <div className="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-2">
+                  <FileText className="w-6 h-6 text-purple-600" />
+                </div>
+                <p className="text-xs font-medium text-gray-700 leading-tight">Prescription Generator</p>
+                <p className="text-xs text-gray-500 mt-1 leading-tight">AI verified medicines</p>
               </div>
             </Link>
           </div>
           
-          <div className="grid grid-cols-3 gap-4">
+          {/* Row 2 */}
+          <div className="grid grid-cols-3 gap-3 mb-4">
             <div 
               onClick={() => setShowEmergency(true)}
-              className="bg-white rounded-2xl p-4 text-center shadow-sm cursor-pointer hover:shadow-md transition-shadow"
+              className="bg-white rounded-2xl p-3 text-center shadow-sm cursor-pointer hover:shadow-md transition-shadow"
             >
               <div className="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-2">
                 <Ambulance className="w-6 h-6 text-red-600" />
               </div>
-              <p className="text-sm font-medium text-gray-700">Ambulance</p>
+              <p className="text-xs font-medium text-gray-700 leading-tight">Ambulance Booking</p>
+              <p className="text-xs text-gray-500 mt-1 leading-tight">Emergency booking</p>
             </div>
             
-            <Link href="/pharmacy">
-              <div className="bg-white rounded-2xl p-4 text-center shadow-sm">
-                <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-2">
-                  <PillBottle className="w-6 h-6 text-blue-600" />
+            <Link href="/book-test">
+              <div className="bg-white rounded-2xl p-3 text-center shadow-sm hover:shadow-md transition-shadow">
+                <div className="w-12 h-12 bg-orange-100 rounded-full flex items-center justify-center mx-auto mb-2">
+                  <TestTube className="w-6 h-6 text-orange-600" />
                 </div>
-                <p className="text-sm font-medium text-gray-700">Pharmacy</p>
+                <p className="text-xs font-medium text-gray-700 leading-tight">Lab Test Booking</p>
+                <p className="text-xs text-gray-500 mt-1 leading-tight">Home sample collection</p>
               </div>
             </Link>
             
-            <div 
-              onClick={() => setShowEmergency(true)}
-              className="bg-white rounded-2xl p-4 text-center shadow-sm cursor-pointer hover:shadow-md transition-shadow"
-            >
-              <div className="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-2">
-                <Ambulance className="w-6 h-6 text-red-600" />
+            <Link href="/medicine-delivery">
+              <div className="bg-white rounded-2xl p-3 text-center shadow-sm hover:shadow-md transition-shadow">
+                <div className="w-12 h-12 bg-teal-100 rounded-full flex items-center justify-center mx-auto mb-2">
+                  <Truck className="w-6 h-6 text-teal-600" />
+                </div>
+                <p className="text-xs font-medium text-gray-700 leading-tight">Medicine Delivery</p>
+                <p className="text-xs text-gray-500 mt-1 leading-tight">Doorstep in 4-8 hours</p>
               </div>
-              <p className="text-sm font-medium text-gray-700">Ambulance</p>
-            </div>
+            </Link>
+          </div>
+          
+          {/* Row 3 */}
+          <div className="grid grid-cols-3 gap-3">
+            <Link href="/face-scan">
+              <div className="bg-white rounded-2xl p-3 text-center shadow-sm hover:shadow-md transition-shadow">
+                <div className="w-12 h-12 bg-pink-100 rounded-full flex items-center justify-center mx-auto mb-2">
+                  <ScanFace className="w-6 h-6 text-pink-600" />
+                </div>
+                <p className="text-xs font-medium text-gray-700 leading-tight">Real-Time Face Scan</p>
+                <p className="text-xs text-gray-500 mt-1 leading-tight">Quick eye/skin analysis</p>
+              </div>
+            </Link>
+            
+            <Link href="/doctor-escalation">
+              <div className="bg-white rounded-2xl p-3 text-center shadow-sm hover:shadow-md transition-shadow">
+                <div className="w-12 h-12 bg-indigo-100 rounded-full flex items-center justify-center mx-auto mb-2">
+                  <UserRound className="w-6 h-6 text-indigo-600" />
+                </div>
+                <p className="text-xs font-medium text-gray-700 leading-tight">Doctor Escalation</p>
+                <p className="text-xs text-gray-500 mt-1 leading-tight">Connect real doctor</p>
+              </div>
+            </Link>
+            
+            <Link href="/health-vault">
+              <div className="bg-white rounded-2xl p-3 text-center shadow-sm hover:shadow-md transition-shadow">
+                <div className="w-12 h-12 bg-yellow-100 rounded-full flex items-center justify-center mx-auto mb-2">
+                  <FolderOpen className="w-6 h-6 text-yellow-600" />
+                </div>
+                <p className="text-xs font-medium text-gray-700 leading-tight">Health Report Vault</p>
+                <p className="text-xs text-gray-500 mt-1 leading-tight">Secure report storage</p>
+              </div>
+            </Link>
           </div>
         </div>
       </main>

@@ -66,7 +66,7 @@ export default function Landing() {
         {/* CTA Button */}
         <div className="w-full max-w-sm">
           <Button
-            onClick={() => window.location.href = '/api/login'}
+            onClick={() => window.location.href = '/auth/get-started'}
             className="w-full bg-blue-600 hover:bg-blue-700 text-white py-4 text-lg font-medium rounded-xl shadow-lg transition-all duration-200 hover:shadow-xl"
           >
             Get Started

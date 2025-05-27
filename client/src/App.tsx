@@ -12,6 +12,9 @@ import Cart from "@/pages/cart";
 import Checkout from "@/pages/checkout";
 import Profile from "@/pages/profile-simple";
 import NotFound from "@/pages/not-found";
+import GetStarted from "@/pages/auth/get-started";
+import SignUp from "@/pages/auth/signup";
+import SignIn from "@/pages/auth/signin";
 
 function Router() {
   const { isAuthenticated, isLoading } = useAuth();
@@ -27,7 +30,12 @@ function Router() {
   return (
     <Switch>
       {!isAuthenticated ? (
-        <Route path="/" component={Landing} />
+        <>
+          <Route path="/" component={Landing} />
+          <Route path="/auth/get-started" component={GetStarted} />
+          <Route path="/auth/signup" component={SignUp} />
+          <Route path="/auth/signin" component={SignIn} />
+        </>
       ) : (
         <>
           <Route path="/" component={Home} />

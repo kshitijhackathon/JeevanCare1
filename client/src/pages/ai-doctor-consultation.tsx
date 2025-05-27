@@ -77,15 +77,26 @@ export default function AIDoctorConsultation() {
       return response.json();
     },
     onSuccess: () => {
+      console.log("Consultation started successfully, changing step to video-call");
       setStep('video-call');
-      startVideoCall();
-      const welcomeMessage: ChatMessage = {
-        role: 'doctor',
-        content: getWelcomeMessage(),
-        timestamp: new Date(),
-        type: 'text'
-      };
-      setMessages([welcomeMessage]);
+      setTimeout(() => {
+        startVideoCall();
+        const welcomeMessage: ChatMessage = {
+          role: 'doctor',
+          content: getWelcomeMessage(),
+          timestamp: new Date(),
+          type: 'text'
+        };
+        setMessages([welcomeMessage]);
+      }, 100);
+    },
+    onError: (error) => {
+      console.error("Consultation start error:", error);
+      toast({
+        title: "Error",
+        description: "Failed to start consultation. Please try again.",
+        variant: "destructive"
+      });
     }
   });
 
@@ -298,8 +309,28 @@ export default function AIDoctorConsultation() {
               </div>
               
               <Button 
-                onClick={() => startConsultation.mutate(patientDetails)}
-                disabled={!patientDetails.name || !patientDetails.age || !patientDetails.gender || !patientDetails.bloodGroup || startConsultation.isPending}
+                onClick={() => {
+                  console.log("Button clicked, patient details:", patientDetails);
+                  console.log("Current step:", step);
+                  
+                  // Direct step change for testing
+                  if (!patientDetails.name || !patientDetails.age || !patientDetails.gender || !patientDetails.bloodGroup) {
+                    toast({
+                      title: "Missing Information", 
+                      description: "Please fill all required fields",
+                      variant: "destructive"
+                    });
+                    return;
+                  }
+                  
+                  // Directly change step for now
+                  console.log("Changing step to video-call");
+                  setStep('video-call');
+                  
+                  // Also call the API
+                  startConsultation.mutate(patientDetails);
+                }}
+                disabled={startConsultation.isPending}
                 className="w-full"
                 size="lg"
               >

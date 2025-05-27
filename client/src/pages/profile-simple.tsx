@@ -54,8 +54,8 @@ export default function Profile() {
       description: "You have been successfully logged out.",
     });
     
-    // Redirect to login page
-    navigate('/auth/signin');
+    // Redirect to landing page (which will show signin option)
+    window.location.href = '/';
   };
 
   const handleSave = () => {

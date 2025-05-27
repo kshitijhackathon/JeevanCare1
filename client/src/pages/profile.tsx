@@ -18,10 +18,10 @@ export default function Profile() {
   const { toast } = useToast();
   const [isEditing, setIsEditing] = useState(false);
   const [formData, setFormData] = useState({
-    age: (user as any)?.age || "",
-    weight: (user as any)?.weight || "",
-    gender: (user as any)?.gender || "",
-    bloodGroup: (user as any)?.bloodGroup || "",
+    age: "",
+    weight: "",
+    gender: "",
+    bloodGroup: "",
   });
 
   const updateProfileMutation = useMutation({
@@ -76,9 +76,9 @@ export default function Profile() {
         <Card className="mb-6">
           <CardContent className="p-6 text-center">
             <div className="w-24 h-24 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
-              {user?.profileImageUrl ? (
+              {(user as any)?.profileImageUrl ? (
                 <img 
-                  src={user.profileImageUrl}
+                  src={(user as any).profileImageUrl}
                   alt="Profile"
                   className="w-24 h-24 rounded-full object-cover"
                 />
@@ -87,9 +87,9 @@ export default function Profile() {
               )}
             </div>
             <h3 className="text-xl font-semibold text-gray-800 mb-1">
-              {user?.firstName} {user?.lastName}
+              {(user as any)?.firstName} {(user as any)?.lastName}
             </h3>
-            <p className="text-gray-600">{user?.email}</p>
+            <p className="text-gray-600">{(user as any)?.email}</p>
           </CardContent>
         </Card>
 

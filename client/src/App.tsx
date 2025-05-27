@@ -10,7 +10,7 @@ import Pharmacy from "@/pages/pharmacy";
 import ProductDetail from "@/pages/product-detail";
 import Cart from "@/pages/cart";
 import Checkout from "@/pages/checkout";
-import Profile from "@/pages/profile";
+import Profile from "@/pages/profile-simple";
 import NotFound from "@/pages/not-found";
 
 function Router() {

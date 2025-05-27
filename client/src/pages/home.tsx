@@ -100,14 +100,15 @@ export default function Home() {
               </div>
             </Link>
             
-            <Link href="/ambulance">
-              <div className="bg-white rounded-2xl p-4 text-center shadow-sm">
-                <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-2">
-                  <Ambulance className="w-6 h-6 text-blue-600" />
-                </div>
-                <p className="text-sm font-medium text-gray-700">Ambulance</p>
+            <div 
+              onClick={() => setShowEmergency(true)}
+              className="bg-white rounded-2xl p-4 text-center shadow-sm cursor-pointer hover:shadow-md transition-shadow"
+            >
+              <div className="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-2">
+                <Ambulance className="w-6 h-6 text-red-600" />
               </div>
-            </Link>
+              <p className="text-sm font-medium text-gray-700">Ambulance</p>
+            </div>
           </div>
           
           <div className="grid grid-cols-3 gap-4 mb-4">
@@ -120,14 +121,15 @@ export default function Home() {
               </div>
             </Link>
             
-            <Link href="/ambulance">
-              <div className="bg-white rounded-2xl p-4 text-center shadow-sm">
-                <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-2">
-                  <Ambulance className="w-6 h-6 text-blue-600" />
-                </div>
-                <p className="text-sm font-medium text-gray-700">Ambulance</p>
+            <div 
+              onClick={() => setShowEmergency(true)}
+              className="bg-white rounded-2xl p-4 text-center shadow-sm cursor-pointer hover:shadow-md transition-shadow"
+            >
+              <div className="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-2">
+                <Ambulance className="w-6 h-6 text-red-600" />
               </div>
-            </Link>
+              <p className="text-sm font-medium text-gray-700">Ambulance</p>
+            </div>
             
             <Link href="/pharmacy">
               <div className="bg-white rounded-2xl p-4 text-center shadow-sm">
@@ -140,14 +142,15 @@ export default function Home() {
           </div>
           
           <div className="grid grid-cols-3 gap-4">
-            <Link href="/ambulance">
-              <div className="bg-white rounded-2xl p-4 text-center shadow-sm">
-                <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-2">
-                  <Ambulance className="w-6 h-6 text-blue-600" />
-                </div>
-                <p className="text-sm font-medium text-gray-700">Ambulance</p>
+            <div 
+              onClick={() => setShowEmergency(true)}
+              className="bg-white rounded-2xl p-4 text-center shadow-sm cursor-pointer hover:shadow-md transition-shadow"
+            >
+              <div className="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-2">
+                <Ambulance className="w-6 h-6 text-red-600" />
               </div>
-            </Link>
+              <p className="text-sm font-medium text-gray-700">Ambulance</p>
+            </div>
             
             <Link href="/pharmacy">
               <div className="bg-white rounded-2xl p-4 text-center shadow-sm">
@@ -158,14 +161,15 @@ export default function Home() {
               </div>
             </Link>
             
-            <Link href="/ambulance">
-              <div className="bg-white rounded-2xl p-4 text-center shadow-sm">
-                <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-2">
-                  <Ambulance className="w-6 h-6 text-blue-600" />
-                </div>
-                <p className="text-sm font-medium text-gray-700">Ambulance</p>
+            <div 
+              onClick={() => setShowEmergency(true)}
+              className="bg-white rounded-2xl p-4 text-center shadow-sm cursor-pointer hover:shadow-md transition-shadow"
+            >
+              <div className="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-2">
+                <Ambulance className="w-6 h-6 text-red-600" />
               </div>
-            </Link>
+              <p className="text-sm font-medium text-gray-700">Ambulance</p>
+            </div>
           </div>
         </div>
       </main>

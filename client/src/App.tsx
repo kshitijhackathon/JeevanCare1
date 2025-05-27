@@ -1,3 +1,4 @@
+import React from "react";
 import { Switch, Route } from "wouter";
 import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
@@ -19,6 +20,27 @@ import OTPVerification from "@/pages/auth/otp-verification";
 
 function Router() {
   const { isAuthenticated, isLoading } = useAuth();
+
+  // Handle OAuth callback (Google/Facebook login)
+  React.useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const token = urlParams.get('token');
+    const userParam = urlParams.get('user');
+    
+    if (token && userParam) {
+      try {
+        const userData = JSON.parse(decodeURIComponent(userParam));
+        localStorage.setItem('authToken', token);
+        localStorage.setItem('userData', JSON.stringify(userData));
+        
+        // Clean URL and reload to update auth state
+        window.history.replaceState({}, document.title, '/');
+        window.location.reload();
+      } catch (error) {
+        console.error('Error handling OAuth callback:', error);
+      }
+    }
+  }, []);
 
   if (isLoading) {
     return (

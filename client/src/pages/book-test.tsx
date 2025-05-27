@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useNavigate } from "wouter";
+import { Link } from "wouter";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -24,7 +24,6 @@ interface TestBooking {
 
 export default function BookTest() {
   const { user } = useAuth();
-  const navigate = useNavigate();
   const { toast } = useToast();
   
   const [step, setStep] = useState<'details' | 'payment' | 'success'>('details');
@@ -107,14 +106,15 @@ export default function BookTest() {
     return (
       <div className="min-h-screen bg-gray-50">
         <div className="bg-white shadow-sm p-4 flex items-center">
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => navigate('/')}
-            className="mr-2"
-          >
-            <ArrowLeft className="w-4 h-4" />
-          </Button>
+          <Link href="/">
+            <Button
+              variant="ghost"
+              size="sm"
+              className="mr-2"
+            >
+              <ArrowLeft className="w-4 h-4" />
+            </Button>
+          </Link>
           <h1 className="text-lg font-semibold">Book Lab Test at Home</h1>
         </div>
 

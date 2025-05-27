@@ -71,12 +71,11 @@ export default function Home() {
                 <h3 className="font-medium text-gray-800">Consult your AI Doctor</h3>
                 <p className="text-xs text-gray-500 mt-1">Quick symptom analysis</p>
               </div>
-              <Button 
-                onClick={() => setShowConsultation(true)}
-                className="btn-secondary text-sm"
-              >
-                Start
-              </Button>
+              <Link href="/consultation">
+                <Button className="btn-secondary text-sm">
+                  Start
+                </Button>
+              </Link>
             </CardContent>
           </Card>
         </section>

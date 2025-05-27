@@ -70,12 +70,11 @@ export default function Home() {
 
         {/* AI Consultation Button */}
         <div className="px-4 mb-6">
-          <button 
-            onClick={() => window.location.href = '/consultation'}
-            className="w-full bg-white rounded-2xl p-4 shadow-sm border border-gray-100 text-center"
-          >
-            <h3 className="font-medium text-gray-800 text-lg">Consult your AI Doctor</h3>
-          </button>
+          <Link href="/consultation">
+            <div className="w-full bg-white rounded-2xl p-4 shadow-sm border border-gray-100 text-center cursor-pointer hover:shadow-md transition-shadow">
+              <h3 className="font-medium text-gray-800 text-lg">Consult your AI Doctor</h3>
+            </div>
+          </Link>
         </div>
 
         {/* Services Grid - Matching Your Design */}

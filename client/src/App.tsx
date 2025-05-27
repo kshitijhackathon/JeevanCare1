@@ -15,6 +15,7 @@ import Profile from "@/pages/profile-simple";
 import ConsultationFlow from "@/pages/consultation-flow";
 import BookTest from "@/pages/book-test";
 import MedicineDelivery from "@/pages/medicine-delivery";
+import Reports from "@/pages/reports";
 import NotFound from "@/pages/not-found";
 import GetStarted from "@/pages/auth/get-started";
 import SignUp from "@/pages/auth/signup";
@@ -74,6 +75,7 @@ function Router() {
           <Route path="/consultation" component={ConsultationFlow} />
           <Route path="/book-test" component={BookTest} />
           <Route path="/delivery/:orderId" component={MedicineDelivery} />
+          <Route path="/reports" component={Reports} />
         </>
       )}
       <Route component={NotFound} />

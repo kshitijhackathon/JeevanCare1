@@ -48,100 +48,125 @@ export default function Home() {
       <Header />
       
       <main className="pb-20">
-        {/* Welcome Section */}
-        <section className="p-4 bg-gradient-healthcare">
-          <div className="flex items-center space-x-4 mb-4">
-            <img 
-              src={user?.profileImageUrl || "https://images.unsplash.com/photo-1612349317150-e413f6a5b16d?ixlib=rb-4.0.3&auto=format&fit=crop&w=80&h=80"}
-              alt="User profile" 
-              className="w-16 h-16 rounded-full object-cover shadow-md"
-            />
+        {/* Welcome Section - Matching Your Design */}
+        <div className="bg-gradient-to-r from-blue-50 to-green-50 p-6 rounded-2xl mb-6 mx-4 mt-4">
+          <div className="flex items-center justify-between">
             <div>
-              <h2 className="font-semibold text-lg text-gray-800">
-                Welcome {user?.firstName || "there"}!
-              </h2>
-              <p className="text-sm text-gray-600">How are you feeling today?</p>
+              <h2 className="text-xl font-semibold text-gray-800 mb-1">Welcome !</h2>
+              <p className="text-lg font-medium text-gray-600">
+                {user ? `${user.firstName} ${user.lastName}` : 'Guest User'}
+              </p>
+              <p className="text-sm text-gray-500 mt-2">How is it going today?</p>
+            </div>
+            <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center">
+              <img 
+                src={user?.profileImageUrl || "https://images.unsplash.com/photo-1612349317150-e413f6a5b16d?ixlib=rb-4.0.3&auto=format&fit=crop&w=64&h=64"}
+                alt="Profile" 
+                className="w-14 h-14 rounded-full object-cover"
+              />
             </div>
           </div>
-          
-          {/* AI Consultation Card */}
-          <Card className="shadow-sm border border-gray-100">
-            <CardContent className="p-4 flex items-center justify-between">
-              <div>
-                <h3 className="font-medium text-gray-800">Consult your AI Doctor</h3>
-                <p className="text-xs text-gray-500 mt-1">Quick symptom analysis</p>
-              </div>
-              <Link href="/consultation">
-                <Button className="btn-secondary text-sm">
-                  Start
-                </Button>
-              </Link>
-            </CardContent>
-          </Card>
-        </section>
+        </div>
 
-        {/* Quick Services Grid */}
-        <section className="p-4">
-          <h3 className="font-semibold text-lg text-gray-800 mb-4">Quick Services</h3>
-          <div className="grid grid-cols-3 gap-4">
-            {services.map((service) => (
-              <Link key={service.name} href={service.path}>
-                <Card className="card-hover text-center cursor-pointer">
-                  <CardContent className="p-4">
-                    <div className={`w-12 h-12 ${service.bgColor} rounded-full flex items-center justify-center mx-auto mb-3`}>
-                      <service.icon className={`w-6 h-6 ${service.color}`} />
-                    </div>
-                    <p className="text-sm font-medium text-gray-700">{service.name}</p>
-                  </CardContent>
-                </Card>
-              </Link>
-            ))}
+        {/* AI Consultation Button */}
+        <div className="px-4 mb-6">
+          <button 
+            onClick={() => window.location.href = '/consultation'}
+            className="w-full bg-white rounded-2xl p-4 shadow-sm border border-gray-100 text-center"
+          >
+            <h3 className="font-medium text-gray-800 text-lg">Consult your AI Doctor</h3>
+          </button>
+        </div>
+
+        {/* Services Grid - Matching Your Design */}
+        <div className="px-4">
+          <div className="grid grid-cols-3 gap-4 mb-4">
+            <Link href="/doctors">
+              <div className="bg-white rounded-2xl p-4 text-center shadow-sm">
+                <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-2">
+                  <UserRound className="w-6 h-6 text-blue-600" />
+                </div>
+                <p className="text-sm font-medium text-gray-700">Top Doctors</p>
+              </div>
+            </Link>
+            
+            <Link href="/pharmacy">
+              <div className="bg-white rounded-2xl p-4 text-center shadow-sm">
+                <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-2">
+                  <PillBottle className="w-6 h-6 text-blue-600" />
+                </div>
+                <p className="text-sm font-medium text-gray-700">Pharmacy</p>
+              </div>
+            </Link>
+            
+            <Link href="/ambulance">
+              <div className="bg-white rounded-2xl p-4 text-center shadow-sm">
+                <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-2">
+                  <Ambulance className="w-6 h-6 text-blue-600" />
+                </div>
+                <p className="text-sm font-medium text-gray-700">Ambulance</p>
+              </div>
+            </Link>
           </div>
-        </section>
-
-        {/* Health Overview */}
-        <HealthMetrics />
-
-        {/* Latest Reports */}
-        <section className="p-4">
-          <Card className="shadow-sm border border-gray-100">
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between mb-3">
-                <h4 className="font-medium text-gray-800">Latest Reports</h4>
-                <Button variant="ghost" size="sm" className="text-secondary">
-                  See all
-                </Button>
+          
+          <div className="grid grid-cols-3 gap-4 mb-4">
+            <Link href="/pharmacy">
+              <div className="bg-white rounded-2xl p-4 text-center shadow-sm">
+                <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-2">
+                  <PillBottle className="w-6 h-6 text-blue-600" />
+                </div>
+                <p className="text-sm font-medium text-gray-700">Pharmacy</p>
               </div>
-              
-              {healthReports && healthReports.length > 0 ? (
-                <div className="space-y-3">
-                  {healthReports.slice(0, 2).map((report) => (
-                    <div key={report.id} className="flex items-center space-x-3 py-3 border-b border-gray-100 last:border-b-0">
-                      <div className="w-10 h-10 bg-secondary/10 rounded-lg flex items-center justify-center">
-                        <FileText className="w-5 h-5 text-secondary" />
-                      </div>
-                      <div className="flex-1">
-                        <p className="font-medium text-gray-800 text-sm">{report.title}</p>
-                        <p className="text-xs text-gray-500">
-                          {new Date(report.createdAt!).toLocaleDateString()}
-                        </p>
-                      </div>
-                      <Button variant="ghost" size="sm">
-                        <MoreHorizontal className="w-4 h-4 text-gray-400" />
-                      </Button>
-                    </div>
-                  ))}
+            </Link>
+            
+            <Link href="/ambulance">
+              <div className="bg-white rounded-2xl p-4 text-center shadow-sm">
+                <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-2">
+                  <Ambulance className="w-6 h-6 text-blue-600" />
                 </div>
-              ) : (
-                <div className="text-center py-8 text-gray-500">
-                  <FileText className="w-12 h-12 mx-auto mb-2 text-gray-300" />
-                  <p className="text-sm">No health reports available</p>
-                  <p className="text-xs">Start a consultation to generate reports</p>
+                <p className="text-sm font-medium text-gray-700">Ambulance</p>
+              </div>
+            </Link>
+            
+            <Link href="/pharmacy">
+              <div className="bg-white rounded-2xl p-4 text-center shadow-sm">
+                <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-2">
+                  <PillBottle className="w-6 h-6 text-blue-600" />
                 </div>
-              )}
-            </CardContent>
-          </Card>
-        </section>
+                <p className="text-sm font-medium text-gray-700">Pharmacy</p>
+              </div>
+            </Link>
+          </div>
+          
+          <div className="grid grid-cols-3 gap-4">
+            <Link href="/ambulance">
+              <div className="bg-white rounded-2xl p-4 text-center shadow-sm">
+                <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-2">
+                  <Ambulance className="w-6 h-6 text-blue-600" />
+                </div>
+                <p className="text-sm font-medium text-gray-700">Ambulance</p>
+              </div>
+            </Link>
+            
+            <Link href="/pharmacy">
+              <div className="bg-white rounded-2xl p-4 text-center shadow-sm">
+                <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-2">
+                  <PillBottle className="w-6 h-6 text-blue-600" />
+                </div>
+                <p className="text-sm font-medium text-gray-700">Pharmacy</p>
+              </div>
+            </Link>
+            
+            <Link href="/ambulance">
+              <div className="bg-white rounded-2xl p-4 text-center shadow-sm">
+                <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-2">
+                  <Ambulance className="w-6 h-6 text-blue-600" />
+                </div>
+                <p className="text-sm font-medium text-gray-700">Ambulance</p>
+              </div>
+            </Link>
+          </div>
+        </div>
       </main>
 
       <BottomNavigation />

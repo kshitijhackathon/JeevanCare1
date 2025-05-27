@@ -167,9 +167,10 @@ export default function SignIn() {
           {/* Sign In Button */}
           <Button
             type="submit"
+            disabled={isLoading}
             className="w-full bg-blue-400 hover:bg-blue-500 text-white py-4 text-lg font-medium rounded-full mt-8"
           >
-            Sign In
+            {isLoading ? "Signing In..." : "Sign In"}
           </Button>
 
           {/* Sign Up Link */}

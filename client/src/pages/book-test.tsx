@@ -390,12 +390,16 @@ export default function BookTest() {
               </p>
             </div>
             <div className="space-y-3">
-              <Button onClick={() => navigate('/')} className="w-full">
+              <Link href="/">
+              <Button className="w-full">
                 Go to Home
               </Button>
-              <Button onClick={() => navigate('/reports')} variant="outline" className="w-full">
+            </Link>
+            <Link href="/reports">
+              <Button variant="outline" className="w-full">
                 View All Reports
               </Button>
+            </Link>
             </div>
           </CardContent>
         </Card>

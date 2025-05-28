@@ -241,85 +241,125 @@ export default function DoctorEscalation() {
     return mockAvailability;
   };
 
-  // Indian Medical Registry integration
-  const getVerifiedDoctors = async (specialty: string, location: any): Promise<Doctor[]> => {
-    // This would integrate with actual Indian Medical Registry API
-    const mockDoctors: Doctor[] = [
-      {
-        id: 'IMR001',
-        name: 'Dr. Priya Sharma',
-        specialty: 'dermatology',
-        subSpecialty: 'Cosmetic Dermatology',
-        qualification: 'MBBS, MD (Dermatology)',
-        experience: 12,
-        rating: 4.8,
-        reviewCount: 247,
-        hospitalName: 'Apollo Hospitals',
-        address: 'Sector 26, Golf Course Road, Gurugram',
-        distance: 2.3,
-        consultationFee: 800,
-        languages: ['English', 'Hindi'],
-        registrationNumber: 'DL-12345-2010',
-        medicalCouncil: 'Delhi Medical Council',
-        profileImage: '',
-        availability: {
-          nextSlot: 'Today 3:00 PM',
-          slotsAvailable: 4,
-          isAvailableToday: true
-        }
-      },
-      {
-        id: 'IMR002',
-        name: 'Dr. Rajesh Kumar',
-        specialty: 'endocrinology',
-        subSpecialty: 'Diabetes & Thyroid',
-        qualification: 'MBBS, MD (Medicine), DM (Endocrinology)',
-        experience: 15,
-        rating: 4.7,
-        reviewCount: 189,
-        hospitalName: 'Max Super Speciality Hospital',
-        address: 'Press Enclave Road, Saket, New Delhi',
-        distance: 4.1,
-        consultationFee: 1200,
-        languages: ['English', 'Hindi', 'Bengali'],
-        registrationNumber: 'DL-67890-2008',
-        medicalCouncil: 'Delhi Medical Council',
-        profileImage: '',
-        availability: {
-          nextSlot: 'Tomorrow 10:30 AM',
-          slotsAvailable: 2,
-          isAvailableToday: false
-        }
-      },
-      {
-        id: 'IMR003',
-        name: 'Dr. Anita Verma',
-        specialty: 'ophthalmology',
-        subSpecialty: 'Retinal Diseases',
-        qualification: 'MBBS, MS (Ophthalmology)',
-        experience: 8,
-        rating: 4.6,
-        reviewCount: 156,
-        hospitalName: 'Fortis Hospital',
-        address: 'Sector 62, Noida, Uttar Pradesh',
-        distance: 6.7,
-        consultationFee: 600,
-        languages: ['English', 'Hindi'],
-        registrationNumber: 'UP-11111-2015',
-        medicalCouncil: 'Uttar Pradesh Medical Council',
-        profileImage: '',
-        availability: {
-          nextSlot: 'Today 5:30 PM',
-          slotsAvailable: 1,
-          isAvailableToday: true
-        }
+  // Google Calendar API integration for real-time availability
+  const checkGoogleCalendarAvailability = async (doctorId: string, date: string): Promise<any> => {
+    try {
+      const response = await fetch(`/api/doctors/${doctorId}/calendar-availability`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ date }),
+      });
+      
+      if (!response.ok) {
+        throw new Error('Calendar API unavailable');
       }
-    ];
+      
+      return response.json();
+    } catch (error) {
+      console.error('Calendar availability check failed:', error);
+      return null;
+    }
+  };
 
-    // Filter doctors based on specialty and other criteria
-    return mockDoctors.filter(doctor => 
-      specialty === 'any' || doctor.specialty === specialty
-    );
+  // Hospital management system integration
+  const checkHospitalSystem = async (hospitalId: string): Promise<any> => {
+    try {
+      const response = await fetch(`/api/hospitals/${hospitalId}/availability`, {
+        headers: {
+          'Authorization': `Bearer ${import.meta.env.VITE_HOSPITAL_API_KEY}`
+        }
+      });
+      
+      if (!response.ok) {
+        throw new Error('Hospital system unavailable');
+      }
+      
+      return response.json();
+    } catch (error) {
+      console.error('Hospital system check failed:', error);
+      return null;
+    }
+  };
+
+  // Location proximity calculation using GPS
+  const calculateDistance = (lat1: number, lon1: number, lat2: number, lon2: number): number => {
+    const R = 6371; // Earth's radius in kilometers
+    const dLat = (lat2 - lat1) * Math.PI / 180;
+    const dLon = (lon2 - lon1) * Math.PI / 180;
+    const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+              Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+              Math.sin(dLon/2) * Math.sin(dLon/2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+    return R * c;
+  };
+
+  // Indian Medical Registry verification
+  const verifyDoctorRegistration = async (registrationNumber: string, council: string): Promise<boolean> => {
+    try {
+      const response = await fetch('/api/verify-doctor-registration', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${import.meta.env.VITE_MEDICAL_REGISTRY_API_KEY}`
+        },
+        body: JSON.stringify({ registrationNumber, council }),
+      });
+      
+      return response.ok;
+    } catch (error) {
+      console.error('Doctor verification failed:', error);
+      return false;
+    }
+  };
+
+  // Real-time doctor matching with live data
+  const getMatchedDoctors = async (): Promise<Doctor[]> => {
+    if (!selectedCondition) return [];
+
+    try {
+      const specialty = getSpecialtyFromCondition(selectedCondition.condition);
+      
+      const response = await fetch('/api/doctors/search', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          specialty,
+          condition: selectedCondition.condition,
+          userLocation,
+          filters,
+          searchQuery
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Doctor search failed');
+      }
+
+      const doctors = await response.json();
+      
+      // Enhance with real-time availability
+      const enhancedDoctors = await Promise.all(
+        doctors.map(async (doctor: Doctor) => {
+          const calendarAvailability = await checkGoogleCalendarAvailability(doctor.id, new Date().toISOString().split('T')[0]);
+          const hospitalAvailability = await checkHospitalSystem(doctor.hospitalName.replace(/\s+/g, '_'));
+          
+          return {
+            ...doctor,
+            availability: calendarAvailability || doctor.availability,
+            hospitalSystemStatus: hospitalAvailability?.status || 'unknown'
+          };
+        })
+      );
+
+      return enhancedDoctors;
+    } catch (error) {
+      console.error('Doctor matching failed:', error);
+      return [];
+    }
   };
 
   const getSeverityColor = (severity: string) => {
@@ -444,11 +484,31 @@ export default function DoctorEscalation() {
             </CardHeader>
             <CardContent>
               <div className="mb-4">
-                <p className="text-sm text-gray-600 mb-2">
-                  Recommended specialty: <span className="font-medium capitalize">
-                    {getSpecialtyFromCondition(selectedCondition.condition).replace('_', ' ')}
-                  </span>
-                </p>
+                <div className="bg-blue-50 p-3 rounded-lg mb-3">
+                  <h4 className="font-medium text-sm text-blue-900 mb-2">🎯 AI Recommendation</h4>
+                  <p className="text-sm text-blue-800">
+                    Based on your condition "<em>{selectedCondition.condition}</em>", we recommend consulting a{' '}
+                    <span className="font-semibold capitalize">
+                      {getSpecialtyFromCondition(selectedCondition.condition).replace('_', ' ')} specialist
+                    </span>
+                  </p>
+                  <p className="text-xs text-blue-700 mt-1">
+                    Confidence: {selectedCondition.confidence ? Math.round(selectedCondition.confidence * 100) : 'N/A'}% • 
+                    From: {selectedCondition.source.replace('_', ' ')}
+                  </p>
+                </div>
+                
+                {/* Search Bar */}
+                <div className="relative mb-4">
+                  <Search className="w-4 h-4 absolute left-3 top-3 text-gray-400" />
+                  <input
+                    type="text"
+                    placeholder="Search doctors, hospitals, or specialties..."
+                    className="w-full pl-10 pr-4 py-2 border rounded-lg text-sm"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                  />
+                </div>
               </div>
 
               {showFilters && (

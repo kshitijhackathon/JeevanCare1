@@ -62,6 +62,8 @@ export default function AIDoctorConsultation() {
   const [audioChunks, setAudioChunks] = useState<Blob[]>([]);
   const [aiAvatar, setAiAvatar] = useState<string>('');
   const [isProcessingSpeech, setIsProcessingSpeech] = useState(false);
+  const [isContinuousListening, setIsContinuousListening] = useState(false);
+  const [recognition, setRecognition] = useState<any>(null);
 
   // Body parts for 3D interaction
   const bodyParts: BodyPart[] = [
@@ -106,6 +108,81 @@ export default function AIDoctorConsultation() {
       setAiAvatar(generateAIAvatar());
     }
   }, [patientDetails.age, patientDetails.gender]);
+
+  // Initialize continuous speech recognition
+  useEffect(() => {
+    if (step === 'video-call' && 'webkitSpeechRecognition' in window) {
+      const speechRecognition = new (window as any).webkitSpeechRecognition();
+      speechRecognition.continuous = true;
+      speechRecognition.interimResults = true;
+      speechRecognition.lang = patientDetails.language === 'hindi' ? 'hi-IN' : 'en-US';
+      
+      speechRecognition.onresult = (event: any) => {
+        let finalTranscript = '';
+        for (let i = event.resultIndex; i < event.results.length; i++) {
+          if (event.results[i].isFinal) {
+            finalTranscript += event.results[i][0].transcript;
+          }
+        }
+        
+        if (finalTranscript.trim()) {
+          setCurrentMessage(finalTranscript);
+          // Auto-process the speech after 2 seconds of silence
+          setTimeout(() => {
+            if (finalTranscript.trim()) {
+              processVoiceInput(finalTranscript);
+            }
+          }, 2000);
+        }
+      };
+
+      speechRecognition.onerror = (event: any) => {
+        console.error('Speech recognition error:', event.error);
+      };
+
+      setRecognition(speechRecognition);
+    }
+  }, [step, patientDetails.language]);
+
+  // Start/stop continuous listening
+  const toggleContinuousListening = () => {
+    if (!recognition) return;
+    
+    if (isContinuousListening) {
+      recognition.stop();
+      setIsContinuousListening(false);
+    } else {
+      recognition.start();
+      setIsContinuousListening(true);
+    }
+  };
+
+  // Process voice input with medical AI
+  const processVoiceInput = async (transcript: string) => {
+    setIsProcessingSpeech(true);
+    try {
+      // Auto-analyze with medical AI models
+      await analyzeMedicalText(transcript);
+      
+      // Add user message to chat
+      const userMessage: ChatMessage = {
+        role: 'user',
+        content: transcript,
+        timestamp: new Date(),
+        type: 'text'
+      };
+      setMessages(prev => [...prev, userMessage]);
+      
+      // Send to AI doctor for response
+      sendMessage.mutate(transcript);
+      
+    } catch (error) {
+      console.error('Error processing voice input:', error);
+    } finally {
+      setIsProcessingSpeech(false);
+      setCurrentMessage('');
+    }
+  };
 
   // Speech-to-text using OpenAI Whisper
   const startRecording = async () => {
@@ -671,18 +748,44 @@ export default function AIDoctorConsultation() {
             {/* Video Controls */}
             <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex space-x-4">
               <Button
-                onClick={() => setIsVideoOn(!isVideoOn)}
+                onClick={() => {
+                  setIsVideoOn(!isVideoOn);
+                  if (videoRef.current && videoRef.current.srcObject) {
+                    const stream = videoRef.current.srcObject as MediaStream;
+                    const videoTrack = stream.getVideoTracks()[0];
+                    if (videoTrack) {
+                      videoTrack.enabled = !isVideoOn;
+                    }
+                  }
+                }}
                 variant={isVideoOn ? "secondary" : "destructive"}
                 size="sm"
               >
                 {isVideoOn ? <Video className="w-4 h-4" /> : <VideoOff className="w-4 h-4" />}
               </Button>
               <Button
-                onClick={() => setIsAudioOn(!isAudioOn)}
+                onClick={() => {
+                  setIsAudioOn(!isAudioOn);
+                  if (videoRef.current && videoRef.current.srcObject) {
+                    const stream = videoRef.current.srcObject as MediaStream;
+                    const audioTrack = stream.getAudioTracks()[0];
+                    if (audioTrack) {
+                      audioTrack.enabled = !isAudioOn;
+                    }
+                  }
+                }}
                 variant={isAudioOn ? "secondary" : "destructive"}
                 size="sm"
               >
                 {isAudioOn ? <Mic className="w-4 h-4" /> : <MicOff className="w-4 h-4" />}
+              </Button>
+              <Button
+                onClick={toggleContinuousListening}
+                variant={isContinuousListening ? "default" : "secondary"}
+                size="sm"
+              >
+                {isContinuousListening ? <MicOff className="w-4 h-4" /> : <Mic className="w-4 h-4" />}
+                {isContinuousListening ? " Stop Voice" : " Start Voice"}
               </Button>
               <Button onClick={capturePhoto} variant="secondary" size="sm">
                 <Camera className="w-4 h-4" />
@@ -692,7 +795,7 @@ export default function AIDoctorConsultation() {
                 variant="secondary" 
                 size="sm"
               >
-                Show Body Model
+                Body Model
               </Button>
             </div>
           </div>
@@ -771,35 +874,22 @@ export default function AIDoctorConsultation() {
 
               {/* Enhanced Input Section with Voice */}
               <div className="space-y-3">
-                {/* Voice Recording Controls */}
-                <div className="flex items-center space-x-2">
-                  <Button
-                    onClick={isRecording ? stopRecording : startRecording}
-                    variant={isRecording ? "destructive" : "secondary"}
-                    size="sm"
-                    disabled={isProcessingSpeech}
-                    className="flex-1"
-                  >
-                    {isRecording ? (
-                      <>
-                        <Square className="w-4 h-4 mr-2" />
-                        Stop Recording
-                      </>
-                    ) : (
-                      <>
-                        <Play className="w-4 h-4 mr-2" />
-                        Voice Input (Whisper AI)
-                      </>
-                    )}
-                  </Button>
-                  {isRecording && (
+                {/* Continuous Voice Status */}
+                {isContinuousListening && (
+                  <div className="p-2 bg-green-600 rounded text-sm flex items-center space-x-2">
                     <div className="flex space-x-1">
-                      <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse"></div>
-                      <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse" style={{animationDelay: '0.2s'}}></div>
-                      <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse" style={{animationDelay: '0.4s'}}></div>
+                      <div className="w-2 h-2 bg-white rounded-full animate-pulse"></div>
+                      <div className="w-2 h-2 bg-white rounded-full animate-pulse" style={{animationDelay: '0.2s'}}></div>
+                      <div className="w-2 h-2 bg-white rounded-full animate-pulse" style={{animationDelay: '0.4s'}}></div>
                     </div>
-                  )}
-                </div>
+                    <span>
+                      {patientDetails.language === 'hindi' 
+                        ? "Aapki awaz sun raha hun..." 
+                        : "Listening to your voice..."
+                      }
+                    </span>
+                  </div>
+                )}
 
                 {/* Text Input */}
                 <div className="flex space-x-2">
@@ -807,8 +897,8 @@ export default function AIDoctorConsultation() {
                     value={currentMessage}
                     onChange={(e) => setCurrentMessage(e.target.value)}
                     placeholder={patientDetails.language === 'hindi' 
-                      ? "Apne symptoms type kariye ya voice button dabayiye..." 
-                      : "Type your symptoms or use voice input..."
+                      ? "Apne symptoms batayiye... (Voice button se baat kar sakte hai)" 
+                      : "Describe your symptoms... (Voice button to speak)"
                     }
                     className="flex-1 text-white bg-gray-700 border-gray-600"
                     rows={2}
@@ -821,12 +911,12 @@ export default function AIDoctorConsultation() {
                   </Button>
                 </div>
 
-                {/* Medical AI Info */}
-                <div className="text-xs text-gray-400 space-y-1">
-                  <p>🧠 Bio_ClinicalBERT: Medical text analysis</p>
-                  <p>🔬 NegBio: Disease prediction model</p>
-                  <p>💊 DrugBERT: Prescription generation</p>
-                  <p>🎤 OpenAI Whisper: Speech-to-text conversion</p>
+                {/* Status Info */}
+                <div className="text-xs text-gray-400 text-center">
+                  {patientDetails.language === 'hindi' 
+                    ? "🤖 AI Doctor aapki madad ke liye tayyar hai"
+                    : "🤖 AI Doctor ready to help you"
+                  }
                 </div>
               </div>
             </div>

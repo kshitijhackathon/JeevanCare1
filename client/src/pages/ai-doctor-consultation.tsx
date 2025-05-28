@@ -363,12 +363,19 @@ export default function AIDoctorConsultation() {
         setIsContinuousListening(false);
       }
 
-      // Stop video stream
+      // Stop all media tracks and close camera
       if (videoRef.current && videoRef.current.srcObject) {
         const stream = videoRef.current.srcObject as MediaStream;
-        stream.getTracks().forEach(track => track.stop());
+        stream.getTracks().forEach(track => {
+          track.stop();
+          track.enabled = false;
+        });
         videoRef.current.srcObject = null;
       }
+
+      // Reset video states
+      setIsVideoOn(false);
+      setIsAudioOn(false);
 
       // Generate call summary with prescriptions
       const summary = await generateCallSummary();
@@ -378,6 +385,32 @@ export default function AIDoctorConsultation() {
     } catch (error) {
       console.error('Error ending call:', error);
     }
+  };
+
+  // Close consultation and clean up camera
+  const closeConsultation = () => {
+    // Stop all media tracks
+    if (videoRef.current && videoRef.current.srcObject) {
+      const stream = videoRef.current.srcObject as MediaStream;
+      stream.getTracks().forEach(track => {
+        track.stop();
+        track.enabled = false;
+      });
+      videoRef.current.srcObject = null;
+    }
+
+    // Stop speech recognition
+    if (recognition && isContinuousListening) {
+      recognition.stop();
+      setIsContinuousListening(false);
+    }
+
+    // Reset all states
+    setStep('details');
+    setIsVideoOn(false);
+    setIsAudioOn(false);
+    setMessages([]);
+    setShowSummary(false);
   };
 
   // Generate call summary with prescriptions
@@ -604,11 +637,9 @@ export default function AIDoctorConsultation() {
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-50 to-white">
         <div className="bg-white shadow-sm p-4 flex items-center">
-          <Link href="/">
-            <Button variant="ghost" size="sm" className="mr-2">
-              <ArrowLeft className="w-4 h-4" />
-            </Button>
-          </Link>
+          <Button variant="ghost" size="sm" className="mr-2" onClick={closeConsultation}>
+            <ArrowLeft className="w-4 h-4" />
+          </Button>
           <h1 className="text-lg font-semibold">AI Doctor Consultation</h1>
         </div>
 

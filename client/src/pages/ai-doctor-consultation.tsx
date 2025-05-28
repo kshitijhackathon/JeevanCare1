@@ -64,6 +64,8 @@ export default function AIDoctorConsultation() {
   const [isProcessingSpeech, setIsProcessingSpeech] = useState(false);
   const [isContinuousListening, setIsContinuousListening] = useState(false);
   const [recognition, setRecognition] = useState<any>(null);
+  const [callSummary, setCallSummary] = useState<string>('');
+  const [showSummary, setShowSummary] = useState(false);
 
   // Body parts for 3D interaction
   const bodyParts: BodyPart[] = [
@@ -157,13 +159,12 @@ export default function AIDoctorConsultation() {
     }
   };
 
+
+
   // Process voice input with medical AI
   const processVoiceInput = async (transcript: string) => {
     setIsProcessingSpeech(true);
     try {
-      // Auto-analyze with medical AI models
-      await analyzeMedicalText(transcript);
-      
       // Add user message to chat
       const userMessage: ChatMessage = {
         role: 'user',
@@ -173,8 +174,80 @@ export default function AIDoctorConsultation() {
       };
       setMessages(prev => [...prev, userMessage]);
       
-      // Send to AI doctor for response
-      sendMessage.mutate(transcript);
+      // Simple medical analysis for instant response
+      
+      // Generate AI doctor response based on input
+      let doctorResponse = '';
+      
+      // Simple symptom analysis from transcript
+      const symptoms = [];
+      if (transcript.toLowerCase().includes('headache') || transcript.toLowerCase().includes('sir dard')) {
+        symptoms.push('headache');
+      }
+      if (transcript.toLowerCase().includes('fever') || transcript.toLowerCase().includes('bukhar')) {
+        symptoms.push('fever');
+      }
+      if (transcript.toLowerCase().includes('cough') || transcript.toLowerCase().includes('khansi')) {
+        symptoms.push('cough');
+      }
+      if (transcript.toLowerCase().includes('pain') || transcript.toLowerCase().includes('dard')) {
+        symptoms.push('pain');
+      }
+
+      if (symptoms.length > 0) {
+        if (patientDetails.language === 'hindi') {
+          doctorResponse = `Main samjh gaya aapko ${symptoms.join(', ')} ki samasya hai. `;
+          
+          // Basic prescription recommendations
+          if (symptoms.includes('fever')) {
+            doctorResponse += `Bukhar ke liye Paracetamol 500mg, din mein 3 baar lein. `;
+          }
+          if (symptoms.includes('headache')) {
+            doctorResponse += `Sir dard ke liye Ibuprofen 400mg, zarurat ke anusaar lein. `;
+          }
+          if (symptoms.includes('cough')) {
+            doctorResponse += `Khansi ke liye Cough syrup 10ml, din mein 3 baar lein. `;
+          }
+          
+          doctorResponse += `Aur koi symptoms hai? Kya aapka koi aur sawal hai?`;
+        } else {
+          doctorResponse = `I understand you're experiencing ${symptoms.join(', ')}. `;
+          
+          // Basic prescription recommendations
+          if (symptoms.includes('fever')) {
+            doctorResponse += `For fever, take Paracetamol 500mg, 3 times daily. `;
+          }
+          if (symptoms.includes('headache')) {
+            doctorResponse += `For headache, take Ibuprofen 400mg as needed. `;
+          }
+          if (symptoms.includes('cough')) {
+            doctorResponse += `For cough, take Cough syrup 10ml, 3 times daily. `;
+          }
+          
+          doctorResponse += `Any other symptoms? Do you have any other questions?`;
+        }
+      } else {
+        doctorResponse = patientDetails.language === 'hindi' 
+          ? `Main aapki baat samjh gaya. Kripya aur detail mein bataiye ki aapko kya takleef ho rahi hai?`
+          : `I understand. Can you please provide more details about what you're experiencing?`;
+      }
+      
+      // Add AI doctor response to chat
+      const doctorMessage: ChatMessage = {
+        role: 'doctor',
+        content: doctorResponse,
+        timestamp: new Date(),
+        type: 'text'
+      };
+      setMessages(prev => [...prev, doctorMessage]);
+      
+      // Text-to-speech for doctor responses
+      if ('speechSynthesis' in window) {
+        const utterance = new SpeechSynthesisUtterance(doctorResponse);
+        utterance.lang = patientDetails.language === 'hindi' ? 'hi-IN' : 'en-US';
+        utterance.rate = 0.9;
+        speechSynthesis.speak(utterance);
+      }
       
     } catch (error) {
       console.error('Error processing voice input:', error);
@@ -281,28 +354,67 @@ export default function AIDoctorConsultation() {
     }
   };
 
-  // Prescription generation using DrugBERT
-  const generatePrescription = async (medicalAnalysis: any) => {
+  // End call and generate summary
+  const endCall = async () => {
     try {
-      const response = await fetch('/api/ai-doctor/generate-prescription', {
+      // Stop continuous listening
+      if (recognition && isContinuousListening) {
+        recognition.stop();
+        setIsContinuousListening(false);
+      }
+
+      // Stop video stream
+      if (videoRef.current && videoRef.current.srcObject) {
+        const stream = videoRef.current.srcObject as MediaStream;
+        stream.getTracks().forEach(track => track.stop());
+        videoRef.current.srcObject = null;
+      }
+
+      // Generate call summary with prescriptions
+      const summary = await generateCallSummary();
+      setCallSummary(summary);
+      setShowSummary(true);
+      
+    } catch (error) {
+      console.error('Error ending call:', error);
+    }
+  };
+
+  // Generate call summary with prescriptions
+  const generateCallSummary = async () => {
+    try {
+      const allSymptoms = messages
+        .filter(msg => msg.role === 'user')
+        .map(msg => msg.content)
+        .join(' ');
+
+      const response = await fetch('/api/ai-doctor/generate-summary', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          symptoms: medicalAnalysis.symptoms,
-          diagnosis: medicalAnalysis.diagnosis,
-          patientDetails,
-          severity: medicalAnalysis.severity
+          messages: messages,
+          patientDetails: patientDetails,
+          symptoms: allSymptoms
         })
       });
 
-      if (!response.ok) throw new Error('Prescription generation failed');
-      
-      const prescription = await response.json();
-      console.log('Generated prescription:', prescription);
-      
+      if (response.ok) {
+        const summaryData = await response.json();
+        return summaryData.summary;
+      }
     } catch (error) {
-      console.error('Error generating prescription:', error);
+      console.error('Error generating summary:', error);
     }
+
+    // Fallback summary
+    const prescriptions = messages
+      .filter(msg => msg.role === 'doctor' && msg.content.includes('recommend'))
+      .map(msg => msg.content)
+      .join('\n\n');
+
+    return patientDetails.language === 'hindi' 
+      ? `Consultation Summary:\n\nMukhya Symptoms: ${messages.filter(msg => msg.role === 'user').map(msg => msg.content).join(', ')}\n\nSalah aur Dawaiyaan:\n${prescriptions || 'Koi specific dawai nahi di gayi'}`
+      : `Consultation Summary:\n\nMain Symptoms: ${messages.filter(msg => msg.role === 'user').map(msg => msg.content).join(', ')}\n\nRecommendations & Prescriptions:\n${prescriptions || 'No specific medications prescribed'}`;
   };
 
   const startConsultation = useMutation({
@@ -675,10 +787,10 @@ export default function AIDoctorConsultation() {
                   <div className="absolute top-4 left-2 w-6 h-1 bg-gray-600"></div>
                 </div>
                 
-                {/* Doctor Info */}
+                {/* AI Doctor Info */}
                 <div className="text-center mt-2">
-                  <p className="text-xs font-medium text-blue-800">Dr. Priya Sharma</p>
-                  <p className="text-xs text-blue-600">MBBS, MD (Internal Medicine)</p>
+                  <p className="text-xs font-medium text-blue-800">AI Medical Assistant</p>
+                  <p className="text-xs text-blue-600">Advanced Medical AI</p>
                   <div className="flex items-center justify-center mt-1">
                     <div className="w-2 h-2 bg-green-500 rounded-full mr-1 animate-pulse"></div>
                     <p className="text-xs text-green-600">Online</p>
@@ -746,7 +858,7 @@ export default function AIDoctorConsultation() {
             )}
 
             {/* Video Controls */}
-            <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex space-x-4">
+            <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex space-x-2">
               <Button
                 onClick={() => {
                   setIsVideoOn(!isVideoOn);
@@ -785,7 +897,6 @@ export default function AIDoctorConsultation() {
                 size="sm"
               >
                 {isContinuousListening ? <MicOff className="w-4 h-4" /> : <Mic className="w-4 h-4" />}
-                {isContinuousListening ? " Stop Voice" : " Start Voice"}
               </Button>
               <Button onClick={capturePhoto} variant="secondary" size="sm">
                 <Camera className="w-4 h-4" />
@@ -795,7 +906,15 @@ export default function AIDoctorConsultation() {
                 variant="secondary" 
                 size="sm"
               >
-                Body Model
+                Body
+              </Button>
+              <Button 
+                onClick={endCall}
+                variant="destructive" 
+                size="sm"
+                className="bg-red-600 hover:bg-red-700"
+              >
+                End Call
               </Button>
             </div>
           </div>

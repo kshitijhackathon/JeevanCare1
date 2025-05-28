@@ -22,6 +22,7 @@ import AIConsultation from "@/pages/ai-consultation";
 import MedicalRecords from "@/pages/medical-records";
 import GlobalHealthMap from "@/pages/global-health-map";
 import HealthAssistant from "@/pages/health-assistant";
+import Notifications from "@/pages/notifications";
 import NotFound from "@/pages/not-found";
 import GetStarted from "@/pages/auth/get-started";
 import SignUp from "@/pages/auth/signup";
@@ -88,6 +89,7 @@ function Router() {
           <Route path="/medical-records" component={MedicalRecords} />
           <Route path="/global-health-map" component={GlobalHealthMap} />
           <Route path="/health-assistant" component={HealthAssistant} />
+          <Route path="/notifications" component={Notifications} />
         </>
       )}
       <Route component={NotFound} />

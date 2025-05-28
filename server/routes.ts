@@ -1226,6 +1226,211 @@ Respond helpfully and suggest relevant platform features.`;
     }
   });
 
+  // Health Metrics API
+  app.get('/api/health-metrics', async (req, res) => {
+    try {
+      const healthMetrics = [
+        {
+          name: 'Heart Rate',
+          value: '72',
+          unit: 'bpm',
+          trend: 'stable',
+          status: 'normal',
+          history: [
+            { date: '2025-05-21', value: 75 },
+            { date: '2025-05-22', value: 73 },
+            { date: '2025-05-23', value: 71 },
+            { date: '2025-05-24', value: 74 },
+            { date: '2025-05-25', value: 72 },
+            { date: '2025-05-26', value: 70 },
+            { date: '2025-05-27', value: 72 }
+          ]
+        },
+        {
+          name: 'Blood Pressure',
+          value: '120/80',
+          unit: 'mmHg',
+          trend: 'stable',
+          status: 'normal',
+          history: [
+            { date: '2025-05-21', value: 118 },
+            { date: '2025-05-22', value: 120 },
+            { date: '2025-05-23', value: 122 },
+            { date: '2025-05-24', value: 119 },
+            { date: '2025-05-25', value: 121 },
+            { date: '2025-05-26', value: 118 },
+            { date: '2025-05-27', value: 120 }
+          ]
+        },
+        {
+          name: 'Weight',
+          value: '65.2',
+          unit: 'kg',
+          trend: 'down',
+          status: 'normal',
+          history: [
+            { date: '2025-05-21', value: 66.1 },
+            { date: '2025-05-22', value: 65.9 },
+            { date: '2025-05-23', value: 65.7 },
+            { date: '2025-05-24', value: 65.5 },
+            { date: '2025-05-25', value: 65.3 },
+            { date: '2025-05-26', value: 65.4 },
+            { date: '2025-05-27', value: 65.2 }
+          ]
+        },
+        {
+          name: 'Temperature',
+          value: '98.6',
+          unit: '°F',
+          trend: 'stable',
+          status: 'normal',
+          history: [
+            { date: '2025-05-21', value: 98.4 },
+            { date: '2025-05-22', value: 98.6 },
+            { date: '2025-05-23', value: 98.7 },
+            { date: '2025-05-24', value: 98.5 },
+            { date: '2025-05-25', value: 98.6 },
+            { date: '2025-05-26', value: 98.4 },
+            { date: '2025-05-27', value: 98.6 }
+          ]
+        }
+      ];
+
+      res.json(healthMetrics);
+    } catch (error) {
+      console.error("Error fetching health metrics:", error);
+      res.status(500).json({ message: "Failed to fetch health metrics" });
+    }
+  });
+
+  // Notifications API
+  app.get('/api/notifications', async (req, res) => {
+    try {
+      const { filter } = req.query;
+      
+      const notifications = [
+        {
+          id: 1,
+          type: 'health_alert',
+          title: 'Blood Pressure Alert',
+          message: 'Your recent blood pressure reading (135/85) is slightly elevated. Consider consulting your doctor.',
+          priority: 'medium',
+          read: false,
+          createdAt: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(), // 2 hours ago
+          actionUrl: '/reports',
+          actionText: 'View Report',
+          category: 'Cardiovascular Health'
+        },
+        {
+          id: 2,
+          type: 'medication',
+          title: 'Medication Reminder',
+          message: 'Time to take your daily vitamin D supplement. Maintain your bone health routine.',
+          priority: 'low',
+          read: false,
+          createdAt: new Date(Date.now() - 4 * 60 * 60 * 1000).toISOString(), // 4 hours ago
+          actionUrl: '/medications',
+          actionText: 'Mark Taken',
+          category: 'Daily Medications'
+        },
+        {
+          id: 3,
+          type: 'appointment',
+          title: 'Upcoming Cardiology Appointment',
+          message: 'Dr. Rajesh Kumar - Tomorrow at 10:30 AM. Apollo Hospital, Delhi. Please bring your recent ECG reports.',
+          priority: 'high',
+          read: true,
+          createdAt: new Date(Date.now() - 8 * 60 * 60 * 1000).toISOString(), // 8 hours ago
+          actionUrl: '/doctor-escalation',
+          actionText: 'View Details',
+          category: 'Appointments'
+        },
+        {
+          id: 4,
+          type: 'report',
+          title: 'Lab Results Available',
+          message: 'Your comprehensive metabolic panel results are now available. All values are within normal range.',
+          priority: 'medium',
+          read: true,
+          createdAt: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString(), // 1 day ago
+          actionUrl: '/reports',
+          actionText: 'View Results',
+          category: 'Laboratory Reports'
+        },
+        {
+          id: 5,
+          type: 'emergency',
+          title: 'Health Advisory',
+          message: 'Dengue cases rising in Delhi NCR. Take preventive measures: use mosquito repellent, avoid stagnant water.',
+          priority: 'high',
+          read: false,
+          createdAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(), // 2 days ago
+          actionUrl: '/global-health-map',
+          actionText: 'View Map',
+          category: 'Public Health'
+        },
+        {
+          id: 6,
+          type: 'health_alert',
+          title: 'AI Health Scan Complete',
+          message: 'Your face scan analysis detected mild skin irritation. Consider using gentle skincare products.',
+          priority: 'low',
+          read: true,
+          createdAt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(), // 3 days ago
+          actionUrl: '/face-scan',
+          actionText: 'View Analysis',
+          category: 'AI Diagnostics'
+        },
+        {
+          id: 7,
+          type: 'system',
+          title: 'Health Assistant Update',
+          message: 'Your AI health assistant has learned new capabilities for better symptom analysis and doctor recommendations.',
+          priority: 'low',
+          read: true,
+          createdAt: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(), // 5 days ago
+          actionUrl: '/ai-consultation',
+          actionText: 'Try Now',
+          category: 'System Updates'
+        }
+      ];
+
+      // Filter notifications if needed
+      let filteredNotifications = notifications;
+      if (filter && filter !== 'all') {
+        filteredNotifications = notifications.filter(notification => notification.type === filter);
+      }
+
+      res.json(filteredNotifications);
+    } catch (error) {
+      console.error("Error fetching notifications:", error);
+      res.status(500).json({ message: "Failed to fetch notifications" });
+    }
+  });
+
+  // Mark notification as read
+  app.patch('/api/notifications/:id/read', async (req, res) => {
+    try {
+      const { id } = req.params;
+      // In a real app, this would update the database
+      res.json({ success: true, message: 'Notification marked as read' });
+    } catch (error) {
+      console.error("Error marking notification as read:", error);
+      res.status(500).json({ message: "Failed to mark notification as read" });
+    }
+  });
+
+  // Mark all notifications as read
+  app.patch('/api/notifications/mark-all-read', async (req, res) => {
+    try {
+      // In a real app, this would update all unread notifications for the user
+      res.json({ success: true, message: 'All notifications marked as read' });
+    } catch (error) {
+      console.error("Error marking all notifications as read:", error);
+      res.status(500).json({ message: "Failed to mark all notifications as read" });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }

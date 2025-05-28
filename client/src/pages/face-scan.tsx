@@ -84,6 +84,7 @@ export default function FaceScan() {
   const startCamera = async () => {
     try {
       setError("");
+      setIsScanning(false);
       
       // Check if getUserMedia is supported
       if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
@@ -91,26 +92,53 @@ export default function FaceScan() {
         return;
       }
 
-      const stream = await navigator.mediaDevices.getUserMedia({
+      console.log('Requesting camera access...');
+      
+      const constraints = {
         video: { 
           facingMode: 'user',
-          width: { ideal: 640, min: 320 },
-          height: { ideal: 480, min: 240 }
+          width: { ideal: 640, min: 320, max: 1280 },
+          height: { ideal: 480, min: 240, max: 720 }
         },
         audio: false
-      });
+      };
+
+      const stream = await navigator.mediaDevices.getUserMedia(constraints);
+      console.log('Camera stream obtained:', stream);
       
-      if (videoRef.current) {
+      if (videoRef.current && stream) {
+        // Stop any existing stream
+        if (streamRef.current) {
+          streamRef.current.getTracks().forEach(track => track.stop());
+        }
+        
         videoRef.current.srcObject = stream;
-        
-        // Wait for video to load
-        videoRef.current.onloadedmetadata = () => {
-          videoRef.current?.play();
-        };
-        
         streamRef.current = stream;
-        setHasPermission(true);
-        setIsScanning(true);
+        
+        // Wait for video metadata to load
+        const playVideo = () => {
+          if (videoRef.current) {
+            videoRef.current.play()
+              .then(() => {
+                console.log('Video playing successfully');
+                setHasPermission(true);
+                setIsScanning(true);
+              })
+              .catch(err => {
+                console.error('Video play error:', err);
+                setError("Failed to start video preview.");
+              });
+          }
+        };
+
+        if (videoRef.current.readyState >= 2) {
+          // Video is already loaded
+          playVideo();
+        } else {
+          // Wait for video to load
+          videoRef.current.addEventListener('loadedmetadata', playVideo, { once: true });
+          videoRef.current.addEventListener('canplay', playVideo, { once: true });
+        }
       }
     } catch (err: any) {
       let errorMessage = "Camera access denied. Please enable camera permissions.";
@@ -121,45 +149,78 @@ export default function FaceScan() {
         errorMessage = "Camera permission denied. Please allow camera access and try again.";
       } else if (err.name === 'NotReadableError') {
         errorMessage = "Camera is being used by another application.";
+      } else if (err.name === 'OverconstrainedError') {
+        errorMessage = "Camera doesn't support the required settings.";
       }
       
       setError(errorMessage);
       console.error('Camera error:', err);
+      setIsScanning(false);
+      setHasPermission(false);
     }
   };
 
   const stopCamera = () => {
+    console.log('Stopping camera...');
+    
     if (streamRef.current) {
-      streamRef.current.getTracks().forEach(track => track.stop());
+      streamRef.current.getTracks().forEach(track => {
+        track.stop();
+        console.log('Camera track stopped:', track.kind);
+      });
       streamRef.current = null;
     }
+    
+    if (videoRef.current) {
+      videoRef.current.srcObject = null;
+      videoRef.current.pause();
+    }
+    
     setIsScanning(false);
     setHasPermission(false);
+    console.log('Camera stopped successfully');
   };
 
   const captureAndAnalyze = async () => {
-    if (!videoRef.current || !canvasRef.current) return;
+    if (!videoRef.current || !canvasRef.current) {
+      setError("Camera not ready for capture.");
+      return;
+    }
 
     setIsAnalyzing(true);
     
     try {
+      console.log('Capturing image for analysis...');
+      
       // Capture image from video
       const canvas = canvasRef.current;
       const video = videoRef.current;
       const ctx = canvas.getContext('2d');
       
-      canvas.width = video.videoWidth;
-      canvas.height = video.videoHeight;
-      ctx?.drawImage(video, 0, 0);
+      if (!ctx) {
+        throw new Error("Canvas context not available");
+      }
       
-      const imageDataUrl = canvas.toDataURL('image/jpeg', 0.8);
+      // Set canvas dimensions to match video
+      canvas.width = video.videoWidth || 640;
+      canvas.height = video.videoHeight || 480;
+      
+      // Draw video frame to canvas (flip horizontally to match preview)
+      ctx.save();
+      ctx.scale(-1, 1);
+      ctx.drawImage(video, -canvas.width, 0, canvas.width, canvas.height);
+      ctx.restore();
+      
+      const imageDataUrl = canvas.toDataURL('image/jpeg', 0.9);
       setCapturedImage(imageDataUrl);
+      console.log('Image captured successfully');
       
       // Convert to blob for analysis
       const blob = await new Promise<Blob>((resolve) => {
-        canvas.toBlob((blob) => resolve(blob!), 'image/jpeg', 0.8);
+        canvas.toBlob((blob) => resolve(blob!), 'image/jpeg', 0.9);
       });
 
+      console.log('Starting AI analysis...');
       // Perform AI analysis
       const analysisResults = await performAIAnalysis(blob, imageDataUrl);
       setResults(analysisResults);
@@ -174,6 +235,13 @@ export default function FaceScan() {
       setIsAnalyzing(false);
     }
   };
+
+  // Cleanup effect to stop camera when component unmounts
+  useEffect(() => {
+    return () => {
+      stopCamera();
+    };
+  }, []);
 
   const performAIAnalysis = async (imageBlob: Blob, imageDataUrl: string): Promise<DetectionResults> => {
     const analysisResults: DetectionResults = {
@@ -796,17 +864,18 @@ export default function FaceScan() {
               </div>
             )}
 
-            <div className="relative bg-black rounded-lg overflow-hidden aspect-video">
-              {isScanning ? (
-                <video
-                  ref={videoRef}
-                  autoPlay
-                  playsInline
-                  muted
-                  className="w-full h-full object-cover"
-                />
-              ) : (
-                <div className="flex items-center justify-center h-full">
+            <div className="relative bg-black rounded-lg overflow-hidden" style={{ aspectRatio: '4/3' }}>
+              <video
+                ref={videoRef}
+                autoPlay
+                playsInline
+                muted
+                className={`w-full h-full object-cover ${isScanning ? 'block' : 'hidden'}`}
+                style={{ transform: 'scaleX(-1)' }} // Mirror effect for selfie
+              />
+              
+              {!isScanning && (
+                <div className="absolute inset-0 flex items-center justify-center">
                   <div className="text-center text-white">
                     <Camera className="w-12 h-12 mx-auto mb-2 opacity-50" />
                     <p className="text-sm opacity-75">Camera preview will appear here</p>
@@ -819,7 +888,15 @@ export default function FaceScan() {
                   <div className="text-center text-white">
                     <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white mx-auto mb-2"></div>
                     <p className="text-sm">Analyzing your face...</p>
-                    <p className="text-xs opacity-75">This may take a few seconds</p>
+                    <p className="text-xs opacity-75">Processing with AI models...</p>
+                  </div>
+                </div>
+              )}
+              
+              {isScanning && !isAnalyzing && (
+                <div className="absolute top-4 left-4 right-4">
+                  <div className="bg-black bg-opacity-50 rounded-lg p-2 text-center">
+                    <p className="text-white text-xs">Position your face in the center</p>
                   </div>
                 </div>
               )}

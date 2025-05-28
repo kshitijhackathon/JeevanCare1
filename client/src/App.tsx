@@ -20,6 +20,8 @@ import FaceScan from "@/pages/face-scan";
 import DoctorEscalation from "@/pages/doctor-escalation";
 import AIConsultation from "@/pages/ai-consultation";
 import MedicalRecords from "@/pages/medical-records";
+import GlobalHealthMap from "@/pages/global-health-map";
+import HealthAssistant from "@/pages/health-assistant";
 import NotFound from "@/pages/not-found";
 import GetStarted from "@/pages/auth/get-started";
 import SignUp from "@/pages/auth/signup";
@@ -84,6 +86,8 @@ function Router() {
           <Route path="/doctor-escalation" component={DoctorEscalation} />
           <Route path="/ai-consultation" component={AIConsultation} />
           <Route path="/medical-records" component={MedicalRecords} />
+          <Route path="/global-health-map" component={GlobalHealthMap} />
+          <Route path="/health-assistant" component={HealthAssistant} />
         </>
       )}
       <Route component={NotFound} />

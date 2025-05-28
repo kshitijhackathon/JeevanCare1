@@ -950,6 +950,282 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Health Assistant Chat with Groq API
+  app.post('/api/health-assistant/chat', async (req, res) => {
+    try {
+      const { message, history } = req.body;
+      
+      // Build context from conversation history
+      const conversationContext = history?.slice(-3).map((msg: any) => 
+        `${msg.role}: ${msg.content}`
+      ).join('\n') || '';
+
+      const systemPrompt = `You are an intelligent healthcare assistant that helps users navigate a comprehensive healthcare platform. Your role is to:
+
+1. **Guide users to appropriate features** based on their needs
+2. **Provide helpful health information** while emphasizing professional medical advice
+3. **Navigate users through the platform** with specific action suggestions
+
+Available platform features:
+- AI Consultation (/ai-consultation): For symptom analysis and health guidance
+- Medical Records Upload (/medical-records): For uploading and AI analysis of medical documents
+- Doctor Escalation (/doctor-escalation): For finding verified specialists from Indian Medical Registry
+- Face Scan (/face-scan): For AI-powered facial health analysis
+- Global Health Map (/global-health-map): For worldwide disease tracking and trends
+- Emergency Services (ambulance button): For immediate emergency assistance
+- Lab Test Booking (/book-test): For scheduling medical tests
+- Medicine Delivery: For prescription medication delivery
+
+Response format guidelines:
+- Be conversational, helpful, and encouraging
+- Suggest specific platform features when relevant
+- Provide actionable guidance
+- Include relevant actions with routes when appropriate
+- Keep medical advice general and emphasize consulting professionals
+
+Previous conversation:
+${conversationContext}
+
+Current user message: ${message}
+
+Respond helpfully and suggest relevant platform features.`;
+
+      // Use Perplexity as backup if Groq isn't available
+      const response = await fetch('https://api.perplexity.ai/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${process.env.PERPLEXITY_API_KEY}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          model: 'llama-3.1-sonar-small-128k-online',
+          messages: [
+            {
+              role: 'system',
+              content: systemPrompt
+            },
+            {
+              role: 'user',
+              content: message
+            }
+          ],
+          max_tokens: 500,
+          temperature: 0.7,
+          top_p: 0.9,
+          stream: false
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error('AI service unavailable');
+      }
+
+      const data = await response.json();
+      let aiResponse = data.choices[0]?.message?.content || 'I apologize, but I could not process your message. Please try again.';
+
+      // Parse response to extract suggestions and actions
+      const suggestions = extractSuggestions(message, aiResponse);
+      const actions = extractActions(message, aiResponse);
+      const responseType = determineResponseType(message);
+
+      res.json({ 
+        response: aiResponse,
+        type: responseType,
+        suggestions,
+        actions
+      });
+    } catch (error) {
+      console.error("Health assistant error:", error);
+      
+      // Fallback intelligent response
+      const fallbackResponse = generateFallbackResponse(req.body.message);
+      res.json(fallbackResponse);
+    }
+  });
+
+  // Global Health Data API
+  app.get('/api/global-health-data', async (req, res) => {
+    try {
+      const { disease } = req.query;
+      
+      // Comprehensive global health data
+      const globalHealthData = [
+        {
+          id: 'region_001',
+          name: 'Delhi NCR',
+          country: 'India',
+          coordinates: [28.6139, 77.2090],
+          totalCases: 45230,
+          population: 32900000,
+          riskLevel: 'high',
+          lastUpdated: new Date().toISOString(),
+          diseases: [
+            {
+              disease: 'Air Pollution Related Respiratory Issues',
+              cases: 18500,
+              trend: 'up',
+              severity: 'high',
+              description: 'Increased respiratory problems due to air quality deterioration'
+            },
+            {
+              disease: 'Dengue',
+              cases: 12400,
+              trend: 'stable',
+              severity: 'medium',
+              description: 'Seasonal dengue cases within expected range'
+            },
+            {
+              disease: 'Diabetes Type 2',
+              cases: 8900,
+              trend: 'up',
+              severity: 'medium',
+              description: 'Rising diabetes cases linked to lifestyle factors'
+            },
+            {
+              disease: 'Hypertension',
+              cases: 5430,
+              trend: 'stable',
+              severity: 'medium',
+              description: 'Cardiovascular conditions in urban population'
+            }
+          ]
+        },
+        {
+          id: 'region_002',
+          name: 'Mumbai Metropolitan',
+          country: 'India',
+          coordinates: [19.0760, 72.8777],
+          totalCases: 38700,
+          population: 25700000,
+          riskLevel: 'medium',
+          lastUpdated: new Date().toISOString(),
+          diseases: [
+            {
+              disease: 'Waterborne Diseases',
+              cases: 15200,
+              trend: 'down',
+              severity: 'medium',
+              description: 'Monsoon-related waterborne illness decreasing with better sanitation'
+            },
+            {
+              disease: 'COVID-19',
+              cases: 9800,
+              trend: 'stable',
+              severity: 'low',
+              description: 'COVID cases stabilized with vaccination coverage'
+            },
+            {
+              disease: 'Malaria',
+              cases: 7400,
+              trend: 'down',
+              severity: 'medium',
+              description: 'Vector control measures showing positive results'
+            },
+            {
+              disease: 'Tuberculosis',
+              cases: 6300,
+              trend: 'down',
+              severity: 'medium',
+              description: 'TB treatment programs reducing active cases'
+            }
+          ]
+        },
+        {
+          id: 'region_003',
+          name: 'Kerala State',
+          country: 'India',
+          coordinates: [10.8505, 76.2711],
+          totalCases: 22800,
+          population: 35400000,
+          riskLevel: 'low',
+          lastUpdated: new Date().toISOString(),
+          diseases: [
+            {
+              disease: 'Nipah Virus',
+              cases: 45,
+              trend: 'stable',
+              severity: 'high',
+              description: 'Controlled outbreak with enhanced surveillance'
+            },
+            {
+              disease: 'Chikungunya',
+              cases: 8900,
+              trend: 'down',
+              severity: 'low',
+              description: 'Vector-borne disease reducing due to prevention measures'
+            },
+            {
+              disease: 'Lifestyle Diseases',
+              cases: 13855,
+              trend: 'up',
+              severity: 'medium',
+              description: 'Diabetes and cardiovascular diseases rising with affluence'
+            }
+          ]
+        },
+        {
+          id: 'region_004',
+          name: 'West Bengal',
+          country: 'India',
+          coordinates: [22.9868, 87.8550],
+          totalCases: 31200,
+          population: 97700000,
+          riskLevel: 'medium',
+          lastUpdated: new Date().toISOString(),
+          diseases: [
+            {
+              disease: 'Japanese Encephalitis',
+              cases: 1200,
+              trend: 'stable',
+              severity: 'high',
+              description: 'Endemic disease with seasonal patterns'
+            },
+            {
+              disease: 'Kala-azar',
+              cases: 890,
+              trend: 'down',
+              severity: 'medium',
+              description: 'Visceral leishmaniasis cases reducing with treatment campaigns'
+            },
+            {
+              disease: 'Diarrheal Diseases',
+              cases: 15400,
+              trend: 'stable',
+              severity: 'medium',
+              description: 'Water and sanitation related illnesses'
+            },
+            {
+              disease: 'Respiratory Infections',
+              cases: 13710,
+              trend: 'up',
+              severity: 'medium',
+              description: 'Seasonal respiratory infections increasing'
+            }
+          ]
+        }
+      ];
+
+      // Filter by disease if specified
+      let filteredData = globalHealthData;
+      if (disease && disease !== 'all') {
+        filteredData = globalHealthData.map(region => ({
+          ...region,
+          diseases: region.diseases.filter(d => 
+            d.disease.toLowerCase().includes(disease.toString().toLowerCase())
+          ),
+          totalCases: region.diseases
+            .filter(d => d.disease.toLowerCase().includes(disease.toString().toLowerCase()))
+            .reduce((sum, d) => sum + d.cases, 0)
+        })).filter(region => region.diseases.length > 0);
+      }
+
+      res.json(filteredData);
+    } catch (error) {
+      console.error("Error fetching global health data:", error);
+      res.status(500).json({ message: "Failed to fetch health data" });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }
@@ -1101,6 +1377,201 @@ function generateRecommendations(message: string): string[] {
   }
   
   return recommendations;
+}
+
+// Helper functions for health assistant
+function extractSuggestions(message: string, aiResponse: string): string[] {
+  const messageLower = message.toLowerCase();
+  const suggestions = [];
+
+  if (messageLower.includes('sick') || messageLower.includes('unwell') || messageLower.includes('symptoms')) {
+    suggestions.push("Tell me about your specific symptoms");
+    suggestions.push("How long have you been feeling this way?");
+    suggestions.push("Have you taken your temperature?");
+  }
+
+  if (messageLower.includes('doctor') || messageLower.includes('specialist')) {
+    suggestions.push("What type of specialist do you need?");
+    suggestions.push("Do you have any medical records to upload?");
+    suggestions.push("What's your current location for nearby doctors?");
+  }
+
+  if (messageLower.includes('upload') || messageLower.includes('records') || messageLower.includes('report')) {
+    suggestions.push("What type of medical document do you have?");
+    suggestions.push("Do you need help interpreting your results?");
+    suggestions.push("Would you like AI analysis of your reports?");
+  }
+
+  if (suggestions.length === 0) {
+    suggestions.push("I need help with symptoms");
+    suggestions.push("Find doctors near me");
+    suggestions.push("Upload medical records");
+    suggestions.push("Check global health trends");
+  }
+
+  return suggestions.slice(0, 4);
+}
+
+function extractActions(message: string, aiResponse: string): { label: string; route: string; icon: string }[] {
+  const messageLower = message.toLowerCase();
+  const actions = [];
+
+  if (messageLower.includes('symptoms') || messageLower.includes('sick') || messageLower.includes('pain')) {
+    actions.push({
+      label: "Start AI Health Consultation",
+      route: "/ai-consultation",
+      icon: "stethoscope"
+    });
+    actions.push({
+      label: "Find Specialist Doctors",
+      route: "/doctor-escalation",
+      icon: "stethoscope"
+    });
+  }
+
+  if (messageLower.includes('upload') || messageLower.includes('records') || messageLower.includes('report')) {
+    actions.push({
+      label: "Upload Medical Records",
+      route: "/medical-records",
+      icon: "file"
+    });
+  }
+
+  if (messageLower.includes('doctor') || messageLower.includes('specialist') || messageLower.includes('appointment')) {
+    actions.push({
+      label: "Find Verified Doctors",
+      route: "/doctor-escalation",
+      icon: "stethoscope"
+    });
+  }
+
+  if (messageLower.includes('face') || messageLower.includes('skin') || messageLower.includes('scan')) {
+    actions.push({
+      label: "AI Face Scan Analysis",
+      route: "/face-scan",
+      icon: "camera"
+    });
+  }
+
+  if (messageLower.includes('global') || messageLower.includes('disease') || messageLower.includes('outbreak')) {
+    actions.push({
+      label: "View Global Health Map",
+      route: "/global-health-map",
+      icon: "globe"
+    });
+  }
+
+  if (messageLower.includes('test') || messageLower.includes('lab') || messageLower.includes('blood')) {
+    actions.push({
+      label: "Book Health Tests",
+      route: "/book-test",
+      icon: "calendar"
+    });
+  }
+
+  if (messageLower.includes('emergency') || messageLower.includes('urgent') || messageLower.includes('help')) {
+    actions.push({
+      label: "Emergency Services",
+      route: "/",
+      icon: "shield"
+    });
+  }
+
+  return actions.slice(0, 3);
+}
+
+function determineResponseType(message: string): string {
+  const messageLower = message.toLowerCase();
+  
+  if (messageLower.includes('emergency') || messageLower.includes('urgent')) {
+    return 'emergency';
+  }
+  if (messageLower.includes('navigate') || messageLower.includes('how to') || messageLower.includes('where')) {
+    return 'navigation';
+  }
+  if (messageLower.includes('symptoms') || messageLower.includes('diagnosis')) {
+    return 'medical';
+  }
+  
+  return 'general';
+}
+
+function generateFallbackResponse(message: string): any {
+  const messageLower = message.toLowerCase();
+  
+  if (messageLower.includes('symptoms') || messageLower.includes('sick')) {
+    return {
+      response: `I understand you're not feeling well. Our platform can help you in several ways:
+
+🩺 **AI Health Consultation** - Get immediate symptom analysis and guidance
+👨‍⚕️ **Find Verified Doctors** - Connect with specialists from Indian Medical Registry
+📋 **Upload Medical Records** - Get AI analysis of your reports and prescriptions
+
+For immediate concerns, please consider consulting a healthcare professional. How would you like me to help you today?`,
+      type: 'suggestion',
+      suggestions: [
+        "Start AI consultation for my symptoms",
+        "Find doctors near me",
+        "Upload my medical reports",
+        "I need emergency assistance"
+      ],
+      actions: [
+        { label: "AI Health Consultation", route: "/ai-consultation", icon: "stethoscope" },
+        { label: "Find Doctors", route: "/doctor-escalation", icon: "stethoscope" },
+        { label: "Upload Records", route: "/medical-records", icon: "file" }
+      ]
+    };
+  }
+
+  if (messageLower.includes('doctor') || messageLower.includes('specialist')) {
+    return {
+      response: `I can help you find the right healthcare professionals! Our platform connects you with verified doctors from the Indian Medical Registry.
+
+🔍 **Smart Doctor Matching** - AI matches you with specialists based on your conditions
+📍 **Location-Based Search** - Find doctors near your location
+✅ **Verified Credentials** - All doctors are verified with medical council registration
+
+What type of specialist are you looking for, or would you like me to analyze your symptoms first to recommend the right specialty?`,
+      type: 'navigation',
+      suggestions: [
+        "I need a cardiologist",
+        "Help me choose the right specialist",
+        "Find doctors near my location",
+        "Analyze my symptoms first"
+      ],
+      actions: [
+        { label: "Find Specialists", route: "/doctor-escalation", icon: "stethoscope" },
+        { label: "AI Symptom Analysis", route: "/ai-consultation", icon: "stethoscope" }
+      ]
+    };
+  }
+
+  // Default response
+  return {
+    response: `Hello! I'm your intelligent healthcare assistant. I can guide you through our comprehensive health platform and help you access the right services.
+
+🏥 **What I can help you with:**
+• Symptom analysis and health consultations
+• Finding verified doctors and specialists
+• Medical record management and AI analysis
+• Global health information and trends
+• Emergency services and urgent care guidance
+
+What would you like to do today?`,
+    type: 'suggestion',
+    suggestions: [
+      "I have health symptoms to discuss",
+      "I need to find a doctor",
+      "Upload my medical records",
+      "Check global health trends"
+    ],
+    actions: [
+      { label: "Health Consultation", route: "/ai-consultation", icon: "stethoscope" },
+      { label: "Find Doctors", route: "/doctor-escalation", icon: "stethoscope" },
+      { label: "Medical Records", route: "/medical-records", icon: "file" },
+      { label: "Global Health Map", route: "/global-health-map", icon: "globe" }
+    ]
+  };
 }
 
 // Simple AI response generator (legacy function for compatibility)

@@ -202,6 +202,22 @@ export default function Home() {
           onClose={() => setShowEmergency(false)}
         />
       )}
+
+      {/* Floating Health Assistant Button */}
+      <Link href="/health-assistant">
+        <div className="fixed bottom-20 right-4 z-50">
+          <div className="bg-gradient-to-r from-blue-500 to-purple-600 rounded-full p-4 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105">
+            <div className="relative">
+              <div className="w-6 h-6 text-white">
+                <svg viewBox="0 0 24 24" fill="currentColor" className="w-6 h-6">
+                  <path d="M12 2C13.1 2 14 2.9 14 4C14 5.1 13.1 6 12 6C10.9 6 10 5.1 10 4C10 2.9 10.9 2 12 2ZM21 9V7L15 1H5C3.89 1 3 1.89 3 3V21C3 22.1 3.89 23 5 23H19C20.1 23 21 22.1 21 21V11L15 5V9H21ZM7 9H13V7H7V9ZM7 11H17V13H7V11ZM7 15H17V17H7V15Z"/>
+                </svg>
+              </div>
+              <div className="absolute -top-1 -right-1 w-3 h-3 bg-green-400 rounded-full animate-pulse"></div>
+            </div>
+          </div>
+        </div>
+      </Link>
     </div>
   );
 }

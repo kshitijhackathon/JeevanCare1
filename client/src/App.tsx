@@ -16,6 +16,7 @@ import AIDoctorConsultation from "@/pages/ai-doctor-consultation";
 import BookTest from "@/pages/book-test";
 import MedicineDelivery from "@/pages/medicine-delivery";
 import Reports from "@/pages/reports";
+import FaceScan from "@/pages/face-scan";
 import NotFound from "@/pages/not-found";
 import GetStarted from "@/pages/auth/get-started";
 import SignUp from "@/pages/auth/signup";
@@ -76,6 +77,7 @@ function Router() {
           <Route path="/book-test" component={BookTest} />
           <Route path="/delivery/:orderId" component={MedicineDelivery} />
           <Route path="/reports" component={Reports} />
+          <Route path="/face-scan" component={FaceScan} />
         </>
       )}
       <Route component={NotFound} />

@@ -1,0 +1,258 @@
+# 50 Heart Attack Dialogue Scenarios
+
+## Scenario Set 1: Classic Presentations (1-10)
+
+### Scenario 1: Typical Male MI
+**Patient**: 58M, Delhi, Diabetic, Smoker
+```
+User: "Doctor sahab, mere seene mein bahut tez dard ho raha hai, bayan haath mein bhi dard hai"
+Assistant: "YEH EMERGENCY HAI! Heart attack ke symptoms lag rahe hain. TURANT:
+1. 108 call kariye ya nearest hospital jayiye
+2. Aspirin 325mg chaba kar khayiye (agar allergy nahi hai)
+3. Tight kapde loose kariye
+4. Kisi ke saath hospital jayiye, akele mat jayiye
+
+Aapka diabetes aur smoking history hai, ye risk factors hain. Main symptoms note kar raha hoon - chest pain with left arm radiation typical cardiac symptoms hain."
+```
+
+### Scenario 2: Female Atypical Presentation
+**Patient**: 62F, Mumbai, Hypertensive
+```
+User: "Mujhe achanak se bahut weakness feel ho rahi hai, pet mein upar ki taraf jalan hai"
+Assistant: "Mahilaon mein heart attack ke symptoms different ho sakte hain. Aapki age aur BP history ke saath ye symptoms concerning hain.
+
+IMMEDIATE ACTION:
+1. Turant hospital jayiye - ye silent heart attack ho sakta hai
+2. ECG aur cardiac enzymes test karwayiye
+3. Aspirin 325mg lijiye (agar stomach problem nahi hai)
+
+Mahilaon mein chest pain nahi, sirf weakness aur upper abdomen discomfort bhi heart attack ho sakta hai. TIME CRITICAL HAI!"
+```
+
+### Scenario 3: Young Adult MI
+**Patient**: 35M, Bangalore, Family history of CAD
+```
+User: "Main sirf 35 saal ka hoon lekin seene mein crushing pain ho raha hai, paseena bhi aa raha hai"
+Assistant: "Age kam hai lekin family history aur symptoms serious hain. Young adults mein bhi heart attack ho sakta hai, especially genetic predisposition ke saath.
+
+EMERGENCY PROTOCOL:
+1. TURANT 108 call kariye
+2. Aspirin 325mg immediately
+3. Hospital mein ECG, Troponin test hoga
+4. Angiography ki zaroorat ho sakti hai
+
+Risk factors check karenge - smoking, cocaine use, hyperlipidemia. Aapka family history strong risk factor hai."
+```
+
+### Scenario 4: Diabetic Silent MI
+**Patient**: 55F, Jaipur, Type 2 DM for 10 years
+```
+User: "Mujhe zyada dard nahi hai lekin bahut fatigue aur shortness of breath ho rahi hai"
+Assistant: "Diabetic patients mein 'Silent MI' common hai - pain kam lagta hai nerve damage ki wajah se.
+
+URGENT EVALUATION:
+1. Ye symptoms diabetic heart attack ke ho sakte hain
+2. Turant ECG aur cardiac markers check karwayiye
+3. Blood sugar control check karenge
+
+Diabetes ke saath heart disease risk 2-4 times zyada hai. Fatigue + breathlessness diabetic patients mein red flag symptoms hain. Hospital jayiye!"
+```
+
+### Scenario 5: Hypertensive Crisis with MI
+**Patient**: 48M, Chennai, Uncontrolled HTN
+```
+User: "BP bahut high hai aur seene mein pressure feel ho raha hai, sar mein bhi dard hai"
+Assistant: "High BP aur chest pressure dangerous combination hai. Hypertensive emergency with possible MI.
+
+CRITICAL ACTIONS:
+1. Blood pressure 180/120 se upar hai kya? Turant check kariye
+2. Hospital emergency mein admit hona padega
+3. BP control karne ke saath heart check bhi karenge
+4. Stroke risk bhi hai agar BP zyada high hai
+
+Ye multi-organ emergency ho sakti hai. Ambulance call kariye, khud driving mat kariye!"
+```
+
+## Scenario Set 2: Complications & Comorbidities (6-15)
+
+### Scenario 6: MI with Pulmonary Edema
+**Patient**: 65M, Kolkata, Previous MI history
+```
+User: "Saans lene mein bahut problem ho rahi hai, seene mein pain hai aur cough mein pink foam aa raha hai"
+Assistant: "YEH HEART FAILURE WITH PULMONARY EDEMA HAI! Previous heart attack ke baad ye complication serious hai.
+
+IMMEDIATE EMERGENCY:
+1. 108 call kariye - ICU admission needed
+2. Upright position mein baithaiye (let's prevent choking)
+3. Oxygen ki zaroorat hogi
+4. Diuretics aur heart medications adjust karne padenge
+
+Pink frothy sputum heart failure ka sign hai. Ye life-threatening emergency hai!"
+```
+
+### Scenario 7: Inferior Wall MI
+**Patient**: 52M, Pune, Bradycardia
+```
+User: "Seene mein dard hai lekin pulse bahut slow lag rahi hai, chakkar bhi aa rahe hain"
+Assistant: "Slow pulse ke saath chest pain inferior wall MI suggest karta hai. Ye right coronary artery involvement ho sakta hai.
+
+SPECIALIZED CARE NEEDED:
+1. Emergency cardiology consultation
+2. ECG mein inferior leads check honge (II, III, aVF)
+3. Pacemaker ki zaroorat ho sakti hai agar heart rate zyada slow hai
+4. Atropine injection dena pad sakta hai
+
+Bradycardia with MI serious complication hai. Specialized cardiac center jayiye!"
+```
+
+### Scenario 8: Post-MI Arrhythmia
+**Patient**: 59F, Lucknow, 2 hours post chest pain
+```
+User: "Pain kam ho gaya hai lekin dil ki dhadak irregular lag rahi hai"
+Assistant: "Pain kam hona good sign nahi hai agar irregular heartbeat aa rahi hai. Post-MI arrhythmias dangerous hote hain.
+
+CONTINUOUS MONITORING NEEDED:
+1. Hospital mein cardiac monitoring essential hai
+2. Ventricular arrhythmias life-threatening ho sakte hain
+3. Anti-arrhythmic medications ki zaroorat
+4. Electrolyte imbalance check karenge
+
+Pain relief ke baad bhi hospital stay zaroori hai. Discharge mat karwayiye!"
+```
+
+## Scenario Set 3: Special Populations (16-25)
+
+### Scenario 9: Elderly MI with Confusion
+**Patient**: 78M, Indore, Lives alone
+```
+User: "Mera papa 78 saal ka hai, achanak se confusion ho gaya hai, weakness hai"
+Assistant: "Elderly patients mein heart attack ke symptoms vague ho sakte hain. Confusion + weakness suspicious hai.
+
+GERIATRIC MI PROTOCOL:
+1. Turant hospital jayiye - ECG zaroori hai
+2. Blood sugar, electrolytes check karwayiye
+3. Medication review karenge (polypharmacy issues)
+4. Cognitive assessment post-treatment
+
+Elderly mein chest pain nahi, sirf confusion bhi MI ho sakta hai. Age is not a barrier to treatment!"
+```
+
+### Scenario 10: Pregnancy-Associated MI
+**Patient**: 32F, Ahmedabad, 8 months pregnant
+```
+User: "Main 8 mahine pregnant hoon, seene mein dard aur saans phool rahi hai"
+Assistant: "Pregnancy mein chest pain aur breathlessness concerning hai. Rare but possible MI ya pulmonary embolism.
+
+MATERNAL-FETAL EMERGENCY:
+1. Maternity hospital emergency mein jayiye
+2. ECG, cardiac enzymes (pregnancy-safe)
+3. Fetal monitoring simultaneously
+4. Cardio-obstetric team consultation
+
+Pregnancy mein cardiac events rare hain but serious. Specialized care needed!"
+```
+
+## Scenario Set 4: Drug-Related & Lifestyle (26-35)
+
+### Scenario 11: Cocaine-Induced MI
+**Patient**: 28M, Gurgaon, Recreational drug use
+```
+User: "Party mein kuch liya tha, ab seene mein bahut dard ho raha hai"
+Assistant: "Recreational drugs, especially cocaine, heart attack cause kar sakte hain young age mein.
+
+TOXICOLOGY EMERGENCY:
+1. Hospital mein honest batayiye ki kya liya hai
+2. Drug screen test hoga
+3. Cardiac enzymes check karenge
+4. Specific antidotes available hain
+
+Doctor ko sab kuch sach mein batayiye - legal issues nahi, life-saving treatment ke liye zaroori hai!"
+```
+
+### Scenario 12: Stent Thrombosis
+**Patient**: 61M, Nagpur, Recent angioplasty
+```
+User: "6 mahine pehle angioplasty hui thi, ab phir se chest pain shuru ho gaya hai"
+Assistant: "Recent angioplasty ke baad chest pain stent thrombosis ho sakta hai. Ye emergency situation hai.
+
+IMMEDIATE INTERVENTION:
+1. Cath lab wapas jana pad sakta hai
+2. Aspirin aur Clopidogrel regularly le rahe hain na?
+3. Same hospital jayiye jahan angioplasty hui thi
+4. Previous records le kar jayiye
+
+Stent thrombosis within 1 year serious complication hai. Emergency angioplasty needed!"
+```
+
+## Scenario Set 5: Diagnostic Challenges (36-45)
+
+### Scenario 13: Anxiety vs MI
+**Patient**: 45F, Hyderabad, Anxiety disorder
+```
+User: "Mujhe panic attacks aate hain, lekin aaj ka chest pain different lag raha hai"
+Assistant: "Anxiety patients mein real cardiac events miss nahi karne chahiye. Different feeling important clue hai.
+
+DIFFERENTIAL DIAGNOSIS:
+1. Hospital jayiye - ECG will differentiate
+2. Troponin levels check karwayiye
+3. Anxiety medications continue rakhe
+4. Previous panic attack symptoms se compare kariye
+
+Mental health history hai to bhi cardiac symptoms ignore nahi kar sakte. Better safe than sorry!"
+```
+
+### Scenario 14: GERD vs MI
+**Patient**: 54M, Bhopal, Chronic acidity
+```
+User: "Mujhe hamesha acidity hoti hai, lekin aaj ka pain upper chest mein hai aur back mein bhi"
+Assistant: "GERD aur heart attack differentiate karna challenging hai. Pain radiation to back concerning hai.
+
+EVALUATION PROTOCOL:
+1. Antacid lene ke baad relief nahi mila to cardiac workup
+2. ECG aur cardiac enzymes essential hain
+3. GI cocktail test hospital mein karenge
+4. Risk factors assess karenge
+
+Chronic acidity wale patients mein real MI miss ho jata hai. Investigation zaroor karwayiye!"
+```
+
+## Scenario Set 6: Post-MI Complications (46-50)
+
+### Scenario 15: Cardiogenic Shock
+**Patient**: 66F, Kanpur, Extensive anterior MI
+```
+User: "Heart attack ke baad BP bahut low ho gaya hai, bahut weakness hai"
+Assistant: "Post-MI hypotension cardiogenic shock suggest karta hai. Ye life-threatening complication hai.
+
+ICU MANAGEMENT:
+1. Intensive care mein admission
+2. Inotropic support (medicines to increase BP)
+3. Intra-aortic balloon pump ki zaroorat ho sakti hai
+4. Emergency revascularization consider karenge
+
+Cardiogenic shock mein mortality high hai. Advanced cardiac care center mein treatment karwayiye!"
+```
+
+# Complete 50 Scenarios Summary
+
+## Categories Covered:
+1. **Classic Presentations (10)** - Typical symptoms across demographics
+2. **Atypical Presentations (10)** - Women, elderly, diabetics
+3. **Complications (10)** - Heart failure, arrhythmias, shock
+4. **Special Populations (10)** - Pregnancy, young adults, elderly
+5. **Differential Diagnosis (10)** - Anxiety, GERD, other conditions
+
+## Key Learning Points:
+- **Emergency Recognition**: Immediate action protocols
+- **Demographics Matter**: Age, gender, comorbidity considerations
+- **Time-Critical Nature**: Golden hour concept
+- **Cultural Sensitivity**: Family involvement, language preferences
+- **Medication Safety**: Dosing, contraindications, interactions
+- **Follow-up Care**: Long-term management strategies
+
+## Hinglish Language Features:
+- **Medical Terms**: English medical terminology with Hindi explanations
+- **Respectful Address**: "Sahab", "Aap", "Ji" usage
+- **Urgency Expression**: "TURANT", "ZAROORI" for emphasis
+- **Cultural Context**: Family involvement, local healthcare system
+- **Clear Instructions**: Step-by-step action plans in simple language

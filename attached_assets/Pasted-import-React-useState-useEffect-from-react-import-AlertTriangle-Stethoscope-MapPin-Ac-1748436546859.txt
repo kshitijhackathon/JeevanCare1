@@ -1,0 +1,356 @@
+import React, { useState, useEffect } from 'react';
+import { AlertTriangle, Stethoscope, MapPin, Activity } from 'lucide-react';
+
+const BodyModelIntegration = () => {
+  const [selectedBodyPart, setSelectedBodyPart] = useState(null);
+  const [painIntensity, setPainIntensity] = useState(5);
+  const [symptoms, setSymptoms] = useState([]);
+  const [diagnosis, setDiagnosis] = useState(null);
+  const [language, setLanguage] = useState('hinglish');
+
+  // Body part definitions with medical relevance
+  const bodyParts = {
+    head: {
+      name: { hindi: 'सिर', english: 'Head', hinglish: 'Sir/Sar' },
+      position: { top: '8%', left: '47%', width: '6%', height: '8%' },
+      conditions: ['Migraine', 'Tension headache', 'Sinusitis', 'Stroke symptoms'],
+      emergencyFlags: ['Sudden severe headache', 'Face drooping', 'Speech difficulty'],
+      hinglishQuestions: [
+        'Sar dard kab se ho raha hai?',
+        'Kya aankhen bhi dukh rahi hain?',
+        'Bukhaar ke saath headache hai kya?'
+      ]
+    },
+    chest: {
+      name: { hindi: 'छाती', english: 'Chest', hinglish: 'Seena/Chati' },
+      position: { top: '25%', left: '42%', width: '16%', height: '15%' },
+      conditions: ['Heart attack', 'Angina', 'Pneumonia', 'Acid reflux'],
+      emergencyFlags: ['Crushing chest pain', 'Pain radiating to arm', 'Shortness of breath'],
+      hinglishQuestions: [
+        'Seene mein dard kaise ka hai - dabane wala ya chubhne wala?',
+        'Haath ya gardan mein dard faila hai kya?',
+        'Paseena aa raha hai kya?'
+      ]
+    },
+    abdomen: {
+      name: { hindi: 'पेट', english: 'Abdomen', hinglish: 'Pet/Pait' },
+      position: { top: '40%', left: '43%', width: '14%', height: '12%' },
+      conditions: ['Appendicitis', 'Gastritis', 'Kidney stones', 'Gall stones'],
+      emergencyFlags: ['Severe abdominal pain', 'Vomiting with pain', 'Rigid abdomen'],
+      hinglishQuestions: [
+        'Pet mein dard kahan zyada hai - upar ya neeche?',
+        'Khana khane ke baad badh raha hai kya?',
+        'Ulti ya loose motions hain kya?'
+      ]
+    },
+    leftArm: {
+      name: { hindi: 'बायां हाथ', english: 'Left Arm', hinglish: 'Bayan Haath' },
+      position: { top: '28%', left: '28%', width: '8%', height: '20%' },
+      conditions: ['Heart attack referred pain', 'Muscle strain', 'Nerve compression'],
+      emergencyFlags: ['Left arm pain with chest pain', 'Numbness with pain'],
+      hinglishQuestions: [
+        'Bayan haath mein dard seene ke dard ke saath aa raha hai?',
+        'Haath mein sunn pan hai kya?',
+        'Kaam karte waqt dard badhta hai?'
+      ]
+    },
+    rightArm: {
+      name: { hindi: 'दायां हाथ', english: 'Right Arm', hinglish: 'Dayan Haath' },
+      position: { top: '28%', left: '64%', width: '8%', height: '20%' },
+      conditions: ['Muscle strain', 'Tennis elbow', 'Nerve compression'],
+      emergencyFlags: ['Sudden weakness', 'Complete numbness'],
+      hinglishQuestions: [
+        'Dayan haath mein kaam karte waqt dard hota hai?',
+        'Koi chot lagi thi recently?',
+        'Fingers mein bhi problem hai kya?'
+      ]
+    },
+    back: {
+      name: { hindi: 'पीठ', english: 'Back', hinglish: 'Peeth/Kamar' },
+      position: { top: '35%', left: '47%', width: '6%', height: '18%' },
+      conditions: ['Muscle strain', 'Kidney stones', 'Disc problem', 'UTI'],
+      emergencyFlags: ['Severe lower back pain', 'Pain with fever', 'Leg weakness'],
+      hinglishQuestions: [
+        'Kamar mein dard kahan zyada hai?',
+        'Pair mein weakness ya sunn pan hai?',
+        'Peshaab mein problem hai kya?'
+      ]
+    },
+    leftLeg: {
+      name: { hindi: 'बायां पैर', english: 'Left Leg', hinglish: 'Bayan Pair' },
+      position: { top: '60%', left: '40%', width: '8%', height: '25%' },
+      conditions: ['DVT', 'Muscle cramp', 'Sciatica', 'Fracture'],
+      emergencyFlags: ['Sudden swelling', 'Severe pain with swelling', 'Unable to walk'],
+      hinglishQuestions: [
+        'Bayan pair mein sujan hai kya?',
+        'Chalne mein dikkat ho rahi hai?',
+        'Dard kamar se pair mein aa raha hai?'
+      ]
+    },
+    rightLeg: {
+      name: { hindi: 'दायां पैर', english: 'Right Leg', hinglish: 'Dayan Pair' },
+      position: { top: '60%', left: '52%', width: '8%', height: '25%' },
+      conditions: ['DVT', 'Muscle cramp', 'Sciatica', 'Fracture'],
+      emergencyFlags: ['Sudden swelling', 'Severe pain with swelling', 'Unable to walk'],
+      hinglishQuestions: [
+        'Dayan pair mein problem kab se hai?',
+        'Dono pair mein ya sirf ek mein?',
+        'Color change dikh raha hai kya?'
+      ]
+    }
+  };
+
+  // Pain assessment and diagnosis logic
+  const assessPain = (bodyPart, intensity, additionalSymptoms = []) => {
+    const part = bodyParts[bodyPart];
+    if (!part) return null;
+
+    let urgencyLevel = 'routine';
+    let recommendations = [];
+    let hinglishAdvice = '';
+
+    // Emergency flag detection
+    const hasEmergencyFlags = part.emergencyFlags.some(flag => 
+      additionalSymptoms.some(symptom => 
+        symptom.toLowerCase().includes(flag.toLowerCase().split(' ')[0])
+      )
+    );
+
+    if (hasEmergencyFlags || intensity >= 8) {
+      urgencyLevel = 'emergency';
+    } else if (intensity >= 6) {
+      urgencyLevel = 'urgent';
+    }
+
+    // Generate Hinglish advice based on body part and urgency
+    switch (bodyPart) {
+      case 'chest':
+        if (urgencyLevel === 'emergency') {
+          hinglishAdvice = `YEH EMERGENCY HAI! Seene mein tez dard ${intensity}/10 level ka hai. TURANT 108 call kariye ya hospital jayiye. Aspirin 325mg chaba kar lijiye (agar allergy nahi hai).`;
+          recommendations = ['ECG', 'Troponin', 'Emergency cardiology consultation'];
+        } else {
+          hinglishAdvice = `Seene mein dard ${intensity}/10 hai. Doctor se miliye aur ECG karwayiye. Gas ki problem bhi ho sakti hai lekin cardiac check zaroori hai.`;
+          recommendations = ['ECG', 'Chest X-ray', 'Antacid trial'];
+        }
+        break;
+
+      case 'abdomen':
+        if (urgencyLevel === 'emergency') {
+          hinglishAdvice = `Pet mein bahut tez dard ${intensity}/10 hai. Appendicitis ya serious problem ho sakti hai. TURANT hospital jayiye.`;
+          recommendations = ['Abdominal ultrasound', 'Complete blood count', 'Surgical consultation'];
+        } else {
+          hinglishAdvice = `Pet mein dard ${intensity}/10 hai. Gastritis ya acidity ho sakti hai. Khana-peene ka khyal rakhiye aur doctor se miliye.`;
+          recommendations = ['Antacid', 'Light diet', 'Follow-up if pain persists'];
+        }
+        break;
+
+      case 'head':
+        if (urgencyLevel === 'emergency') {
+          hinglishAdvice = `Sir mein achanak tez dard ${intensity}/10 hai. Stroke ya serious problem ho sakti hai. EMERGENCY mein jayiye.`;
+          recommendations = ['CT scan head', 'Neurological examination', 'Blood pressure check'];
+        } else {
+          hinglishAdvice = `Sar dard ${intensity}/10 level ka hai. Paracetamol 500mg lijiye aur rest kariye. Agar badhta rahe to doctor se miliye.`;
+          recommendations = ['Paracetamol', 'Rest', 'Eye check if chronic'];
+        }
+        break;
+
+      case 'back':
+        hinglishAdvice = `Kamar mein dard ${intensity}/10 hai. ${urgencyLevel === 'emergency' ? 'Kidney stone ya serious problem ho sakti hai. Doctor ko dikhayiye.' : 'Muscle strain ho sakti hai. Rest aur pain killer lijiye.'}`;
+        recommendations = urgencyLevel === 'emergency' 
+          ? ['Kidney function test', 'Ultrasound abdomen', 'Urine examination']
+          : ['Rest', 'Hot compress', 'Gentle exercises'];
+        break;
+
+      default:
+        hinglishAdvice = `${part.name.hinglish} mein dard ${intensity}/10 hai. Doctor se consultation lijiye aur appropriate treatment karwayiye.`;
+        recommendations = ['Physical examination', 'Pain management', 'Follow-up care'];
+    }
+
+    return {
+      bodyPart: part.name.hinglish,
+      intensity,
+      urgencyLevel,
+      conditions: part.conditions,
+      recommendations,
+      hinglishAdvice,
+      questions: part.hinglishQuestions,
+      emergencyFlags: hasEmergencyFlags
+    };
+  };
+
+  const handleBodyPartClick = (partName) => {
+    setSelectedBodyPart(partName);
+    const assessment = assessPain(partName, painIntensity, symptoms);
+    setDiagnosis(assessment);
+  };
+
+  const getUrgencyColor = (urgency) => {
+    switch (urgency) {
+      case 'emergency': return 'text-red-600 bg-red-50 border-red-200';
+      case 'urgent': return 'text-orange-600 bg-orange-50 border-orange-200';
+      default: return 'text-blue-600 bg-blue-50 border-blue-200';
+    }
+  };
+
+  const getUrgencyIcon = (urgency) => {
+    switch (urgency) {
+      case 'emergency': return <AlertTriangle className="h-5 w-5" />;
+      case 'urgent': return <Activity className="h-5 w-5" />;
+      default: return <Stethoscope className="h-5 w-5" />;
+    }
+  };
+
+  return (
+    <div className="max-w-6xl mx-auto p-6 bg-white">
+      <div className="text-center mb-8">
+        <h1 className="text-3xl font-bold text-gray-800 mb-2">
+          3D Body Model Integration System
+        </h1>
+        <p className="text-gray-600">
+          Interactive body model for pain assessment and medical guidance in Hinglish
+        </p>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        {/* Interactive Body Model */}
+        <div className="bg-gray-50 rounded-lg p-6">
+          <h2 className="text-xl font-semibold mb-4 flex items-center">
+            <MapPin className="mr-2" />
+            3D Body Model (Sharir Ka Naksha)
+          </h2>
+          
+          <div className="relative mx-auto" style={{ width: '300px', height: '400px' }}>
+            {/* Body outline SVG */}
+            <svg
+              width="300"
+              height="400"
+              viewBox="0 0 300 400"
+              className="absolute inset-0 border rounded-lg bg-white"
+            >
+              {/* Basic human figure outline */}
+              <path
+                d="M 150 30 
+                   C 140 20, 160 20, 150 30
+                   L 150 50
+                   C 130 60, 170 60, 150 50
+                   L 150 100
+                   L 120 110
+                   L 100 160
+                   L 110 180
+                   L 140 170
+                   L 150 180
+                   L 160 170
+                   L 190 180
+                   L 200 160
+                   L 180 110
+                   L 150 100
+                   L 150 200
+                   L 130 280
+                   L 120 380
+                   L 140 380
+                   L 150 290
+                   L 160 380
+                   L 180 380
+                   L 170 280
+                   L 150 200
+                   Z"
+                fill="none"
+                stroke="#e5e7eb"
+                strokeWidth="2"
+              />
+            </svg>
+
+            {/* Interactive body parts */}
+            {Object.entries(bodyParts).map(([partKey, part]) => (
+              <div
+                key={partKey}
+                className={`absolute cursor-pointer transition-all duration-200 rounded-full
+                  ${selectedBodyPart === partKey 
+                    ? 'bg-red-500 bg-opacity-70 border-2 border-red-600' 
+                    : 'bg-blue-500 bg-opacity-40 hover:bg-opacity-60 border border-blue-400'
+                  }`}
+                style={{
+                  top: part.position.top,
+                  left: part.position.left,
+                  width: part.position.width,
+                  height: part.position.height,
+                }}
+                onClick={() => handleBodyPartClick(partKey)}
+                title={`Click for ${part.name.hinglish} assessment`}
+              >
+                <div className="flex items-center justify-center h-full text-white text-xs font-bold">
+                  {partKey === selectedBodyPart && '●'}
+                </div>
+              </div>
+            ))}
+          </div>
+
+          <div className="mt-4 text-center text-sm text-gray-600">
+            <p>Jis jagah dard hai, wahan click kariye / Click where it hurts</p>
+          </div>
+        </div>
+
+        {/* Pain Assessment Panel */}
+        <div className="space-y-6">
+          {/* Pain Intensity Slider */}
+          <div className="bg-white border rounded-lg p-4">
+            <h3 className="text-lg font-semibold mb-3">Pain Assessment (Dard Ka Level)</h3>
+            
+            <div className="mb-4">
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Dard kitna hai? (0 = Bilkul nahi, 10 = Bahut zyada)
+              </label>
+              <input
+                type="range"
+                min="0"
+                max="10"
+                value={painIntensity}
+                onChange={(e) => setPainIntensity(parseInt(e.target.value))}
+                className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
+              />
+              <div className="flex justify-between text-xs text-gray-500 mt-1">
+                <span>कोई दर्द नहीं</span>
+                <span className="font-bold text-lg">{painIntensity}/10</span>
+                <span>बहुत तेज़ दर्द</span>
+              </div>
+            </div>
+
+            {/* Additional Symptoms */}
+            <div className="mb-4">
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Aur koi symptoms hain? (Additional symptoms)
+              </label>
+              <div className="grid grid-cols-2 gap-2 text-sm">
+                {['Fever/Bukhaar', 'Nausea/Ulti', 'Sweating/Paseena', 'Dizziness/Chakkar', 
+                  'Shortness of breath/Saans phoolna', 'Weakness/Kamzori'].map((symptom) => (
+                  <label key={symptom} className="flex items-center">
+                    <input
+                      type="checkbox"
+                      className="mr-2"
+                      onChange={(e) => {
+                        if (e.target.checked) {
+                          setSymptoms([...symptoms, symptom]);
+                        } else {
+                          setSymptoms(symptoms.filter(s => s !== symptom));
+                        }
+                      }}
+                    />
+                    <span className="text-xs">{symptom}</span>
+                  </label>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          {/* Diagnosis and Recommendations */}
+          {diagnosis && (
+            <div className={`border rounded-lg p-4 ${getUrgencyColor(diagnosis.urgencyLevel)}`}>
+              <div className="flex items-center mb-3">
+                {getUrgencyIcon(diagnosis.urgencyLevel)}
+                <h3 className="text-lg font-semibold ml-2">
+                  Medical Assessment ({diagnosis.bodyPart})
+                </h3>
+              </div>
+
+              <div className="space-y-3">
+                <div className="bg-white bg-opacity

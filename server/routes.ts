@@ -566,63 +566,156 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { message, language, patientDetails, selectedBodyPart, capturedImage } = req.body;
 
-      let enhancedMessage = message;
-      if (selectedBodyPart) {
-        enhancedMessage += ` Patient pointed to their ${selectedBodyPart} on the body model.`;
-      }
-      if (capturedImage) {
-        enhancedMessage += ` Patient provided a photo for medical analysis.`;
-      }
-
-      const systemPrompt = language === 'hindi' 
-        ? `You are a highly professional, emotionally intelligent AI Doctor. Respond in Hinglish (Hindi-English mix). Patient: ${patientDetails.name}, Age: ${patientDetails.age}, Gender: ${patientDetails.gender}, Blood Group: ${patientDetails.bloodGroup}. Provide empathetic medical advice, ask specific follow-up questions about symptoms like timing, severity, and associated symptoms. Be professional like a real doctor consultation.`
-        : `You are a highly professional, emotionally intelligent AI Doctor. Patient: ${patientDetails.name}, Age: ${patientDetails.age}, Gender: ${patientDetails.gender}, Blood Group: ${patientDetails.bloodGroup}. Provide empathetic medical advice, ask specific follow-up questions about symptoms like timing, severity, and associated symptoms. Be professional like a real doctor consultation.`;
-
-      const response = await fetch('https://api.perplexity.ai/chat/completions', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${process.env.PERPLEXITY_API_KEY}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          model: 'llama-3.1-sonar-small-128k-online',
-          messages: [
-            {
-              role: 'system',
-              content: systemPrompt
-            },
-            {
-              role: 'user',
-              content: enhancedMessage
-            }
-          ],
-          max_tokens: 500,
-          temperature: 0.2,
-          top_p: 0.9,
-          stream: false
-        })
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to get AI response');
+      // Enhanced symptom detection for written messages
+      const detectedSymptoms = extractDetailedSymptoms(message.toLowerCase());
+      let response = '';
+      
+      if (detectedSymptoms.length > 0) {
+        // Generate specific medical advice for detected symptoms
+        const medicalAdvice = generateMedicalTreatment(detectedSymptoms, patientDetails);
+        
+        if (language === 'hindi') {
+          response = `Main samjh gaya aapko ${detectedSymptoms.join(', ')} ki problem hai.\n\n`;
+          response += medicalAdvice.hindi;
+          response += `\n\nKya aur koi symptoms hai? Main complete treatment provide kar sakta hun.`;
+        } else {
+          response = `I understand you're experiencing ${detectedSymptoms.join(', ')}.\n\n`;
+          response += medicalAdvice.english;
+          response += `\n\nAny other symptoms? I can provide complete treatment guidance.`;
+        }
+      } else {
+        // Ask for specific symptoms instead of generic response
+        if (language === 'hindi') {
+          response = `Kripya specific symptoms batayiye:\n\n• Bukhar, body temperature, thandi lagna?\n• Sir dard, migraine, chakkar aana?\n• Pet mein dard, gas, acidity, vomiting?\n• Khansi, gala kharab, breathing problem?\n• Body pain, joint pain, muscle weakness?\n• Skin rash, itching, allergy reactions?\n• Diabetes, sugar levels, thyroid issues?\n• Mental stress, depression, anxiety?\n• Women's health problems?\n\nMain har problem ka proper treatment de sakta hun.`;
+        } else {
+          response = `Please describe specific symptoms:\n\n• Fever, body temperature, chills?\n• Headache, migraine, dizziness?\n• Stomach pain, gas, acidity, vomiting?\n• Cough, sore throat, breathing issues?\n• Body pain, joint pain, muscle weakness?\n• Skin rash, itching, allergic reactions?\n• Diabetes, sugar levels, thyroid problems?\n• Mental stress, depression, anxiety?\n• Women's health concerns?\n\nI can provide proper treatment for any condition.`;
+        }
       }
 
-      const data = await response.json();
-      const aiResponse = data.choices[0]?.message?.content || 
-        (language === 'hindi' 
-          ? "Main samajh sakta hoon aap pareshaan hain. Kripaya apne symptoms detail mein bataiye."
-          : "I understand your concern. Please describe your symptoms in detail.");
-
-      res.json({ response: aiResponse });
+      res.json({ response });
     } catch (error) {
       console.error("AI Doctor chat error:", error);
       res.status(500).json({ 
         response: language === 'hindi' 
-          ? "Maaf kariye, main abhi available nahi hun. Kripaya baad mein try kariye."
-          : "I apologize, but I'm currently unavailable. Please try again later."
+          ? "Medical consultation temporarily unavailable. Please try again."
+          : "Medical consultation temporarily unavailable. Please try again."
       });
     }
   });
+
+  // Enhanced symptom detection function for written messages
+  function extractDetailedSymptoms(message: string): string[] {
+    const symptoms = [];
+    
+    // Fever & Temperature
+    if (message.includes('fever') || message.includes('bukhar') || message.includes('temperature') || 
+        message.includes('hot') || message.includes('garam') || message.includes('chills') || message.includes('thandi')) {
+      symptoms.push('fever');
+    }
+    
+    // Respiratory Issues
+    if (message.includes('cough') || message.includes('khansi') || message.includes('throat') || 
+        message.includes('cold') || message.includes('breathing') || message.includes('chest pain') ||
+        message.includes('shortness') || message.includes('asthma') || message.includes('pneumonia')) {
+      symptoms.push('respiratory problems');
+    }
+    
+    // Digestive Issues
+    if (message.includes('stomach') || message.includes('pet') || message.includes('nausea') || 
+        message.includes('vomit') || message.includes('diarrhea') || message.includes('constipation') ||
+        message.includes('acidity') || message.includes('gas') || message.includes('indigestion') ||
+        message.includes('loose motion') || message.includes('toilet')) {
+      symptoms.push('digestive problems');
+    }
+    
+    // Pain Management
+    if (message.includes('headache') || message.includes('sir dard') || message.includes('migraine') || 
+        message.includes('body pain') || message.includes('joint pain') || message.includes('back pain') ||
+        message.includes('muscle pain') || message.includes('arthritis') || message.includes('dard')) {
+      symptoms.push('pain management');
+    }
+    
+    // Mental Health
+    if (message.includes('depression') || message.includes('anxiety') || message.includes('stress') || 
+        message.includes('sleep') || message.includes('insomnia') || message.includes('tension') ||
+        message.includes('worry') || message.includes('panic') || message.includes('sad')) {
+      symptoms.push('mental health');
+    }
+    
+    // Skin Issues
+    if (message.includes('rash') || message.includes('itch') || message.includes('skin') || 
+        message.includes('allergy') || message.includes('acne') || message.includes('eczema') ||
+        message.includes('infection') || message.includes('fungal') || message.includes('khujli')) {
+      symptoms.push('skin problems');
+    }
+    
+    // Diabetes & Metabolic
+    if (message.includes('diabetes') || message.includes('sugar') || message.includes('thyroid') || 
+        message.includes('weight') || message.includes('cholesterol') || message.includes('bp') ||
+        message.includes('blood pressure') || message.includes('hypertension')) {
+      symptoms.push('metabolic disorders');
+    }
+    
+    // Women's Health
+    if (message.includes('periods') || message.includes('menstrual') || message.includes('pregnancy') || 
+        message.includes('pcod') || message.includes('pcos') || message.includes('gynec')) {
+      symptoms.push('womens health');
+    }
+    
+    return symptoms;
+  }
+
+  // Medical treatment generator for all conditions
+  function generateMedicalTreatment(symptoms: string[], patientDetails: any): { hindi: string, english: string } {
+    let hindiAdvice = '';
+    let englishAdvice = '';
+    
+    symptoms.forEach(symptom => {
+      switch (symptom) {
+        case 'fever':
+          hindiAdvice += `🌡️ **Bukhar ka complete treatment:**\n• Paracetamol 500mg har 6 ghante (max 4 dose)\n• Crocin 650mg agar high fever (103°F+)\n• 3-4 liter paani daily\n• ORS solution, coconut water\n• Complete bed rest\n• Cold compress forehead par\n\n`;
+          englishAdvice += `🌡️ **Fever Complete Treatment:**\n• Paracetamol 500mg every 6 hours (max 4 doses)\n• Crocin 650mg for high fever (103°F+)\n• 3-4 liters water daily\n• ORS solution, coconut water\n• Complete bed rest\n• Cold compress on forehead\n\n`;
+          break;
+          
+        case 'respiratory problems':
+          hindiAdvice += `🫁 **Respiratory complete treatment:**\n• Steam inhalation 3 times daily\n• Honey + ginger tea\n• Ascoril LS syrup 10ml, 3 times daily\n• Azithromycin 500mg (antibiotic, 3 days)\n• Salbutamol inhaler if wheezing\n• Avoid cold drinks completely\n\n`;
+          englishAdvice += `🫁 **Respiratory Complete Treatment:**\n• Steam inhalation 3 times daily\n• Honey + ginger tea\n• Ascoril LS syrup 10ml, 3 times daily\n• Azithromycin 500mg (antibiotic, 3 days)\n• Salbutamol inhaler if wheezing\n• Avoid cold beverages completely\n\n`;
+          break;
+          
+        case 'digestive problems':
+          hindiAdvice += `🤢 **Pet problems complete treatment:**\n• ORS solution har 2 ghante\n• BRAT diet: Banana, Rice, Apple, Toast\n• Omeprazole 20mg empty stomach (acidity)\n• Domperidone 10mg before meals (nausea)\n• Probiotics: fresh curd daily\n• Avoid spicy, oily food completely\n\n`;
+          englishAdvice += `🤢 **Digestive Complete Treatment:**\n• ORS solution every 2 hours\n• BRAT diet: Banana, Rice, Apple, Toast\n• Omeprazole 20mg on empty stomach (acidity)\n• Domperidone 10mg before meals (nausea)\n• Probiotics: fresh yogurt daily\n• Avoid spicy, oily foods completely\n\n`;
+          break;
+          
+        case 'pain management':
+          hindiAdvice += `💊 **Pain complete treatment:**\n• Ibuprofen 400mg with food (inflammation)\n• Diclofenac gel topical application\n• Muscle relaxant: Thiocolchicoside 4mg\n• Hot water bottle ya heating pad\n• Gentle stretching exercises\n• 7-8 hours proper sleep\n\n`;
+          englishAdvice += `💊 **Pain Complete Treatment:**\n• Ibuprofen 400mg with food (anti-inflammatory)\n• Diclofenac gel topical application\n• Muscle relaxant: Thiocolchicoside 4mg\n• Hot water bottle or heating pad\n• Gentle stretching exercises\n• 7-8 hours proper sleep\n\n`;
+          break;
+          
+        case 'mental health':
+          hindiAdvice += `🧠 **Mental health complete treatment:**\n• Escitalopram 10mg morning (depression)\n• Alprazolam 0.25mg night (anxiety)\n• Daily meditation 15 minutes\n• Regular exercise, yoga\n• Proper sleep schedule maintain\n• Professional counseling recommend\n\n`;
+          englishAdvice += `🧠 **Mental Health Complete Treatment:**\n• Escitalopram 10mg in morning (depression)\n• Alprazolam 0.25mg at night (anxiety)\n• Daily meditation 15 minutes\n• Regular exercise, yoga\n• Maintain proper sleep schedule\n• Professional counseling recommended\n\n`;
+          break;
+          
+        case 'skin problems':
+          hindiAdvice += `🌿 **Skin complete treatment:**\n• Moisturizer daily 2 times\n• Calamine lotion for itching\n• Cetirizine 10mg night (allergy)\n• Antifungal cream: Clotrimazole\n• Avoid harsh soaps, use mild ones\n• Cotton clothes only\n\n`;
+          englishAdvice += `🌿 **Skin Complete Treatment:**\n• Moisturizer twice daily\n• Calamine lotion for itching\n• Cetirizine 10mg at night (allergy)\n• Antifungal cream: Clotrimazole\n• Avoid harsh soaps, use mild ones\n• Wear only cotton clothing\n\n`;
+          break;
+          
+        case 'metabolic disorders':
+          hindiAdvice += `💉 **Metabolic complete treatment:**\n• Metformin 500mg twice daily (diabetes)\n• Amlodipine 5mg morning (BP)\n• Sugar-free diet strictly\n• Blood sugar monitoring daily\n• 30 minutes walk daily\n• Weight management important\n\n`;
+          englishAdvice += `💉 **Metabolic Complete Treatment:**\n• Metformin 500mg twice daily (diabetes)\n• Amlodipine 5mg in morning (BP)\n• Strictly sugar-free diet\n• Daily blood sugar monitoring\n• 30 minutes daily walk\n• Weight management is crucial\n\n`;
+          break;
+          
+        case 'womens health':
+          hindiAdvice += `🌸 **Women's health complete treatment:**\n• Iron tablets daily (periods)\n• Folic acid 5mg daily\n• Mefenamic acid 500mg for period pain\n• Regular gynec checkups\n• Healthy balanced diet\n• Regular exercise routine\n\n`;
+          englishAdvice += `🌸 **Women's Health Complete Treatment:**\n• Daily iron supplements (periods)\n• Folic acid 5mg daily\n• Mefenamic acid 500mg for period pain\n• Regular gynecological checkups\n• Healthy balanced diet\n• Regular exercise routine\n\n`;
+          break;
+      }
+    });
+    
+    return { hindi: hindiAdvice, english: englishAdvice };
+  }
 
   // AI Consultation with Perplexity API
   app.post("/api/consultations/ai-chat", isAuthenticated, async (req, res) => {

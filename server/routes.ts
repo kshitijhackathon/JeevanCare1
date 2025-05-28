@@ -1431,6 +1431,343 @@ Respond helpfully and suggest relevant platform features.`;
     }
   });
 
+  // Medicines API for Jeevan Care Pharmacy
+  app.get('/api/medicines', async (req, res) => {
+    try {
+      const { category } = req.query;
+      
+      // Comprehensive Indian medicine catalog
+      const medicines = [
+        // Prescription Medicines
+        {
+          id: 1,
+          name: 'Crocin Advance',
+          genericName: 'Paracetamol',
+          manufacturer: 'GSK Consumer Healthcare',
+          price: 45,
+          mrp: 50,
+          discount: 10,
+          dosage: '500mg',
+          composition: 'Paracetamol 500mg',
+          category: 'prescription',
+          prescriptionRequired: false,
+          inStock: true,
+          quantity: 20,
+          imageUrl: '/images/crocin.jpg',
+          rating: 4.3,
+          reviewCount: 2847,
+          description: 'Fast-acting fever and pain relief tablets'
+        },
+        {
+          id: 2,
+          name: 'Dolo 650',
+          genericName: 'Paracetamol',
+          manufacturer: 'Micro Labs',
+          price: 30,
+          mrp: 35,
+          discount: 14,
+          dosage: '650mg',
+          composition: 'Paracetamol 650mg',
+          category: 'prescription',
+          prescriptionRequired: false,
+          inStock: true,
+          quantity: 15,
+          imageUrl: '/images/dolo650.jpg',
+          rating: 4.5,
+          reviewCount: 5632,
+          description: 'High-strength paracetamol for effective fever control'
+        },
+        {
+          id: 3,
+          name: 'Azithral 500',
+          genericName: 'Azithromycin',
+          manufacturer: 'Alembic Pharmaceuticals',
+          price: 85,
+          mrp: 95,
+          discount: 11,
+          dosage: '500mg',
+          composition: 'Azithromycin 500mg',
+          category: 'prescription',
+          prescriptionRequired: true,
+          inStock: true,
+          quantity: 10,
+          imageUrl: '/images/azithral.jpg',
+          rating: 4.2,
+          reviewCount: 1247,
+          description: 'Antibiotic for bacterial infections'
+        },
+        {
+          id: 4,
+          name: 'Pan D',
+          genericName: 'Pantoprazole + Domperidone',
+          manufacturer: 'Alkem Laboratories',
+          price: 120,
+          mrp: 135,
+          discount: 11,
+          dosage: '40mg + 30mg',
+          composition: 'Pantoprazole 40mg + Domperidone 30mg',
+          category: 'prescription',
+          prescriptionRequired: true,
+          inStock: true,
+          quantity: 8,
+          imageUrl: '/images/pand.jpg',
+          rating: 4.4,
+          reviewCount: 892,
+          description: 'Gastric acid reducer with prokinetic agent'
+        },
+        
+        // Over-the-Counter Medicines
+        {
+          id: 5,
+          name: 'Vicks VapoRub',
+          genericName: 'Menthol + Camphor + Eucalyptus Oil',
+          manufacturer: 'Procter & Gamble',
+          price: 95,
+          mrp: 105,
+          discount: 10,
+          dosage: '50ml',
+          composition: 'Menthol 2.6%, Camphor 5.26%, Eucalyptus Oil 1.2%',
+          category: 'otc',
+          prescriptionRequired: false,
+          inStock: true,
+          quantity: 25,
+          imageUrl: '/images/vicks.jpg',
+          rating: 4.6,
+          reviewCount: 3421,
+          description: 'Topical cough suppressant and analgesic balm'
+        },
+        {
+          id: 6,
+          name: 'Pudin Hara',
+          genericName: 'Pudina Satva',
+          manufacturer: 'Dabur India',
+          price: 40,
+          mrp: 45,
+          discount: 11,
+          dosage: '10ml',
+          composition: 'Pudina Satva 0.02ml/drop',
+          category: 'otc',
+          prescriptionRequired: false,
+          inStock: true,
+          quantity: 30,
+          imageUrl: '/images/pudin.jpg',
+          rating: 4.1,
+          reviewCount: 1576,
+          description: 'Ayurvedic digestive drops for gas and acidity'
+        },
+        {
+          id: 7,
+          name: 'ENO Fruit Salt',
+          genericName: 'Sodium Bicarbonate + Citric Acid',
+          manufacturer: 'GSK Consumer Healthcare',
+          price: 55,
+          mrp: 60,
+          discount: 8,
+          dosage: '100g',
+          composition: 'Sodium Bicarbonate 46.2%, Citric Acid 43.7%',
+          category: 'otc',
+          prescriptionRequired: false,
+          inStock: true,
+          quantity: 20,
+          imageUrl: '/images/eno.jpg',
+          rating: 4.3,
+          reviewCount: 2134,
+          description: 'Instant relief from acidity and gas'
+        },
+        
+        // Vitamins & Supplements
+        {
+          id: 8,
+          name: 'Supradyn Daily',
+          genericName: 'Multivitamin + Multimineral',
+          manufacturer: 'Bayer Consumer Care',
+          price: 275,
+          mrp: 295,
+          discount: 7,
+          dosage: '15 tablets',
+          composition: 'Vitamin A, B-Complex, C, D, E + Essential Minerals',
+          category: 'vitamins',
+          prescriptionRequired: false,
+          inStock: true,
+          quantity: 12,
+          imageUrl: '/images/supradyn.jpg',
+          rating: 4.2,
+          reviewCount: 987,
+          description: 'Complete multivitamin for daily nutrition'
+        },
+        {
+          id: 9,
+          name: 'Shelcal 500',
+          genericName: 'Calcium Carbonate + Vitamin D3',
+          manufacturer: 'Torrent Pharmaceuticals',
+          price: 85,
+          mrp: 95,
+          discount: 11,
+          dosage: '15 tablets',
+          composition: 'Calcium Carbonate 1250mg + Vitamin D3 250 IU',
+          category: 'vitamins',
+          prescriptionRequired: false,
+          inStock: true,
+          quantity: 18,
+          imageUrl: '/images/shelcal.jpg',
+          rating: 4.4,
+          reviewCount: 1634,
+          description: 'Calcium supplement for bone health'
+        },
+        {
+          id: 10,
+          name: 'Zincovit Tablets',
+          genericName: 'Multivitamin + Zinc',
+          manufacturer: 'Apex Laboratories',
+          price: 110,
+          mrp: 125,
+          discount: 12,
+          dosage: '15 tablets',
+          composition: 'Grape Seed Extract, Vitamins, Zinc 22.5mg',
+          category: 'vitamins',
+          prescriptionRequired: false,
+          inStock: true,
+          quantity: 22,
+          imageUrl: '/images/zincovit.jpg',
+          rating: 4.1,
+          reviewCount: 756,
+          description: 'Antioxidant supplement with zinc'
+        },
+        
+        // Baby Care
+        {
+          id: 11,
+          name: 'Cerelac Wheat',
+          genericName: 'Infant Cereal',
+          manufacturer: 'Nestlé India',
+          price: 185,
+          mrp: 195,
+          discount: 5,
+          dosage: '300g',
+          composition: 'Wheat flour, Vitamins, Minerals, Probiotics',
+          category: 'baby_care',
+          prescriptionRequired: false,
+          inStock: true,
+          quantity: 15,
+          imageUrl: '/images/cerelac.jpg',
+          rating: 4.5,
+          reviewCount: 2341,
+          description: 'Nutritious baby food with iron and vitamins'
+        },
+        {
+          id: 12,
+          name: 'Gripe Water',
+          genericName: 'Dill Oil + Sarjikakshara',
+          manufacturer: 'Woodward India',
+          price: 65,
+          mrp: 70,
+          discount: 7,
+          dosage: '100ml',
+          composition: 'Dill Oil 0.007%, Sarjikakshara 0.75%',
+          category: 'baby_care',
+          prescriptionRequired: false,
+          inStock: true,
+          quantity: 28,
+          imageUrl: '/images/gripe.jpg',
+          rating: 4.3,
+          reviewCount: 1892,
+          description: 'Natural remedy for baby colic and gas'
+        },
+        
+        // Personal Care
+        {
+          id: 13,
+          name: 'Betadine Antiseptic Solution',
+          genericName: 'Povidone Iodine',
+          manufacturer: 'Mundipharma',
+          price: 45,
+          mrp: 50,
+          discount: 10,
+          dosage: '50ml',
+          composition: 'Povidone Iodine 10% w/v',
+          category: 'personal_care',
+          prescriptionRequired: false,
+          inStock: true,
+          quantity: 35,
+          imageUrl: '/images/betadine.jpg',
+          rating: 4.4,
+          reviewCount: 1567,
+          description: 'Antiseptic solution for wound care'
+        },
+        {
+          id: 14,
+          name: 'Dettol Antiseptic Liquid',
+          genericName: 'Chloroxylenol',
+          manufacturer: 'Reckitt Benckiser',
+          price: 85,
+          mrp: 95,
+          discount: 11,
+          dosage: '125ml',
+          composition: 'Chloroxylenol 4.8% w/v',
+          category: 'personal_care',
+          prescriptionRequired: false,
+          inStock: true,
+          quantity: 40,
+          imageUrl: '/images/dettol.jpg',
+          rating: 4.6,
+          reviewCount: 4523,
+          description: 'Multipurpose antiseptic disinfectant'
+        },
+        
+        // Medical Devices
+        {
+          id: 15,
+          name: 'Dr. Morepen Digital Thermometer',
+          genericName: 'Digital Thermometer',
+          manufacturer: 'Dr. Morepen',
+          price: 125,
+          mrp: 150,
+          discount: 17,
+          dosage: '1 piece',
+          composition: 'Digital LCD display with beeper',
+          category: 'medical_devices',
+          prescriptionRequired: false,
+          inStock: true,
+          quantity: 8,
+          imageUrl: '/images/thermometer.jpg',
+          rating: 4.2,
+          reviewCount: 634,
+          description: 'Accurate digital thermometer with fast reading'
+        },
+        {
+          id: 16,
+          name: 'Omron Blood Pressure Monitor',
+          genericName: 'BP Monitor',
+          manufacturer: 'Omron Healthcare',
+          price: 1899,
+          mrp: 2200,
+          discount: 14,
+          dosage: '1 piece',
+          composition: 'Digital automatic BP monitor with memory',
+          category: 'medical_devices',
+          prescriptionRequired: false,
+          inStock: true,
+          quantity: 5,
+          imageUrl: '/images/bp_monitor.jpg',
+          rating: 4.5,
+          reviewCount: 298,
+          description: 'Clinically validated automatic blood pressure monitor'
+        }
+      ];
+
+      // Filter by category if specified
+      let filteredMedicines = medicines;
+      if (category && category !== 'all') {
+        filteredMedicines = medicines.filter(medicine => medicine.category === category);
+      }
+
+      res.json(filteredMedicines);
+    } catch (error) {
+      console.error("Error fetching medicines:", error);
+      res.status(500).json({ message: "Failed to fetch medicines" });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }

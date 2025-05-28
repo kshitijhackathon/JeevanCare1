@@ -1,5 +1,5 @@
 import { Link, useLocation } from "wouter";
-import { Home, FileText, Globe, User, Upload, Bell } from "lucide-react";
+import { Home, FileText, Globe, User, Upload, ShoppingBag } from "lucide-react";
 
 export default function BottomNavigation() {
   const [location] = useLocation();
@@ -9,7 +9,7 @@ export default function BottomNavigation() {
     { name: "Records", icon: Upload, path: "/medical-records" },
     { name: "Reports", icon: FileText, path: "/reports" },
     { name: "Global", icon: Globe, path: "/global-health-map" },
-    { name: "Alerts", icon: Bell, path: "/notifications" },
+    { name: "Pharmacy", icon: ShoppingBag, path: "/pharmacy" },
     { name: "Profile", icon: User, path: "/profile" },
   ];
 

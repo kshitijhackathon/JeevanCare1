@@ -17,7 +17,7 @@ import {
   Truck, 
   ScanFace, 
   UserRound, 
-  FolderOpen,
+  Bell,
   PillBottle 
 } from "lucide-react";
 import { useState } from "react";
@@ -175,12 +175,12 @@ export default function Home() {
               </div>
             </Link>
             
-            <Link href="/health-vault">
+            <Link href="/notifications">
               <div className="bg-white rounded-2xl p-3 text-center shadow-sm hover:shadow-md transition-shadow">
                 <div className="w-12 h-12 bg-yellow-100 rounded-full flex items-center justify-center mx-auto mb-2">
-                  <FolderOpen className="w-6 h-6 text-yellow-600" />
+                  <Bell className="w-6 h-6 text-yellow-600" />
                 </div>
-                <p className="text-xs font-medium text-gray-700 leading-tight">Health Vault</p>
+                <p className="text-xs font-medium text-gray-700 leading-tight">Alerts</p>
               </div>
             </Link>
           </div>

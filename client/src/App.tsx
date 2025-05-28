@@ -23,6 +23,8 @@ import MedicalRecords from "@/pages/medical-records";
 import GlobalHealthMap from "@/pages/global-health-map";
 import HealthAssistant from "@/pages/health-assistant";
 import Notifications from "@/pages/notifications";
+import Prescription from "@/pages/prescription";
+import SymptomChecker from "@/pages/symptom-checker";
 import NotFound from "@/pages/not-found";
 import GetStarted from "@/pages/auth/get-started";
 import SignUp from "@/pages/auth/signup";
@@ -81,6 +83,7 @@ function Router() {
           <Route path="/profile" component={Profile} />
           <Route path="/consultation" component={AIDoctorConsultation} />
           <Route path="/book-test" component={BookTest} />
+          <Route path="/medicine-delivery" component={MedicineDelivery} />
           <Route path="/delivery/:orderId" component={MedicineDelivery} />
           <Route path="/reports" component={Reports} />
           <Route path="/face-scan" component={FaceScan} />
@@ -90,6 +93,8 @@ function Router() {
           <Route path="/global-health-map" component={GlobalHealthMap} />
           <Route path="/health-assistant" component={HealthAssistant} />
           <Route path="/notifications" component={Notifications} />
+          <Route path="/prescription" component={Prescription} />
+          <Route path="/symptom-checker" component={SymptomChecker} />
         </>
       )}
       <Route component={NotFound} />

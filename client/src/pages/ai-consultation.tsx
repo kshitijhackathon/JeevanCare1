@@ -1,400 +1,410 @@
-import { useState } from "react";
-import { useLocation } from "wouter";
-import { useAuth } from "@/hooks/useAuth";
+import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
-import { ArrowLeft, Send, Mic, MicOff } from "lucide-react";
+import { 
+  ArrowLeft,
+  Send,
+  Bot,
+  User,
+  Mic,
+  MicOff,
+  FileText,
+  Brain,
+  Clock,
+  Activity,
+  AlertTriangle,
+  CheckCircle,
+  Stethoscope
+} from "lucide-react";
+import { Link } from "wouter";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
-import { useMutation } from "@tanstack/react-query";
-import { apiRequest } from "@/lib/queryClient";
-
-interface PatientDetails {
-  name: string;
-  age: string;
-  gender: string;
-  language: string;
-}
 
 interface ChatMessage {
   role: 'user' | 'assistant';
   content: string;
   timestamp: Date;
+  type?: 'text' | 'analysis' | 'recommendation';
+}
+
+interface MedicalHistory {
+  conditions: string[];
+  medications: string[];
+  allergies: string[];
+  recentReports: any[];
 }
 
 export default function AIConsultation() {
-  const { user } = useAuth();
-  const [, setLocation] = useLocation();
-  const { toast } = useToast();
-  
-  const [step, setStep] = useState<'details' | 'chat' | 'waiting' | 'prescription'>('details');
-  const [patientDetails, setPatientDetails] = useState<PatientDetails>({
-    name: user ? `${user.firstName} ${user.lastName}` : '',
-    age: '',
-    gender: '',
-    language: 'english'
-  });
-  
   const [messages, setMessages] = useState<ChatMessage[]>([]);
-  const [currentMessage, setCurrentMessage] = useState('');
+  const [inputMessage, setInputMessage] = useState("");
   const [isRecording, setIsRecording] = useState(false);
-  const [consultationId, setConsultationId] = useState<string>('');
+  const [isLoading, setIsLoading] = useState(false);
+  const [medicalHistory, setMedicalHistory] = useState<MedicalHistory | null>(null);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
 
-  const startConsultation = useMutation({
-    mutationFn: async (details: PatientDetails) => {
-      const response = await apiRequest("POST", "/api/consultations/start", details);
-      if (!response.ok) throw new Error("Failed to start consultation");
-      return response.json();
-    },
-    onSuccess: (data) => {
-      setConsultationId(data.id);
-      setStep('chat');
-      const welcomeMessage: ChatMessage = {
-        role: 'assistant',
-        content: patientDetails.language === 'hindi' 
-          ? `Namaste ${patientDetails.name}! Main aapka AI doctor hoon. Aap kaise feel kar rahe hain aaj? Apni symptoms detail mein bataiye.`
-          : `Hello ${patientDetails.name}! I'm your AI doctor. How are you feeling today? Please describe your symptoms in detail.`,
-        timestamp: new Date()
-      };
-      setMessages([welcomeMessage]);
-    },
-    onError: () => {
-      toast({
-        title: "Error",
-        description: "Failed to start consultation. Please try again.",
-        variant: "destructive"
-      });
+  // Fetch user's medical history for context
+  const { data: userHistory } = useQuery({
+    queryKey: ['/api/medical-history'],
+    queryFn: async () => {
+      try {
+        const response = await fetch('/api/medical-history');
+        if (response.ok) {
+          return response.json();
+        }
+        // Return empty history if not available
+        return {
+          conditions: [],
+          medications: [],
+          allergies: [],
+          recentReports: []
+        };
+      } catch (error) {
+        return {
+          conditions: [],
+          medications: [],
+          allergies: [],
+          recentReports: []
+        };
+      }
     }
   });
 
-  const sendMessage = useMutation({
+  // AI consultation mutation
+  const consultationMutation = useMutation({
     mutationFn: async (message: string) => {
-      const response = await apiRequest("POST", "/api/consultations/chat", {
-        consultationId,
-        message,
-        language: patientDetails.language
+      const response = await fetch('/api/ai-consultation', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          message,
+          history: messages,
+          medicalHistory: userHistory || medicalHistory
+        }),
       });
-      if (!response.ok) throw new Error("Failed to send message");
+      
+      if (!response.ok) {
+        throw new Error('AI consultation failed');
+      }
+      
       return response.json();
     },
     onSuccess: (data) => {
-      const assistantMessage: ChatMessage = {
+      const aiMessage: ChatMessage = {
         role: 'assistant',
         content: data.response,
-        timestamp: new Date()
+        timestamp: new Date(),
+        type: data.type || 'text'
       };
-      setMessages(prev => [...prev, assistantMessage]);
-      setCurrentMessage('');
+      setMessages(prev => [...prev, aiMessage]);
+      
+      // If AI provides a diagnosis, save it
+      if (data.diagnosis) {
+        saveDiagnosis(data.diagnosis, data.recommendations);
+      }
     },
-    onError: () => {
+    onError: (error) => {
       toast({
-        title: "Error",
-        description: "Failed to send message. Please try again.",
-        variant: "destructive"
+        title: "AI Consultation Error",
+        description: "Please try again or contact support",
+        variant: "destructive",
       });
     }
   });
 
-  const endConsultation = () => {
-    setStep('waiting');
-    // Simulate doctor review process
-    setTimeout(() => {
-      setStep('prescription');
-    }, 120000); // 2 minutes
+  const saveDiagnosis = async (diagnosis: string, recommendations: string[]) => {
+    try {
+      await fetch('/api/consultations', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          symptoms: messages.filter(m => m.role === 'user').map(m => m.content).join('; '),
+          diagnosis,
+          recommendations,
+          chatHistory: messages
+        }),
+      });
+      queryClient.invalidateQueries({ queryKey: ['/api/consultations'] });
+    } catch (error) {
+      console.error('Failed to save diagnosis:', error);
+    }
   };
 
   const handleSendMessage = () => {
-    if (!currentMessage.trim()) return;
-    
+    if (!inputMessage.trim()) return;
+
     const userMessage: ChatMessage = {
       role: 'user',
-      content: currentMessage,
+      content: inputMessage,
       timestamp: new Date()
     };
+
     setMessages(prev => [...prev, userMessage]);
-    sendMessage.mutate(currentMessage);
+    setIsLoading(true);
+    consultationMutation.mutate(inputMessage);
+    setInputMessage("");
   };
 
-  const handleVoiceRecord = () => {
-    if (isRecording) {
-      setIsRecording(false);
-      // Stop recording and convert to text
-      toast({
-        title: "Voice Recording",
-        description: "Voice recording ended. Converting to text...",
-      });
+  const startVoiceRecording = () => {
+    if ('webkitSpeechRecognition' in window) {
+      const recognition = new (window as any).webkitSpeechRecognition();
+      recognition.continuous = false;
+      recognition.interimResults = false;
+      recognition.lang = 'en-US';
+
+      recognition.onstart = () => {
+        setIsRecording(true);
+      };
+
+      recognition.onresult = (event: any) => {
+        const transcript = event.results[0][0].transcript;
+        setInputMessage(transcript);
+        setIsRecording(false);
+      };
+
+      recognition.onerror = () => {
+        setIsRecording(false);
+        toast({
+          title: "Voice Recognition Error",
+          description: "Please try typing instead",
+          variant: "destructive",
+        });
+      };
+
+      recognition.onend = () => {
+        setIsRecording(false);
+      };
+
+      recognition.start();
     } else {
-      setIsRecording(true);
       toast({
-        title: "Voice Recording",
-        description: "Recording started. Speak now...",
+        title: "Voice Not Supported",
+        description: "Please type your symptoms",
+        variant: "destructive",
       });
     }
   };
 
-  if (step === 'details') {
-    return (
-      <div className="min-h-screen bg-gray-50">
-        <div className="bg-white shadow-sm p-4 flex items-center">
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => navigate('/')}
-            className="mr-2"
-          >
-            <ArrowLeft className="w-4 h-4" />
-          </Button>
-          <h1 className="text-lg font-semibold">AI Consultation</h1>
-        </div>
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [messages]);
 
-        <div className="p-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>Patient Details</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div>
-                <Label htmlFor="name">Full Name</Label>
-                <Input
-                  id="name"
-                  value={patientDetails.name}
-                  onChange={(e) => setPatientDetails({...patientDetails, name: e.target.value})}
-                  placeholder="Enter your full name"
-                />
-              </div>
-              
-              <div>
-                <Label htmlFor="age">Age</Label>
-                <Input
-                  id="age"
-                  type="number"
-                  value={patientDetails.age}
-                  onChange={(e) => setPatientDetails({...patientDetails, age: e.target.value})}
-                  placeholder="Enter your age"
-                />
-              </div>
-              
-              <div>
-                <Label htmlFor="gender">Gender</Label>
-                <Select onValueChange={(value) => setPatientDetails({...patientDetails, gender: value})}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select gender" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="male">Male</SelectItem>
-                    <SelectItem value="female">Female</SelectItem>
-                    <SelectItem value="other">Other</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              
-              <div>
-                <Label htmlFor="language">Preferred Language</Label>
-                <Select onValueChange={(value) => setPatientDetails({...patientDetails, language: value})}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select language" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="english">English</SelectItem>
-                    <SelectItem value="hindi">Hindi (Hinglish)</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              
-              <Button 
-                onClick={() => startConsultation.mutate(patientDetails)}
-                disabled={!patientDetails.name || !patientDetails.age || !patientDetails.gender || startConsultation.isPending}
-                className="w-full"
-              >
-                {startConsultation.isPending ? "Starting..." : "Start Consultation"}
-              </Button>
-            </CardContent>
-          </Card>
+  useEffect(() => {
+    setIsLoading(false);
+  }, [messages]);
+
+  useEffect(() => {
+    // Welcome message
+    if (messages.length === 0) {
+      const welcomeMessage: ChatMessage = {
+        role: 'assistant',
+        content: `Hello! I'm your AI Health Assistant. I can help analyze your symptoms and provide medical guidance.
+
+${userHistory?.conditions.length ? `I see you have a history of: ${userHistory.conditions.join(', ')}. ` : ''}
+
+Please describe your current symptoms or health concerns, and I'll provide personalized recommendations.
+
+**Note:** This is for informational purposes only and doesn't replace professional medical advice.`,
+        timestamp: new Date(),
+        type: 'text'
+      };
+      setMessages([welcomeMessage]);
+    }
+  }, [userHistory]);
+
+  const getMessageIcon = (role: string, type?: string) => {
+    if (role === 'assistant') {
+      if (type === 'analysis') return <Brain className="w-5 h-5 text-blue-600" />;
+      if (type === 'recommendation') return <CheckCircle className="w-5 h-5 text-green-600" />;
+      return <Bot className="w-5 h-5 text-blue-600" />;
+    }
+    return <User className="w-5 h-5 text-gray-600" />;
+  };
+
+  return (
+    <div className="mobile-container bg-gray-50 min-h-screen flex flex-col">
+      {/* Header */}
+      <div className="bg-white p-4 shadow-sm">
+        <div className="flex items-center space-x-3">
+          <Link href="/">
+            <Button variant="ghost" size="sm" className="p-2">
+              <ArrowLeft className="w-5 h-5" />
+            </Button>
+          </Link>
+          <h1 className="text-xl font-semibold">AI Health Consultation</h1>
         </div>
       </div>
-    );
-  }
 
-  if (step === 'chat') {
-    return (
-      <div className="min-h-screen bg-gray-50 flex flex-col">
-        <div className="bg-white shadow-sm p-4 flex items-center justify-between">
-          <div className="flex items-center">
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => navigate('/')}
-              className="mr-2"
-            >
-              <ArrowLeft className="w-4 h-4" />
-            </Button>
-            <div>
-              <h1 className="text-lg font-semibold">AI Doctor</h1>
-              <p className="text-sm text-gray-500">Online now</p>
+      {/* Medical History Context */}
+      {userHistory && (userHistory.conditions.length > 0 || userHistory.medications.length > 0) && (
+        <div className="p-4 bg-blue-50 border-b">
+          <div className="text-sm">
+            <h3 className="font-medium text-blue-900 mb-2 flex items-center">
+              <FileText className="w-4 h-4 mr-1" />
+              Your Medical Context
+            </h3>
+            <div className="space-y-1">
+              {userHistory.conditions.length > 0 && (
+                <p className="text-blue-800">
+                  <span className="font-medium">Conditions:</span> {userHistory.conditions.join(', ')}
+                </p>
+              )}
+              {userHistory.medications.length > 0 && (
+                <p className="text-blue-800">
+                  <span className="font-medium">Medications:</span> {userHistory.medications.join(', ')}
+                </p>
+              )}
+              {userHistory.allergies.length > 0 && (
+                <p className="text-red-800">
+                  <span className="font-medium">Allergies:</span> {userHistory.allergies.join(', ')}
+                </p>
+              )}
             </div>
           </div>
-          <Button onClick={endConsultation} variant="destructive" size="sm">
-            End Consultation
-          </Button>
         </div>
+      )}
 
-        <div className="flex-1 p-4 overflow-y-auto">
-          <div className="space-y-4">
-            {messages.map((message, index) => (
-              <div
-                key={index}
-                className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
-              >
-                <div
-                  className={`max-w-[80%] p-3 rounded-lg ${
-                    message.role === 'user'
-                      ? 'bg-blue-500 text-white'
-                      : 'bg-white text-gray-800 shadow-sm'
-                  }`}
-                >
-                  <p className="text-sm">{message.content}</p>
-                  <p className="text-xs opacity-70 mt-1">
-                    {message.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                  </p>
-                </div>
+      {/* Chat Messages */}
+      <div className="flex-1 p-4 space-y-4 overflow-y-auto">
+        {messages.map((message, index) => (
+          <div
+            key={index}
+            className={`flex space-x-3 ${
+              message.role === 'user' ? 'justify-end' : 'justify-start'
+            }`}
+          >
+            {message.role === 'assistant' && (
+              <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0">
+                {getMessageIcon(message.role, message.type)}
               </div>
-            ))}
-          </div>
-        </div>
+            )}
+            
+            <div
+              className={`max-w-[80%] p-3 rounded-lg ${
+                message.role === 'user'
+                  ? 'bg-blue-600 text-white'
+                  : message.type === 'analysis'
+                  ? 'bg-blue-50 border border-blue-200'
+                  : message.type === 'recommendation'
+                  ? 'bg-green-50 border border-green-200'
+                  : 'bg-white border border-gray-200'
+              }`}
+            >
+              {message.type === 'analysis' && (
+                <div className="flex items-center space-x-2 mb-2">
+                  <Brain className="w-4 h-4 text-blue-600" />
+                  <span className="font-medium text-blue-900">AI Analysis</span>
+                </div>
+              )}
+              {message.type === 'recommendation' && (
+                <div className="flex items-center space-x-2 mb-2">
+                  <CheckCircle className="w-4 h-4 text-green-600" />
+                  <span className="font-medium text-green-900">Recommendations</span>
+                </div>
+              )}
+              
+              <p className="text-sm whitespace-pre-wrap">{message.content}</p>
+              
+              <p className="text-xs mt-2 opacity-70">
+                {message.timestamp.toLocaleTimeString()}
+              </p>
+            </div>
 
-        <div className="bg-white p-4 border-t">
-          <div className="flex items-center space-x-2">
+            {message.role === 'user' && (
+              <div className="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center flex-shrink-0">
+                <User className="w-5 h-5 text-gray-600" />
+              </div>
+            )}
+          </div>
+        ))}
+        
+        {isLoading && (
+          <div className="flex space-x-3">
+            <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
+              <Bot className="w-5 h-5 text-blue-600" />
+            </div>
+            <div className="bg-white border border-gray-200 p-3 rounded-lg">
+              <div className="flex space-x-1">
+                <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div>
+                <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
+                <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
+              </div>
+            </div>
+          </div>
+        )}
+        
+        <div ref={messagesEndRef} />
+      </div>
+
+      {/* Input Area */}
+      <div className="p-4 bg-white border-t">
+        <div className="flex space-x-2">
+          <Textarea
+            value={inputMessage}
+            onChange={(e) => setInputMessage(e.target.value)}
+            placeholder="Describe your symptoms or health concerns..."
+            className="flex-1 min-h-[60px] resize-none"
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                handleSendMessage();
+              }
+            }}
+          />
+          <div className="flex flex-col space-y-2">
             <Button
+              onClick={isRecording ? () => setIsRecording(false) : startVoiceRecording}
               variant="outline"
               size="sm"
-              onClick={handleVoiceRecord}
-              className={isRecording ? 'bg-red-100' : ''}
+              className={isRecording ? 'bg-red-50 border-red-200' : ''}
             >
               {isRecording ? <MicOff className="w-4 h-4" /> : <Mic className="w-4 h-4" />}
             </Button>
-            <Textarea
-              value={currentMessage}
-              onChange={(e) => setCurrentMessage(e.target.value)}
-              placeholder={patientDetails.language === 'hindi' ? "Apna message type kariye..." : "Type your message..."}
-              className="flex-1 min-h-[40px] max-h-[120px]"
-              onKeyPress={(e) => {
-                if (e.key === 'Enter' && !e.shiftKey) {
-                  e.preventDefault();
-                  handleSendMessage();
-                }
-              }}
-            />
             <Button
               onClick={handleSendMessage}
-              disabled={!currentMessage.trim() || sendMessage.isPending}
+              disabled={!inputMessage.trim() || isLoading}
               size="sm"
             >
               <Send className="w-4 h-4" />
             </Button>
           </div>
         </div>
-      </div>
-    );
-  }
-
-  if (step === 'waiting') {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <Card className="w-full max-w-md mx-4">
-          <CardContent className="p-8 text-center">
-            <div className="animate-spin w-12 h-12 border-4 border-blue-500 border-t-transparent rounded-full mx-auto mb-4" />
-            <h2 className="text-xl font-semibold mb-2">Doctor Review in Progress</h2>
-            <p className="text-gray-600 mb-4">
-              Please wait 5 minutes while our specialist reviews your consultation and prepares your prescription.
-            </p>
-            <div className="text-sm text-gray-500">
-              <p>⏰ Estimated time: 2-5 minutes</p>
-              <p>🔍 Reviewing symptoms and recommendations</p>
+        
+        <div className="flex items-center justify-between mt-3 text-xs text-gray-500">
+          <p>Press Enter to send, Shift+Enter for new line</p>
+          {isRecording && (
+            <div className="flex items-center space-x-1 text-red-600">
+              <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse"></div>
+              <span>Recording...</span>
             </div>
-          </CardContent>
-        </Card>
+          )}
+        </div>
       </div>
-    );
-  }
 
-  if (step === 'prescription') {
-    return (
-      <div className="min-h-screen bg-gray-50">
-        <div className="bg-white shadow-sm p-4 flex items-center">
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => navigate('/')}
-            className="mr-2"
-          >
-            <ArrowLeft className="w-4 h-4" />
+      {/* Quick Actions */}
+      <div className="p-4 bg-gray-50 border-t">
+        <div className="flex space-x-2 overflow-x-auto">
+          <Button variant="outline" size="sm" onClick={() => setInputMessage("I have a headache and feel tired")}>
+            Headache & Fatigue
           </Button>
-          <h1 className="text-lg font-semibold">Your Prescription</h1>
-        </div>
-
-        <div className="p-4">
-          <Card className="mb-4">
-            <CardContent className="p-6">
-              <div className="text-center mb-6">
-                <h2 className="text-xl font-bold text-gray-800">JeevanCare Medical Center</h2>
-                <p className="text-sm text-gray-600">Digital Healthcare Solutions</p>
-              </div>
-              
-              <div className="border-b pb-4 mb-4">
-                <h3 className="font-semibold mb-2">Patient Information</h3>
-                <p><strong>Name:</strong> {patientDetails.name}</p>
-                <p><strong>Age:</strong> {patientDetails.age} years</p>
-                <p><strong>Gender:</strong> {patientDetails.gender}</p>
-                <p><strong>Date:</strong> {new Date().toLocaleDateString()}</p>
-              </div>
-              
-              <div className="mb-4">
-                <h3 className="font-semibold mb-2">Prescribed Medications</h3>
-                <div className="space-y-2">
-                  <div className="bg-gray-50 p-3 rounded">
-                    <p className="font-medium">Paracetamol 500mg</p>
-                    <p className="text-sm text-gray-600">Take 1 tablet twice daily after meals for 3 days</p>
-                  </div>
-                  <div className="bg-gray-50 p-3 rounded">
-                    <p className="font-medium">Vitamin D3 1000 IU</p>
-                    <p className="text-sm text-gray-600">Take 1 tablet daily after breakfast for 30 days</p>
-                  </div>
-                </div>
-              </div>
-              
-              <div className="text-center">
-                <p className="text-sm text-gray-500 mb-4">This prescription has been reviewed and approved by Dr. Smith</p>
-                <Button className="mb-2">
-                  Download Prescription
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-          
-          <div className="space-y-3">
-            <Button 
-              onClick={() => navigate('/pharmacy')}
-              className="w-full"
-              size="lg"
-            >
-              Order Medicines Now
-            </Button>
-            <Button 
-              onClick={() => navigate('/book-test')}
-              variant="outline"
-              className="w-full"
-              size="lg"
-            >
-              Book Lab Test at Home
-            </Button>
-          </div>
+          <Button variant="outline" size="sm" onClick={() => setInputMessage("I have fever and cold symptoms")}>
+            Fever & Cold
+          </Button>
+          <Button variant="outline" size="sm" onClick={() => setInputMessage("I'm experiencing stomach pain")}>
+            Stomach Issues
+          </Button>
+          <Button variant="outline" size="sm" onClick={() => setInputMessage("I need a general health checkup advice")}>
+            General Checkup
+          </Button>
         </div>
       </div>
-    );
-  }
-
-  return null;
+    </div>
+  );
 }

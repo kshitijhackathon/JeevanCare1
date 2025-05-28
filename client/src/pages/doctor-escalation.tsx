@@ -829,7 +829,7 @@ export default function DoctorEscalation() {
                   📸 Take Face Scan for Better Diagnosis
                 </Button>
               </Link>
-              <Link href="/health-vault">
+              <Link href="/medical-records">
                 <Button variant="outline" className="w-full justify-start">
                   📋 Upload Medical Records
                 </Button>

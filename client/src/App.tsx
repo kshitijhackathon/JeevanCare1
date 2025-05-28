@@ -18,6 +18,8 @@ import MedicineDelivery from "@/pages/medicine-delivery";
 import Reports from "@/pages/reports";
 import FaceScan from "@/pages/face-scan";
 import DoctorEscalation from "@/pages/doctor-escalation";
+import AIConsultation from "@/pages/ai-consultation";
+import MedicalRecords from "@/pages/medical-records";
 import NotFound from "@/pages/not-found";
 import GetStarted from "@/pages/auth/get-started";
 import SignUp from "@/pages/auth/signup";
@@ -80,6 +82,8 @@ function Router() {
           <Route path="/reports" component={Reports} />
           <Route path="/face-scan" component={FaceScan} />
           <Route path="/doctor-escalation" component={DoctorEscalation} />
+          <Route path="/ai-consultation" component={AIConsultation} />
+          <Route path="/medical-records" component={MedicalRecords} />
         </>
       )}
       <Route component={NotFound} />

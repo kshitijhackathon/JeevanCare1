@@ -1,13 +1,13 @@
 import { Link, useLocation } from "wouter";
-import { Home, FileText, Bell, User } from "lucide-react";
+import { Home, FileText, Bell, User, Upload } from "lucide-react";
 
 export default function BottomNavigation() {
   const [location] = useLocation();
 
   const navItems = [
     { name: "Home", icon: Home, path: "/" },
+    { name: "Records", icon: Upload, path: "/medical-records" },
     { name: "Reports", icon: FileText, path: "/reports" },
-    { name: "Notifications", icon: Bell, path: "/notifications" },
     { name: "Profile", icon: User, path: "/profile" },
   ];
 

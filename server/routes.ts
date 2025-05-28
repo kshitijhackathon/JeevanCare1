@@ -683,6 +683,273 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Medical Records Upload and AI Analysis
+  app.get('/api/medical-records', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const records = await storage.getHealthReports(userId);
+      res.json(records);
+    } catch (error) {
+      console.error("Error fetching medical records:", error);
+      res.status(500).json({ message: "Failed to fetch records" });
+    }
+  });
+
+  app.post('/api/medical-records/upload', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      // Note: In production, you would handle file upload with multer
+      // For now, we'll simulate the upload and AI analysis
+      
+      const mockRecord = {
+        fileName: 'blood_test_report.pdf',
+        fileType: 'pdf',
+        uploadDate: new Date().toISOString(),
+        status: 'analyzed',
+        aiAnalysis: {
+          conditions: ['Vitamin D Deficiency', 'Mild Anemia'],
+          medications: ['Vitamin D3 Supplements', 'Iron Tablets'],
+          allergies: [],
+          recommendations: [
+            'Increase sun exposure for natural Vitamin D',
+            'Include iron-rich foods in diet',
+            'Follow up with doctor in 3 months',
+            'Regular exercise recommended'
+          ],
+          summary: 'Blood test shows mild vitamin D deficiency and slight anemia. Both conditions are treatable with supplements and dietary changes.',
+          riskLevel: 'low',
+          nextSteps: ['Schedule follow-up appointment', 'Start supplement regimen']
+        }
+      };
+
+      const healthReport = await storage.createHealthReport({
+        userId,
+        reportType: 'lab_results',
+        reportData: JSON.stringify(mockRecord),
+        diagnosis: mockRecord.aiAnalysis.conditions.join(', '),
+        recommendations: mockRecord.aiAnalysis.recommendations.join('; ')
+      });
+
+      res.json({ success: true, record: mockRecord });
+    } catch (error) {
+      console.error("Error uploading medical record:", error);
+      res.status(500).json({ message: "Failed to upload record" });
+    }
+  });
+
+  // AI Consultation API
+  app.post('/api/ai-consultation', isAuthenticated, async (req: any, res) => {
+    try {
+      const { message, history, medicalHistory } = req.body;
+      const userId = req.user.claims.sub;
+
+      // Build context from medical history
+      let contextPrompt = "You are a professional AI health assistant. Provide helpful medical guidance while emphasizing that this doesn't replace professional medical advice.";
+      
+      if (medicalHistory && medicalHistory.conditions.length > 0) {
+        contextPrompt += `\n\nPatient's medical history: ${medicalHistory.conditions.join(', ')}`;
+      }
+      if (medicalHistory && medicalHistory.medications.length > 0) {
+        contextPrompt += `\nCurrent medications: ${medicalHistory.medications.join(', ')}`;
+      }
+      if (medicalHistory && medicalHistory.allergies.length > 0) {
+        contextPrompt += `\nKnown allergies: ${medicalHistory.allergies.join(', ')}`;
+      }
+
+      // For demonstration, provide intelligent responses based on symptoms
+      let aiResponse = generateIntelligentResponse(message, medicalHistory);
+      let diagnosis = null;
+      let recommendations = [];
+
+      // Check if this seems like a diagnostic conversation
+      if (message.toLowerCase().includes('pain') || message.toLowerCase().includes('symptoms') || 
+          message.toLowerCase().includes('fever') || message.toLowerCase().includes('headache')) {
+        diagnosis = extractPossibleCondition(message);
+        recommendations = generateRecommendations(message);
+        
+        // Save consultation
+        await storage.createConsultation({
+          userId,
+          symptoms: message,
+          diagnosis: diagnosis || '',
+          recommendations: recommendations.join('; '),
+          status: 'completed'
+        });
+      }
+
+      res.json({ 
+        response: aiResponse, 
+        diagnosis,
+        recommendations,
+        type: diagnosis ? 'analysis' : 'text'
+      });
+    } catch (error) {
+      console.error("AI consultation error:", error);
+      res.status(500).json({ message: "AI consultation failed" });
+    }
+  });
+
+  // Medical History API
+  app.get('/api/medical-history', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      
+      // Aggregate medical history from various sources
+      const consultations = await storage.getConsultations(userId);
+      const healthReports = await storage.getHealthReports(userId);
+      
+      const conditions = [...new Set([
+        ...consultations.filter(c => c.diagnosis).map(c => c.diagnosis),
+        ...healthReports.filter(r => r.diagnosis).map(r => r.diagnosis)
+      ])];
+
+      // Extract medications and other data from reports
+      const medications: string[] = [];
+      const allergies: string[] = [];
+      
+      healthReports.forEach(report => {
+        try {
+          const reportData = JSON.parse(report.reportData || '{}');
+          if (reportData.aiAnalysis) {
+            medications.push(...(reportData.aiAnalysis.medications || []));
+            allergies.push(...(reportData.aiAnalysis.allergies || []));
+          }
+        } catch (e) {
+          // Ignore parse errors
+        }
+      });
+
+      res.json({
+        conditions,
+        medications: [...new Set(medications)],
+        allergies: [...new Set(allergies)],
+        recentReports: healthReports.slice(0, 5)
+      });
+    } catch (error) {
+      console.error("Error fetching medical history:", error);
+      res.status(500).json({ 
+        conditions: [], 
+        medications: [], 
+        allergies: [], 
+        recentReports: [] 
+      });
+    }
+  });
+
+  // Enhanced Doctor Search API
+  app.post('/api/indian-medical-registry/search', async (req, res) => {
+    try {
+      const { specialty, condition, location, filters } = req.body;
+      
+      // Mock comprehensive Indian Medical Registry data
+      const indianDoctors = [
+        {
+          id: 'IMR_DL_001',
+          name: 'Dr. Priya Sharma',
+          specialty: 'dermatology',
+          subSpecialty: 'Cosmetic & Medical Dermatology',
+          qualification: 'MBBS, MD (Dermatology), Fellowship in Dermatopathology',
+          experience: 12,
+          rating: 4.8,
+          reviewCount: 247,
+          hospitalName: 'Apollo Hospitals Delhi',
+          address: 'Mathura Road, Sarita Vihar, New Delhi - 110076',
+          distance: 2.3,
+          consultationFee: 800,
+          languages: ['English', 'Hindi'],
+          registrationNumber: 'DL-12345-2010',
+          medicalCouncil: 'Delhi Medical Council',
+          isRegistrationVerified: true,
+          gender: 'female',
+          availability: {
+            nextSlot: 'Today 3:00 PM',
+            slotsAvailable: 4,
+            isAvailableToday: true
+          }
+        },
+        {
+          id: 'IMR_MH_002',
+          name: 'Dr. Rajesh Kumar',
+          specialty: 'endocrinology',
+          subSpecialty: 'Diabetes & Thyroid Disorders',
+          qualification: 'MBBS, MD (Medicine), DM (Endocrinology)',
+          experience: 15,
+          rating: 4.7,
+          reviewCount: 189,
+          hospitalName: 'Max Super Speciality Hospital',
+          address: 'Press Enclave Road, Saket, New Delhi - 110017',
+          distance: 4.1,
+          consultationFee: 1200,
+          languages: ['English', 'Hindi', 'Bengali'],
+          registrationNumber: 'MH-67890-2008',
+          medicalCouncil: 'Maharashtra Medical Council',
+          isRegistrationVerified: true,
+          gender: 'male',
+          availability: {
+            nextSlot: 'Tomorrow 10:30 AM',
+            slotsAvailable: 2,
+            isAvailableToday: false
+          }
+        }
+      ];
+
+      // Filter and sort based on specialty and condition
+      let filteredDoctors = indianDoctors;
+      
+      if (specialty && specialty !== 'any') {
+        filteredDoctors = filteredDoctors.filter(d => d.specialty === specialty);
+      }
+
+      res.json(filteredDoctors);
+    } catch (error) {
+      console.error("Doctor search error:", error);
+      res.status(500).json({ message: "Doctor search failed" });
+    }
+  });
+
+  // Recent consultations for condition detection
+  app.get('/api/consultations/recent', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const consultations = await storage.getConsultations(userId);
+      res.json(consultations.slice(0, 5)); // Return last 5 consultations
+    } catch (error) {
+      console.error("Error fetching consultations:", error);
+      res.json([]); // Return empty array instead of error
+    }
+  });
+
+  // Face scan results API
+  app.get('/api/face-scan/results', async (req, res) => {
+    try {
+      // Mock face scan results for demo
+      const mockResults = [
+        {
+          id: 1,
+          createdAt: new Date().toISOString(),
+          conditions: [
+            {
+              name: 'Mild Acne',
+              confidence: 0.85,
+              severity: 'low',
+              description: 'Detected inflammatory lesions consistent with mild acne'
+            },
+            {
+              name: 'Dark Circles',
+              confidence: 0.92,
+              severity: 'low',
+              description: 'Periorbital darkening possibly indicating fatigue'
+            }
+          ]
+        }
+      ];
+      res.json(mockResults);
+    } catch (error) {
+      console.error("Error fetching face scan results:", error);
+      res.json([]);
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }

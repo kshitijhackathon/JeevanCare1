@@ -545,10 +545,11 @@ export default function AIDoctorConsultation() {
 
   const sendMessage = useMutation({
     mutationFn: async (message: string) => {
-      const response = await apiRequest("POST", "/api/ai-doctor/chat", {
+      const response = await apiRequest("POST", "/api/ai-doctor/groq-medical-chat", {
         message,
         language: patientDetails.language,
         patientDetails,
+        conversationHistory: messages.slice(-5),
         selectedBodyPart,
         capturedImage
       });
@@ -888,8 +889,8 @@ export default function AIDoctorConsultation() {
               </div>
             )}
 
-            {/* Video Controls */}
-            <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex space-x-2">
+            {/* Clean Video Controls */}
+            <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex space-x-3">
               <Button
                 onClick={() => {
                   setIsVideoOn(!isVideoOn);
@@ -903,49 +904,29 @@ export default function AIDoctorConsultation() {
                 }}
                 variant={isVideoOn ? "secondary" : "destructive"}
                 size="sm"
+                className="px-3"
               >
-                {isVideoOn ? <Video className="w-4 h-4" /> : <VideoOff className="w-4 h-4" />}
+                {isVideoOn ? <Video className="w-4 h-4 mr-1" /> : <VideoOff className="w-4 h-4 mr-1" />}
+                Camera
               </Button>
-              <Button
-                onClick={() => {
-                  setIsAudioOn(!isAudioOn);
-                  if (videoRef.current && videoRef.current.srcObject) {
-                    const stream = videoRef.current.srcObject as MediaStream;
-                    const audioTrack = stream.getAudioTracks()[0];
-                    if (audioTrack) {
-                      audioTrack.enabled = !isAudioOn;
-                    }
-                  }
-                }}
-                variant={isAudioOn ? "secondary" : "destructive"}
-                size="sm"
-              >
-                {isAudioOn ? <Mic className="w-4 h-4" /> : <MicOff className="w-4 h-4" />}
-              </Button>
+              
               <Button
                 onClick={toggleContinuousListening}
                 variant={isContinuousListening ? "default" : "secondary"}
                 size="sm"
+                className="px-3"
               >
-                {isContinuousListening ? <MicOff className="w-4 h-4" /> : <Mic className="w-4 h-4" />}
+                {isContinuousListening ? <MicOff className="w-4 h-4 mr-1" /> : <Mic className="w-4 h-4 mr-1" />}
+                {isContinuousListening ? "Stop Voice" : "Start Voice"}
               </Button>
-              <Button onClick={capturePhoto} variant="secondary" size="sm">
-                <Camera className="w-4 h-4" />
-              </Button>
-              <Button 
-                onClick={() => setShowBodyModel(true)} 
-                variant="secondary" 
-                size="sm"
-              >
-                Body
-              </Button>
+              
               <Button 
                 onClick={endCall}
                 variant="destructive" 
                 size="sm"
-                className="bg-red-600 hover:bg-red-700"
+                className="bg-red-600 hover:bg-red-700 px-3"
               >
-                End Call
+                📞 End Call
               </Button>
             </div>
           </div>

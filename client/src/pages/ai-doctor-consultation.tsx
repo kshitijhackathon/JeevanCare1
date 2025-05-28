@@ -7,7 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import { ArrowLeft, Video, VideoOff, Mic, MicOff, MessageSquare, Phone, Camera, FileText, ShoppingCart, Calendar, MapPin, User } from "lucide-react";
+import { ArrowLeft, Video, VideoOff, Mic, MicOff, MessageSquare, Phone, Camera, FileText, ShoppingCart, Calendar, MapPin, User, Play, Square, Bot } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useMutation } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
@@ -57,6 +57,11 @@ export default function AIDoctorConsultation() {
   const [selectedBodyPart, setSelectedBodyPart] = useState<string>('');
   const [capturedImage, setCapturedImage] = useState<string>('');
   const [isReviewing, setIsReviewing] = useState(false);
+  const [isRecording, setIsRecording] = useState(false);
+  const [mediaRecorder, setMediaRecorder] = useState<MediaRecorder | null>(null);
+  const [audioChunks, setAudioChunks] = useState<Blob[]>([]);
+  const [aiAvatar, setAiAvatar] = useState<string>('');
+  const [isProcessingSpeech, setIsProcessingSpeech] = useState(false);
 
   // Body parts for 3D interaction
   const bodyParts: BodyPart[] = [
@@ -69,6 +74,159 @@ export default function AIDoctorConsultation() {
     { id: 'left-leg', name: 'Left Leg', x: 40, y: 75 },
     { id: 'right-leg', name: 'Right Leg', x: 60, y: 75 }
   ];
+
+  // Generate AI avatar based on patient demographics
+  const generateAIAvatar = () => {
+    const age = parseInt(patientDetails.age);
+    const gender = patientDetails.gender;
+    
+    // Avatar selection based on opposite gender and similar age group
+    if (gender === 'male') {
+      if (age >= 18 && age <= 30) {
+        return 'https://images.unsplash.com/photo-1494790108755-2616b612b786?w=200&h=200&fit=crop&crop=face';
+      } else if (age >= 31 && age <= 50) {
+        return 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&h=200&fit=crop&crop=face';
+      } else {
+        return 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=200&h=200&fit=crop&crop=face';
+      }
+    } else {
+      if (age >= 18 && age <= 30) {
+        return 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&h=200&fit=crop&crop=face';
+      } else if (age >= 31 && age <= 50) {
+        return 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=200&h=200&fit=crop&crop=face';
+      } else {
+        return 'https://images.unsplash.com/photo-1560250097-0b93528c311a?w=200&h=200&fit=crop&crop=face';
+      }
+    }
+  };
+
+  // Initialize AI avatar on consultation start
+  useEffect(() => {
+    if (patientDetails.age && patientDetails.gender) {
+      setAiAvatar(generateAIAvatar());
+    }
+  }, [patientDetails.age, patientDetails.gender]);
+
+  // Speech-to-text using OpenAI Whisper
+  const startRecording = async () => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      const recorder = new MediaRecorder(stream, { mimeType: 'audio/webm' });
+      
+      const chunks: Blob[] = [];
+      recorder.ondataavailable = (event) => {
+        if (event.data.size > 0) chunks.push(event.data);
+      };
+      
+      recorder.onstop = async () => {
+        const audioBlob = new Blob(chunks, { type: 'audio/webm' });
+        await processAudioWithWhisper(audioBlob);
+        stream.getTracks().forEach(track => track.stop());
+      };
+      
+      setMediaRecorder(recorder);
+      setAudioChunks([]);
+      recorder.start();
+      setIsRecording(true);
+    } catch (error) {
+      console.error('Error starting recording:', error);
+      toast({
+        title: "Microphone Access",
+        description: "Microphone permission needed for voice input.",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const stopRecording = () => {
+    if (mediaRecorder && mediaRecorder.state === 'recording') {
+      mediaRecorder.stop();
+      setIsRecording(false);
+    }
+  };
+
+  const processAudioWithWhisper = async (audioBlob: Blob) => {
+    setIsProcessingSpeech(true);
+    try {
+      const formData = new FormData();
+      formData.append('audio', audioBlob, 'recording.webm');
+      formData.append('language', patientDetails.language);
+
+      const response = await fetch('/api/ai-doctor/whisper-transcribe', {
+        method: 'POST',
+        body: formData
+      });
+
+      if (!response.ok) throw new Error('Transcription failed');
+      
+      const data = await response.json();
+      setCurrentMessage(data.transcription);
+      
+      // Auto-analyze the transcribed text with medical AI
+      await analyzeMedicalText(data.transcription);
+      
+    } catch (error) {
+      console.error('Error processing audio:', error);
+      toast({
+        title: "Speech Processing Error",
+        description: "Failed to process speech. Please try typing instead.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsProcessingSpeech(false);
+    }
+  };
+
+  // Medical text analysis using Bio_ClinicalBERT and NegBio
+  const analyzeMedicalText = async (text: string) => {
+    try {
+      const response = await fetch('/api/ai-doctor/medical-analysis', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          text,
+          patientDetails,
+          selectedBodyPart
+        })
+      });
+
+      if (!response.ok) throw new Error('Medical analysis failed');
+      
+      const analysis = await response.json();
+      
+      // Generate prescription using DrugBERT if symptoms detected
+      if (analysis.symptoms && analysis.symptoms.length > 0) {
+        await generatePrescription(analysis);
+      }
+      
+    } catch (error) {
+      console.error('Error in medical analysis:', error);
+    }
+  };
+
+  // Prescription generation using DrugBERT
+  const generatePrescription = async (medicalAnalysis: any) => {
+    try {
+      const response = await fetch('/api/ai-doctor/generate-prescription', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          symptoms: medicalAnalysis.symptoms,
+          diagnosis: medicalAnalysis.diagnosis,
+          patientDetails,
+          severity: medicalAnalysis.severity
+        })
+      });
+
+      if (!response.ok) throw new Error('Prescription generation failed');
+      
+      const prescription = await response.json();
+      console.log('Generated prescription:', prescription);
+      
+    } catch (error) {
+      console.error('Error generating prescription:', error);
+    }
+  };
 
   const startConsultation = useMutation({
     mutationFn: async (details: PatientDetails) => {
@@ -385,9 +543,17 @@ export default function AIDoctorConsultation() {
         {/* Video Call Header */}
         <div className="bg-gray-800 p-4 flex items-center justify-between">
           <div className="flex items-center space-x-3">
-            <div className="w-10 h-10 bg-blue-500 rounded-full flex items-center justify-center">
-              <User className="w-6 h-6" />
-            </div>
+            {aiAvatar ? (
+              <img 
+                src={aiAvatar} 
+                alt="AI Doctor Avatar" 
+                className="w-10 h-10 rounded-full object-cover border-2 border-blue-400"
+              />
+            ) : (
+              <div className="w-10 h-10 bg-blue-500 rounded-full flex items-center justify-center">
+                <Bot className="w-6 h-6" />
+              </div>
+            )}
             <div>
               <h3 className="font-medium">Dr. AI Assistant</h3>
               <p className="text-sm text-gray-300">Online • Consultation Active</p>
@@ -560,6 +726,38 @@ export default function AIDoctorConsultation() {
             </div>
 
             <div className="p-4 border-t border-gray-700">
+              {/* AI Avatar Section */}
+              <div className="mb-4 flex items-center space-x-3 p-3 bg-gray-700 rounded-lg">
+                {aiAvatar ? (
+                  <img 
+                    src={aiAvatar} 
+                    alt="AI Doctor Avatar" 
+                    className="w-12 h-12 rounded-full object-cover border-2 border-blue-400"
+                  />
+                ) : (
+                  <div className="w-12 h-12 bg-blue-500 rounded-full flex items-center justify-center">
+                    <Bot className="w-6 h-6" />
+                  </div>
+                )}
+                <div className="flex-1">
+                  <p className="text-sm font-medium text-white">AI Doctor Assistant</p>
+                  <p className="text-xs text-gray-300">
+                    {patientDetails.language === 'hindi' 
+                      ? "Aapke saath hai - Hindi aur English mein baat kar sakta hai"
+                      : "Powered by advanced medical AI models"
+                    }
+                  </p>
+                </div>
+              </div>
+
+              {/* Speech Processing Status */}
+              {isProcessingSpeech && (
+                <div className="mb-2 p-2 bg-purple-600 rounded text-sm flex items-center space-x-2">
+                  <div className="animate-spin w-4 h-4 border-2 border-white border-t-transparent rounded-full"></div>
+                  <span>Processing speech with OpenAI Whisper...</span>
+                </div>
+              )}
+
               {selectedBodyPart && (
                 <div className="mb-2 p-2 bg-blue-600 rounded text-sm">
                   Selected: {selectedBodyPart}
@@ -570,20 +768,66 @@ export default function AIDoctorConsultation() {
                   Photo captured for analysis
                 </div>
               )}
-              <div className="flex space-x-2">
-                <Textarea
-                  value={currentMessage}
-                  onChange={(e) => setCurrentMessage(e.target.value)}
-                  placeholder={patientDetails.language === 'hindi' ? "Apne symptoms batayiye..." : "Describe your symptoms..."}
-                  className="flex-1 text-white bg-gray-700 border-gray-600"
-                  rows={2}
-                />
-                <Button
-                  onClick={handleSendMessage}
-                  disabled={!currentMessage.trim() && !selectedBodyPart && !capturedImage || sendMessage.isPending}
-                >
-                  <MessageSquare className="w-4 h-4" />
-                </Button>
+
+              {/* Enhanced Input Section with Voice */}
+              <div className="space-y-3">
+                {/* Voice Recording Controls */}
+                <div className="flex items-center space-x-2">
+                  <Button
+                    onClick={isRecording ? stopRecording : startRecording}
+                    variant={isRecording ? "destructive" : "secondary"}
+                    size="sm"
+                    disabled={isProcessingSpeech}
+                    className="flex-1"
+                  >
+                    {isRecording ? (
+                      <>
+                        <Square className="w-4 h-4 mr-2" />
+                        Stop Recording
+                      </>
+                    ) : (
+                      <>
+                        <Play className="w-4 h-4 mr-2" />
+                        Voice Input (Whisper AI)
+                      </>
+                    )}
+                  </Button>
+                  {isRecording && (
+                    <div className="flex space-x-1">
+                      <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse"></div>
+                      <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse" style={{animationDelay: '0.2s'}}></div>
+                      <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse" style={{animationDelay: '0.4s'}}></div>
+                    </div>
+                  )}
+                </div>
+
+                {/* Text Input */}
+                <div className="flex space-x-2">
+                  <Textarea
+                    value={currentMessage}
+                    onChange={(e) => setCurrentMessage(e.target.value)}
+                    placeholder={patientDetails.language === 'hindi' 
+                      ? "Apne symptoms type kariye ya voice button dabayiye..." 
+                      : "Type your symptoms or use voice input..."
+                    }
+                    className="flex-1 text-white bg-gray-700 border-gray-600"
+                    rows={2}
+                  />
+                  <Button
+                    onClick={handleSendMessage}
+                    disabled={!currentMessage.trim() && !selectedBodyPart && !capturedImage || sendMessage.isPending}
+                  >
+                    <MessageSquare className="w-4 h-4" />
+                  </Button>
+                </div>
+
+                {/* Medical AI Info */}
+                <div className="text-xs text-gray-400 space-y-1">
+                  <p>🧠 Bio_ClinicalBERT: Medical text analysis</p>
+                  <p>🔬 NegBio: Disease prediction model</p>
+                  <p>💊 DrugBERT: Prescription generation</p>
+                  <p>🎤 OpenAI Whisper: Speech-to-text conversion</p>
+                </div>
               </div>
             </div>
           </div>

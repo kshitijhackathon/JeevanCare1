@@ -54,54 +54,164 @@ export default function GlobalHealthMap() {
     }
   });
 
-  // Mock world map component (in production, use react-simple-maps or similar)
-  const WorldMapHeatmap = () => (
-    <div className="relative bg-gray-100 rounded-lg h-64 overflow-hidden">
-      <div className="absolute inset-0 flex items-center justify-center">
-        <div className="text-center">
-          <Globe className="w-16 h-16 text-blue-500 mx-auto mb-4 animate-spin" />
-          <p className="text-sm text-gray-600 mb-2">Global Disease Heatmap</p>
-          <p className="text-xs text-gray-500">Interactive world map showing disease distribution</p>
+  // Interactive 3D Globe with Disease Hotspots
+  const Interactive3DGlobe = () => {
+    const [rotation, setRotation] = useState(0);
+    
+    useEffect(() => {
+      const interval = setInterval(() => {
+        setRotation(prev => (prev + 0.5) % 360);
+      }, 100);
+      return () => clearInterval(interval);
+    }, []);
+
+    return (
+      <div className="relative bg-gradient-to-br from-blue-900 via-blue-800 to-black rounded-lg h-80 overflow-hidden">
+        {/* 3D Globe Container */}
+        <div className="absolute inset-0 flex items-center justify-center">
+          <div 
+            className="relative w-64 h-64 rounded-full bg-gradient-to-br from-blue-500 via-green-500 to-blue-600 shadow-2xl transform-gpu"
+            style={{
+              backgroundImage: `radial-gradient(circle at 30% 30%, rgba(255,255,255,0.3) 0%, rgba(255,255,255,0.1) 30%, transparent 70%),
+                               linear-gradient(45deg, #4ade80 0%, #3b82f6 25%, #10b981 50%, #1e40af 75%, #059669 100%)`,
+              transform: `rotateY(${rotation}deg) rotateX(-10deg)`,
+              boxShadow: `
+                inset -20px -20px 50px rgba(0,0,0,0.3),
+                inset 20px 20px 50px rgba(255,255,255,0.1),
+                0 0 50px rgba(59, 130, 246, 0.4)
+              `
+            }}
+          >
+            {/* Disease Hotspots */}
+            {healthData?.map((region, index) => {
+              const angle = (index * 90 + rotation) % 360;
+              const x = 50 + 35 * Math.cos(angle * Math.PI / 180);
+              const y = 50 + 35 * Math.sin(angle * Math.PI / 180);
+              const opacity = Math.cos(angle * Math.PI / 180) > 0 ? 1 : 0.3;
+              
+              const getHotspotColor = (riskLevel: string) => {
+                switch (riskLevel) {
+                  case 'critical': return 'bg-red-500';
+                  case 'high': return 'bg-orange-500';
+                  case 'medium': return 'bg-yellow-500';
+                  case 'low': return 'bg-green-500';
+                  default: return 'bg-blue-500';
+                }
+              };
+
+              return (
+                <div
+                  key={region.id}
+                  className={`absolute w-4 h-4 rounded-full ${getHotspotColor(region.riskLevel)} 
+                            cursor-pointer transform -translate-x-1/2 -translate-y-1/2 
+                            hover:scale-150 transition-all duration-300 animate-pulse`}
+                  style={{
+                    left: `${x}%`,
+                    top: `${y}%`,
+                    opacity: opacity,
+                    boxShadow: `0 0 10px ${
+                      region.riskLevel === 'critical' ? '#ef4444' :
+                      region.riskLevel === 'high' ? '#f97316' :
+                      region.riskLevel === 'medium' ? '#eab308' : '#22c55e'
+                    }`
+                  }}
+                  onClick={() => setSelectedRegion(region)}
+                  title={`${region.name} - ${region.totalCases.toLocaleString()} cases`}
+                >
+                  <div className="absolute inset-0 rounded-full animate-ping opacity-75"></div>
+                </div>
+              );
+            })}
+
+            {/* Globe Grid Lines */}
+            <div className="absolute inset-0 rounded-full"
+                 style={{
+                   background: `
+                     repeating-linear-gradient(0deg, transparent 0px, transparent 20px, rgba(255,255,255,0.1) 20px, rgba(255,255,255,0.1) 22px),
+                     repeating-linear-gradient(90deg, transparent 0px, transparent 20px, rgba(255,255,255,0.1) 20px, rgba(255,255,255,0.1) 22px)
+                   `,
+                   clipPath: 'circle(50%)'
+                 }}
+            />
+          </div>
         </div>
-      </div>
-      
-      {/* Sample heatmap regions */}
-      <div className="absolute top-8 left-12 w-6 h-4 bg-red-500 rounded opacity-80 cursor-pointer hover:opacity-100"
-           onClick={() => setSelectedRegion(healthData?.[0] || null)}
-           title="North America - High Alert"></div>
-      <div className="absolute top-16 right-16 w-8 h-6 bg-yellow-500 rounded opacity-80 cursor-pointer hover:opacity-100"
-           onClick={() => setSelectedRegion(healthData?.[1] || null)}
-           title="Asia - Medium Risk"></div>
-      <div className="absolute bottom-12 left-20 w-5 h-4 bg-green-500 rounded opacity-80 cursor-pointer hover:opacity-100"
-           onClick={() => setSelectedRegion(healthData?.[2] || null)}
-           title="Europe - Low Risk"></div>
-      <div className="absolute bottom-8 right-12 w-4 h-3 bg-orange-500 rounded opacity-80 cursor-pointer hover:opacity-100"
-           onClick={() => setSelectedRegion(healthData?.[3] || null)}
-           title="Australia - Medium Risk"></div>
-      
-      {/* Legend */}
-      <div className="absolute bottom-2 left-2 bg-white bg-opacity-90 p-2 rounded text-xs">
-        <div className="flex items-center space-x-3">
-          <div className="flex items-center space-x-1">
-            <div className="w-3 h-3 bg-green-500 rounded"></div>
-            <span>Low</span>
-          </div>
-          <div className="flex items-center space-x-1">
-            <div className="w-3 h-3 bg-yellow-500 rounded"></div>
-            <span>Medium</span>
-          </div>
-          <div className="flex items-center space-x-1">
-            <div className="w-3 h-3 bg-orange-500 rounded"></div>
-            <span>High</span>
-          </div>
-          <div className="flex items-center space-x-1">
-            <div className="w-3 h-3 bg-red-500 rounded"></div>
-            <span>Critical</span>
+
+        {/* Floating Particles */}
+        <div className="absolute inset-0 overflow-hidden">
+          {[...Array(20)].map((_, i) => (
+            <div
+              key={i}
+              className="absolute w-1 h-1 bg-white rounded-full opacity-60 animate-pulse"
+              style={{
+                left: `${Math.random() * 100}%`,
+                top: `${Math.random() * 100}%`,
+                animationDelay: `${Math.random() * 2}s`,
+                animationDuration: `${2 + Math.random() * 3}s`
+              }}
+            />
+          ))}
+        </div>
+
+        {/* Controls */}
+        <div className="absolute top-4 left-4 flex space-x-2">
+          <div className="bg-white bg-opacity-90 px-3 py-1 rounded-full text-xs font-medium">
+            3D Globe View
           </div>
         </div>
+
+        {/* Legend */}
+        <div className="absolute bottom-4 left-4 bg-white bg-opacity-90 p-3 rounded-lg text-xs">
+          <div className="mb-2 font-medium text-gray-800">Disease Risk Levels</div>
+          <div className="grid grid-cols-2 gap-2">
+            <div className="flex items-center space-x-2">
+              <div className="w-3 h-3 bg-green-500 rounded-full"></div>
+              <span>Low Risk</span>
+            </div>
+            <div className="flex items-center space-x-2">
+              <div className="w-3 h-3 bg-yellow-500 rounded-full"></div>
+              <span>Medium</span>
+            </div>
+            <div className="flex items-center space-x-2">
+              <div className="w-3 h-3 bg-orange-500 rounded-full"></div>
+              <span>High Risk</span>
+            </div>
+            <div className="flex items-center space-x-2">
+              <div className="w-3 h-3 bg-red-500 rounded-full animate-pulse"></div>
+              <span>Critical</span>
+            </div>
+          </div>
+          <div className="mt-2 text-gray-600">
+            <div>• Click hotspots for details</div>
+            <div>• Auto-rotating view</div>
+          </div>
+        </div>
+
+        {/* Active Region Info */}
+        {selectedRegion && (
+          <div className="absolute top-4 right-4 bg-white bg-opacity-95 p-3 rounded-lg text-xs max-w-48">
+            <div className="font-medium text-gray-800 mb-1">{selectedRegion.name}</div>
+            <div className="text-gray-600 mb-2">{selectedRegion.country}</div>
+            <div className="space-y-1">
+              <div className="flex justify-between">
+                <span>Total Cases:</span>
+                <span className="font-medium">{selectedRegion.totalCases.toLocaleString()}</span>
+              </div>
+              <div className="flex justify-between">
+                <span>Population:</span>
+                <span className="font-medium">{(selectedRegion.population / 1000000).toFixed(1)}M</span>
+              </div>
+              <div className="flex justify-between">
+                <span>Risk Level:</span>
+                <Badge className={getRiskColor(selectedRegion.riskLevel)}>
+                  {selectedRegion.riskLevel}
+                </Badge>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
-    </div>
-  );
+    );
+  };
 
   const getRiskColor = (level: string) => {
     switch (level) {
@@ -215,7 +325,7 @@ export default function GlobalHealthMap() {
               </p>
             </CardHeader>
             <CardContent>
-              <WorldMapHeatmap />
+              <Interactive3DGlobe />
             </CardContent>
           </Card>
         )}

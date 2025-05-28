@@ -87,13 +87,6 @@ export default function DoctorEscalation() {
     queryKey: ['/api/user-conditions'],
   });
 
-  // Fetch matched doctors based on conditions and filters with real-time availability
-  const { data: matchedDoctors, isLoading: loadingDoctors } = useQuery<Doctor[]>({
-    queryKey: ['/api/doctors/match', selectedCondition?.condition, filters, searchQuery],
-    enabled: !!selectedCondition,
-    refetchInterval: 30000, // Refresh every 30 seconds for real-time availability
-  });
-
   // Get user location for proximity matching
   const { data: userLocation } = useQuery({
     queryKey: ['/api/user/location'],
@@ -139,10 +132,122 @@ export default function DoctorEscalation() {
     },
   });
 
+  // Real-time doctor matching with live data
+  const getMatchedDoctors = async (): Promise<Doctor[]> => {
+    if (!selectedCondition) return [];
+
+    try {
+      const specialty = getSpecialtyFromCondition(selectedCondition.condition);
+      
+      // Query Indian Medical Registry with real-time data
+      const registryResponse = await fetch('/api/indian-medical-registry/search', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          specialty,
+          condition: selectedCondition.condition,
+          location: userLocation,
+          filters,
+          searchQuery,
+          registrySource: 'authentic'
+        }),
+      });
+
+      if (!registryResponse.ok) {
+        throw new Error('Medical Registry API unavailable');
+      }
+
+      const doctors = await registryResponse.json();
+      
+      // Enhance each doctor with real-time availability
+      const enhancedDoctors = await Promise.all(
+        doctors.map(async (doctor: Doctor) => {
+          // Check Google Calendar availability
+          const calendarAvailability = await checkGoogleCalendarAvailability(
+            doctor.id, 
+            new Date().toISOString().split('T')[0]
+          );
+          
+          // Check hospital management system
+          const hospitalAvailability = await checkHospitalSystem(
+            doctor.hospitalName.replace(/\s+/g, '_').toLowerCase()
+          );
+          
+          // Verify doctor registration with Indian Medical Registry
+          const isVerified = await verifyDoctorRegistration(
+            doctor.registrationNumber, 
+            doctor.medicalCouncil
+          );
+
+          // Calculate actual distance using GPS
+          let actualDistance = doctor.distance;
+          if (userLocation && doctor.latitude && doctor.longitude) {
+            actualDistance = calculateDistance(
+              userLocation.latitude,
+              userLocation.longitude,
+              parseFloat(doctor.latitude.toString()),
+              parseFloat(doctor.longitude.toString())
+            );
+          }
+          
+          return {
+            ...doctor,
+            distance: Math.round(actualDistance * 10) / 10,
+            availability: calendarAvailability || doctor.availability,
+            hospitalSystemStatus: hospitalAvailability?.status || 'unknown',
+            isRegistrationVerified: isVerified,
+            realTimeUpdate: new Date().toISOString()
+          };
+        })
+      );
+
+      // Apply intelligent filtering and sorting
+      return enhancedDoctors
+        .filter(doctor => {
+          // Apply user filters
+          if (filters.maxDistance && doctor.distance > filters.maxDistance) return false;
+          if (filters.minRating && doctor.rating < filters.minRating) return false;
+          if (filters.maxFee && doctor.consultationFee > filters.maxFee) return false;
+          if (filters.availableToday && !doctor.availability.isAvailableToday) return false;
+          if (filters.language !== 'any' && !doctor.languages.some(lang => 
+            lang.toLowerCase().includes(filters.language.toLowerCase()))) return false;
+          
+          // Search query filter
+          if (searchQuery) {
+            const query = searchQuery.toLowerCase();
+            const searchableText = `${doctor.name} ${doctor.specialty} ${doctor.hospitalName} ${doctor.address}`.toLowerCase();
+            if (!searchableText.includes(query)) return false;
+          }
+          
+          return true;
+        })
+        .sort((a, b) => {
+          // Prioritize high-severity condition matches
+          if (selectedCondition.severity === 'high') {
+            if (a.availability.isAvailableToday !== b.availability.isAvailableToday) {
+              return a.availability.isAvailableToday ? -1 : 1;
+            }
+          }
+          
+          // Sort by rating and proximity
+          const ratingDiff = b.rating - a.rating;
+          if (Math.abs(ratingDiff) > 0.2) return ratingDiff;
+          
+          return a.distance - b.distance;
+        });
+
+    } catch (error) {
+      console.error('Doctor matching failed:', error);
+      return [];
+    }
+  };
+
   useEffect(() => {
-    // Load real conditions from multiple sources
+    // Load conditions from multiple authentic sources
     const loadUserConditions = async () => {
-      const aggregatedConditions = aggregateUserConditions();
+      const aggregatedConditions = await aggregateUserConditions();
       setUserConditions(aggregatedConditions);
       
       if (!selectedCondition && aggregatedConditions.length > 0) {
@@ -153,7 +258,7 @@ export default function DoctorEscalation() {
     };
     
     loadUserConditions();
-  }, [selectedCondition]);
+  }, []);
 
   // Enhanced AI-powered condition-to-specialty mapping
   const getSpecialtyFromCondition = (condition: string): string => {
@@ -187,36 +292,70 @@ export default function DoctorEscalation() {
     return 'general_medicine';
   };
 
-  // Multi-source condition aggregation from AI, face scan, health vault
-  const aggregateUserConditions = (): UserCondition[] => {
-    const mockConditions: UserCondition[] = [
-      {
-        source: 'ai_chat',
-        condition: 'Possible Vitamin D Deficiency',
-        confidence: 0.78,
-        severity: 'medium',
-        detectedAt: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
-        description: 'AI consultation detected symptoms consistent with vitamin deficiency based on reported fatigue and mood changes'
-      },
-      {
-        source: 'face_scan',
-        condition: 'Mild Acne',
-        confidence: 0.85,
-        severity: 'low',
-        detectedAt: new Date(Date.now() - 1 * 60 * 60 * 1000).toISOString(),
-        description: 'Face scan analysis identified inflammatory lesions on facial areas'
-      },
-      {
-        source: 'face_scan',
-        condition: 'Dark Circles',
-        confidence: 0.92,
-        severity: 'low',
-        detectedAt: new Date(Date.now() - 1 * 60 * 60 * 1000).toISOString(),
-        description: 'Periorbital darkening detected, possibly indicating fatigue or nutritional deficiency'
-      }
-    ];
-    
-    return mockConditions;
+  // Real-time condition aggregation from multiple authentic sources
+  const aggregateUserConditions = async (): Promise<UserCondition[]> => {
+    try {
+      const conditions: UserCondition[] = [];
+      
+      // Fetch from AI consultation history
+      const aiConsultations = await fetch('/api/consultations/recent').then(res => res.json()).catch(() => []);
+      aiConsultations.forEach((consultation: any) => {
+        if (consultation.diagnosis) {
+          conditions.push({
+            source: 'ai_chat',
+            condition: consultation.diagnosis,
+            confidence: consultation.confidence || 0.75,
+            severity: consultation.severity || 'medium',
+            detectedAt: consultation.createdAt,
+            description: `AI diagnosis from consultation: ${consultation.symptoms}`
+          });
+        }
+      });
+
+      // Fetch from face scan results
+      const faceScanResults = await fetch('/api/face-scan/results').then(res => res.json()).catch(() => []);
+      faceScanResults.forEach((scan: any) => {
+        scan.conditions?.forEach((condition: any) => {
+          conditions.push({
+            source: 'face_scan',
+            condition: condition.name,
+            confidence: condition.confidence,
+            severity: condition.severity,
+            detectedAt: scan.createdAt,
+            description: condition.description
+          });
+        });
+      });
+
+      // Fetch from health vault records
+      const healthReports = await fetch('/api/health-reports').then(res => res.json()).catch(() => []);
+      healthReports.forEach((report: any) => {
+        if (report.diagnosis) {
+          conditions.push({
+            source: 'health_vault',
+            condition: report.diagnosis,
+            confidence: 0.90,
+            severity: report.severity || 'medium',
+            detectedAt: report.createdAt,
+            description: `Medical record diagnosis: ${report.description || ''}`
+          });
+        }
+      });
+
+      // Sort by severity and recency
+      return conditions.sort((a, b) => {
+        const severityOrder = { 'high': 3, 'medium': 2, 'low': 1 };
+        const severityDiff = (severityOrder[b.severity as keyof typeof severityOrder] || 0) - 
+                           (severityOrder[a.severity as keyof typeof severityOrder] || 0);
+        if (severityDiff !== 0) return severityDiff;
+        
+        return new Date(b.detectedAt).getTime() - new Date(a.detectedAt).getTime();
+      });
+      
+    } catch (error) {
+      console.error('Failed to aggregate conditions:', error);
+      return [];
+    }
   };
 
   // Real-time doctor availability checking

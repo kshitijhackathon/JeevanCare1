@@ -954,14 +954,156 @@ export async function registerRoutes(app: Express): Promise<Server> {
   return httpServer;
 }
 
-// Simple AI response generator
-function generateAIResponse(symptoms: string): string {
-  const responses = [
-    "Based on your symptoms, it sounds like you might have a common cold. I recommend rest, staying hydrated, and over-the-counter medication. If symptoms persist for more than 3 days, please consult a healthcare professional.",
-    "Your symptoms suggest a possible viral infection. Please get adequate rest, drink plenty of fluids, and consider taking fever reducers if needed. Monitor your condition and seek medical attention if symptoms worsen.",
-    "These symptoms could indicate several conditions. I recommend monitoring your temperature, staying hydrated, and avoiding contact with others to prevent spread. If symptoms persist or worsen, please consult with a doctor.",
-    "Based on what you've described, this appears to be a minor ailment. Rest and basic care should help. However, if you experience severe symptoms or they don't improve in a few days, please see a healthcare provider.",
-  ];
+// Intelligent AI response generator
+function generateIntelligentResponse(message: string, medicalHistory?: any): string {
+  const messageLower = message.toLowerCase();
   
-  return responses[Math.floor(Math.random() * responses.length)];
+  // Check for specific symptoms and provide contextual responses
+  if (messageLower.includes('headache')) {
+    return `I understand you're experiencing a headache. This could be due to various factors like stress, dehydration, or lack of sleep. 
+
+**Immediate steps:**
+• Drink plenty of water
+• Rest in a quiet, dark room
+• Apply a cold or warm compress
+• Consider over-the-counter pain relief if needed
+
+If headaches persist, are severe, or accompanied by fever, vision changes, or neck stiffness, please seek immediate medical attention.
+
+**Note:** This is informational guidance only and doesn't replace professional medical advice.`;
+  }
+  
+  if (messageLower.includes('fever')) {
+    return `Fever can indicate your body is fighting an infection. Here's what I recommend:
+
+**For fever management:**
+• Stay hydrated with plenty of fluids
+• Rest and avoid strenuous activities
+• Use fever-reducing medication as directed
+• Monitor your temperature regularly
+
+**Seek immediate medical care if:**
+• Temperature exceeds 103°F (39.4°C)
+• Fever lasts more than 3 days
+• Accompanied by severe symptoms like difficulty breathing
+
+${medicalHistory?.conditions.length ? `Given your medical history of ${medicalHistory.conditions.join(', ')}, please consult your doctor promptly.` : ''}
+
+Would you like specific guidance based on your temperature reading?`;
+  }
+  
+  if (messageLower.includes('stomach') || messageLower.includes('nausea')) {
+    return `Stomach issues can be uncomfortable. Here are some general recommendations:
+
+**For stomach upset:**
+• Stay hydrated with small, frequent sips of water
+• Try the BRAT diet (Bananas, Rice, Applesauce, Toast)
+• Avoid dairy, fatty, or spicy foods temporarily
+• Rest and avoid unnecessary stress
+
+**Contact a healthcare provider if:**
+• Severe or persistent pain
+• Blood in vomit or stool
+• Signs of dehydration
+• Symptoms worsen after 24-48 hours
+
+Can you describe your symptoms in more detail? This will help me provide more specific guidance.`;
+  }
+  
+  // General health inquiry
+  if (messageLower.includes('tired') || messageLower.includes('fatigue')) {
+    return `Fatigue can have many causes. Let's explore some possibilities:
+
+**Common causes:**
+• Insufficient sleep or poor sleep quality
+• Stress or anxiety
+• Nutritional deficiencies (especially iron or vitamin D)
+• Dehydration
+• Underlying medical conditions
+
+**To help improve energy:**
+• Ensure 7-9 hours of quality sleep
+• Maintain regular exercise routine
+• Eat balanced, nutritious meals
+• Stay hydrated throughout the day
+• Manage stress levels
+
+${medicalHistory?.conditions.length ? `I see you have a history of ${medicalHistory.conditions.join(', ')}. Some conditions can contribute to fatigue.` : ''}
+
+If fatigue persists for more than 2 weeks or significantly impacts your daily life, please consult a healthcare professional for proper evaluation.`;
+  }
+  
+  // Default response for general inquiries
+  return `Thank you for sharing your health concerns with me. I'm here to provide helpful guidance while emphasizing that this doesn't replace professional medical advice.
+
+${medicalHistory?.conditions.length ? `I note your medical history includes: ${medicalHistory.conditions.join(', ')}. ` : ''}
+
+To better assist you, could you please:
+• Describe your specific symptoms
+• Mention when they started
+• Rate their severity (1-10)
+• Note any factors that make them better or worse
+
+This information will help me provide more targeted recommendations. Remember, for serious or persistent symptoms, it's always best to consult with a healthcare professional.
+
+What specific symptoms or health concerns would you like to discuss?`;
+}
+
+function extractPossibleCondition(message: string): string | null {
+  const messageLower = message.toLowerCase();
+  
+  if (messageLower.includes('headache') && messageLower.includes('nausea')) {
+    return 'Possible Migraine';
+  }
+  if (messageLower.includes('fever') && messageLower.includes('cough')) {
+    return 'Possible Respiratory Infection';
+  }
+  if (messageLower.includes('stomach') && messageLower.includes('pain')) {
+    return 'Possible Gastric Upset';
+  }
+  if (messageLower.includes('tired') || messageLower.includes('fatigue')) {
+    return 'Possible Fatigue Syndrome';
+  }
+  if (messageLower.includes('headache')) {
+    return 'Possible Tension Headache';
+  }
+  
+  return null;
+}
+
+function generateRecommendations(message: string): string[] {
+  const messageLower = message.toLowerCase();
+  const recommendations: string[] = [];
+  
+  if (messageLower.includes('headache')) {
+    recommendations.push('Stay hydrated and rest in a quiet environment');
+    recommendations.push('Consider over-the-counter pain relief if appropriate');
+    recommendations.push('Monitor for worsening symptoms or fever');
+  }
+  
+  if (messageLower.includes('fever')) {
+    recommendations.push('Monitor temperature regularly');
+    recommendations.push('Stay well-hydrated with fluids');
+    recommendations.push('Rest and avoid strenuous activities');
+    recommendations.push('Seek medical care if fever exceeds 103°F or persists');
+  }
+  
+  if (messageLower.includes('stomach')) {
+    recommendations.push('Follow a bland diet (BRAT: Bananas, Rice, Applesauce, Toast)');
+    recommendations.push('Stay hydrated with small, frequent sips');
+    recommendations.push('Avoid dairy, fatty, or spicy foods temporarily');
+  }
+  
+  if (recommendations.length === 0) {
+    recommendations.push('Monitor symptoms and track any changes');
+    recommendations.push('Maintain proper hydration and rest');
+    recommendations.push('Consult healthcare provider if symptoms persist or worsen');
+  }
+  
+  return recommendations;
+}
+
+// Simple AI response generator (legacy function for compatibility)
+function generateAIResponse(symptoms: string): string {
+  return generateIntelligentResponse(symptoms);
 }

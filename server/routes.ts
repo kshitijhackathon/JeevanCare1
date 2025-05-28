@@ -562,6 +562,48 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Groq Medical Chat with Bio_ClinicalBERT-style symptom detection
+  app.post("/api/ai-doctor/groq-medical-chat", isAuthenticated, async (req, res) => {
+    try {
+      const { message, language, patientDetails, conversationHistory } = req.body;
+      
+      // Bio_ClinicalBERT-style symptom detection algorithm
+      const detectedSymptoms = extractComprehensiveSymptoms(message.toLowerCase());
+      let response = '';
+      
+      if (detectedSymptoms.length > 0) {
+        // Generate detailed medical advice using the enhanced algorithm
+        const medicalAdvice = generateDetailedMedicalAdvice(detectedSymptoms, patientDetails);
+        
+        if (language === 'hindi') {
+          response = `Main samjh gaya aapko **${detectedSymptoms.join(', ')}** ki problem hai.\n\n`;
+          response += medicalAdvice.hindi;
+          response += `\n\n**Follow-up:** Kya aur koi symptoms hai? Main complete diagnosis aur treatment provide kar sakta hun.`;
+        } else {
+          response = `I understand you're experiencing **${detectedSymptoms.join(', ')}**.\n\n`;
+          response += medicalAdvice.english;
+          response += `\n\n**Follow-up:** Any other symptoms? I can provide complete diagnosis and treatment guidance.`;
+        }
+      } else {
+        // Enhanced prompt for better symptom extraction
+        if (language === 'hindi') {
+          response = `Main aapka AI doctor hun. Kripya specific symptoms detail mein batayiye:\n\n• **Bukhar/Temperature** - kitna high hai?\n• **Pain** - kahan dard hai? (sir, pet, chest, joints)\n• **Breathing** - khansi, gala kharab, shortness of breath?\n• **Digestion** - vomiting, loose motion, acidity, gas?\n• **Skin** - rash, itching, allergy, infection?\n• **Mental** - depression, anxiety, stress, sleep issues?\n• **Other** - diabetes, BP, thyroid, women's health?\n\nJitna detailed batayenge, utna accurate treatment milega.`;
+        } else {
+          response = `I'm your AI doctor. Please describe specific symptoms in detail:\n\n• **Fever/Temperature** - how high is it?\n• **Pain** - where does it hurt? (head, stomach, chest, joints)\n• **Respiratory** - cough, sore throat, breathing difficulty?\n• **Digestive** - vomiting, diarrhea, acidity, gas?\n• **Skin** - rash, itching, allergies, infections?\n• **Mental** - depression, anxiety, stress, sleep problems?\n• **Other** - diabetes, BP, thyroid, women's health?\n\nThe more detailed information you provide, the more accurate treatment I can offer.`;
+        }
+      }
+
+      res.json({ response });
+    } catch (error) {
+      console.error("Groq medical chat error:", error);
+      res.status(500).json({ 
+        response: language === 'hindi' 
+          ? "Medical system temporarily unavailable. Please try again."
+          : "Medical system temporarily unavailable. Please try again."
+      });
+    }
+  });
+
   app.post("/api/ai-doctor/chat", isAuthenticated, async (req, res) => {
     try {
       const { message, language, patientDetails, selectedBodyPart, capturedImage } = req.body;

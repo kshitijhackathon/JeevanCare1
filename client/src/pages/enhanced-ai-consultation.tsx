@@ -12,6 +12,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useMutation } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import PrescriptionTemplate from "@/components/prescription-template";
+import AdvancedVoiceRecognition from "@/components/advanced-voice-recognition";
 
 interface PatientDetails {
   name: string;
@@ -45,7 +46,6 @@ export default function EnhancedAIConsultation() {
   
   // Video call state
   const [isCameraOn, setIsCameraOn] = useState(false);
-  const [isListening, setIsListening] = useState(false);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [currentMessage, setCurrentMessage] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
@@ -55,7 +55,6 @@ export default function EnhancedAIConsultation() {
   // Refs
   const videoRef = useRef<HTMLVideoElement>(null);
   const streamRef = useRef<MediaStream | null>(null);
-  const recognitionRef = useRef<any>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   // Auto-scroll messages
@@ -68,9 +67,6 @@ export default function EnhancedAIConsultation() {
     return () => {
       if (streamRef.current) {
         streamRef.current.getTracks().forEach(track => track.stop());
-      }
-      if (recognitionRef.current) {
-        recognitionRef.current.stop();
       }
     };
   }, []);
@@ -130,74 +126,16 @@ export default function EnhancedAIConsultation() {
     }
   };
 
-  // Enhanced voice recognition
-  const startVoiceRecognition = () => {
-    if (!('webkitSpeechRecognition' in window)) {
-      toast({
-        title: "Voice Recognition Not Supported",
-        description: "Please use a supported browser or type your message.",
-        variant: "destructive",
-      });
-      return;
+  // Handle voice transcript from advanced voice recognition
+  const handleVoiceTranscript = (transcript: string) => {
+    if (transcript.trim()) {
+      handleSendMessage(transcript);
     }
-
-    const recognition = new (window as any).webkitSpeechRecognition();
-    recognition.continuous = true;
-    recognition.interimResults = true;
-    recognition.lang = patientDetails.language === 'hindi' ? 'hi-IN' : 'en-US';
-    recognition.maxAlternatives = 3;
-
-    let finalTranscript = '';
-
-    recognition.onstart = () => {
-      setIsListening(true);
-      console.log('Enhanced voice recognition started');
-    };
-
-    recognition.onresult = (event: any) => {
-      let interimTranscript = '';
-      finalTranscript = '';
-
-      for (let i = 0; i < event.results.length; i++) {
-        const transcript = event.results[i][0].transcript;
-        if (event.results[i].isFinal) {
-          finalTranscript += transcript;
-        } else {
-          interimTranscript += transcript;
-        }
-      }
-
-      setCurrentMessage(finalTranscript + interimTranscript);
-
-      if (finalTranscript.trim()) {
-        setTimeout(() => {
-          if (finalTranscript.trim()) {
-            handleSendMessage(finalTranscript);
-            setCurrentMessage('');
-          }
-        }, 1500);
-      }
-    };
-
-    recognition.onerror = (event: any) => {
-      console.error('Speech recognition error:', event.error);
-      setIsListening(false);
-    };
-
-    recognition.onend = () => {
-      setIsListening(false);
-    };
-
-    recognition.start();
-    recognitionRef.current = recognition;
   };
 
-  const stopVoiceRecognition = () => {
-    if (recognitionRef.current) {
-      recognitionRef.current.stop();
-      recognitionRef.current = null;
-    }
-    setIsListening(false);
+  // Handle language change
+  const handleLanguageChange = (newLanguage: string) => {
+    setPatientDetails(prev => ({ ...prev, language: newLanguage }));
   };
 
   // Send message mutation
@@ -302,12 +240,7 @@ export default function EnhancedAIConsultation() {
       streamRef.current.getTracks().forEach(track => track.stop());
       streamRef.current = null;
     }
-    if (recognitionRef.current) {
-      recognitionRef.current.stop();
-      recognitionRef.current = null;
-    }
     setIsCameraOn(false);
-    setIsListening(false);
     
     // Generate consultation summary
     const summary = generateConsultationSummary();
@@ -497,21 +430,15 @@ export default function EnhancedAIConsultation() {
           <div className="absolute bottom-6 left-1/2 transform -translate-x-1/2 flex space-x-4">
             <Button
               onClick={() => setIsCameraOn(!isCameraOn)}
-              className={`rounded-full w-14 h-14 ${isCameraOn ? 'bg-gray-600 hover:bg-gray-700' : 'bg-red-600 hover:bg-red-700'}`}
+              className={`rounded-full w-12 h-12 md:w-14 md:h-14 ${isCameraOn ? 'bg-gray-600 hover:bg-gray-700' : 'bg-red-600 hover:bg-red-700'}`}
             >
-              {isCameraOn ? <Video className="h-6 w-6" /> : <VideoOff className="h-6 w-6" />}
-            </Button>
-            <Button
-              onClick={isListening ? stopVoiceRecognition : startVoiceRecognition}
-              className={`rounded-full w-14 h-14 ${isListening ? 'bg-red-600 hover:bg-red-700 animate-pulse' : 'bg-blue-600 hover:bg-blue-700'}`}
-            >
-              {isListening ? <MicOff className="h-6 w-6" /> : <Mic className="h-6 w-6" />}
+              {isCameraOn ? <Video className="h-5 w-5 md:h-6 md:w-6" /> : <VideoOff className="h-5 w-5 md:h-6 md:w-6" />}
             </Button>
             <Button
               onClick={endConsultation}
-              className="rounded-full w-14 h-14 bg-red-600 hover:bg-red-700"
+              className="rounded-full w-12 h-12 md:w-14 md:h-14 bg-red-600 hover:bg-red-700"
             >
-              <Phone className="h-6 w-6" />
+              <Phone className="h-5 w-5 md:h-6 md:w-6" />
             </Button>
           </div>
         </div>
@@ -570,7 +497,7 @@ export default function EnhancedAIConsultation() {
             <div ref={messagesEndRef} />
           </div>
 
-          {/* Input Section */}
+          {/* Advanced Voice Recognition Section */}
           <div className="p-4 border-t bg-gray-50">
             {detectedSymptoms.length > 0 && (
               <div className="mb-3">
@@ -585,14 +512,24 @@ export default function EnhancedAIConsultation() {
               </div>
             )}
             
+            {/* Advanced Voice Recognition Component */}
+            <div className="mb-4">
+              <AdvancedVoiceRecognition
+                onTranscript={handleVoiceTranscript}
+                language={patientDetails.language}
+                onLanguageChange={handleLanguageChange}
+                isProcessing={isProcessing}
+              />
+            </div>
+            
+            {/* Text Input as Fallback */}
             <div className="flex space-x-2">
               <Textarea
                 value={currentMessage}
                 onChange={(e) => setCurrentMessage(e.target.value)}
-                placeholder={isListening ? "Listening..." : "Type your symptoms or speak..."}
+                placeholder="Type your symptoms here or use voice input above..."
                 className="flex-1 resize-none"
                 rows={2}
-                disabled={isListening}
               />
               <Button
                 onClick={() => handleSendMessage()}
@@ -602,12 +539,6 @@ export default function EnhancedAIConsultation() {
                 <Send className="h-4 w-4" />
               </Button>
             </div>
-            
-            {isListening && (
-              <p className="text-sm text-blue-600 mt-2 text-center">
-                🎤 Listening in {patientDetails.language === 'hindi' ? 'Hindi' : 'English'}...
-              </p>
-            )}
           </div>
         </div>
       </div>

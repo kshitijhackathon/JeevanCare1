@@ -1,0 +1,197 @@
+✅ 🔧 1. Replace basic speech recognition with proper Whisper-style processing
+🔍 Problem:
+Browser's webkitSpeechRecognition is:
+
+Unreliable in Hindi/Hinglish
+
+Poor on mobile
+
+Can’t handle noisy or interrupted audio
+
+✅ Solution:
+Use OpenAI Whisper API or local Whisper model.
+
+🔧 Integration Prompt/Instruction:
+js
+Copy
+Edit
+// JS: Send voice blob to Whisper API
+const formData = new FormData();
+formData.append("file", audioBlob);
+formData.append("model", "whisper-1");
+
+fetch("https://api.openai.com/v1/audio/transcriptions", {
+  method: "POST",
+  headers: {
+    "Authorization": `Bearer ${YOUR_OPENAI_API_KEY}`
+  },
+  body: formData
+}).then(res => res.json())
+  .then(data => {
+    console.log("Transcribed:", data.text);
+    // Send text to your AI assistant
+  });
+🔁 Real-Time Experience:
+Show "Transcribing..." loader
+
+Display live captions
+
+Fallback to text chat if mic fails
+
+✅ 🔧 2. Fix mobile-first responsive design for video calls
+🔍 Problem:
+Camera not fitting screen properly
+
+Buttons too small to press
+
+Chat gets hidden on small screens
+
+✅ Solution:
+Apply CSS grid or flexbox with mobile-first layout.
+
+📱 CSS Prompt:
+css
+Copy
+Edit
+@media screen and (max-width: 768px) {
+  .video-container {
+    flex-direction: column;
+    height: auto;
+  }
+  .controls {
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  button {
+    font-size: 16px;
+    padding: 12px;
+  }
+  .chat-panel {
+    max-height: 200px;
+    overflow-y: auto;
+  }
+}
+⚙️ Technical Advice:
+Use vw, vh instead of fixed px
+
+Enable full-screen mode for video
+
+Use z-index to float buttons above camera
+
+✅ 🔧 3. Improve symptom detection algorithm accuracy
+🔍 Problem:
+AI gives generic replies like “Main samajh gaya”
+
+Doesn't differentiate between “dard”, “takleef”, “jalan”, etc.
+
+No memory of earlier symptoms
+
+✅ Solution:
+Prompt engineering + few-shot examples.
+
+🧠 Prompt for Claude/OpenAI:
+txt
+Copy
+Edit
+You are a healthcare AI assistant trained to understand Hinglish symptoms from patients.
+Your goal is to detect clear intent, severity, location, and timeline of symptoms.
+
+Example:
+User: "Kal se pet mein dard ho raha hai aur ulti ho rahi hai"
+Assistant: "Aapko pet dard aur vomiting kal se ho rahi hai. Kya aapne kuch khaya tha jo ajeeb tha?"
+
+Include:
+- Symptom name
+- Duration
+- Affected body part
+- Optional questions
+
+Respond in Hinglish in a formal doctor tone. Use bullet points when listing multiple symptoms.
+Add a symptom matcher script that maps Hindi terms to ICD terms:
+
+js
+Copy
+Edit
+const symptomMap = {
+  "dard": "pain",
+  "takleef": "discomfort",
+  "bukhar": "fever",
+  "ulti": "vomiting"
+};
+✅ 🔧 4. Add proper error handling and fallbacks
+🔍 Problem:
+If camera/mic/AI fails, no user guidance
+
+System freezes or gives blank screen
+
+✅ Solution:
+Add graceful fallback and recovery logic
+
+🧰 Code Prompt:
+js
+Copy
+Edit
+try {
+  const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+  videoRef.srcObject = stream;
+} catch (error) {
+  showToast("Camera/Microphone access failed. Please enable permissions in browser settings.");
+  offerFallbackChat();
+}
+
+function offerFallbackChat() {
+  document.getElementById('chat-mode-btn').click();
+}
+UX Fallback Options:
+Switch to chat-based consultation
+
+Offer downloadable troubleshooting guide
+
+Retry camera/mic setup button
+
+✅ 🔧 5. Complete prescription generation and download flow
+🔍 Problem:
+Prescription gets shown but can't be downloaded/shared
+
+No proper formatting, header, or logo
+
+✅ Solution:
+Generate PDF using html2pdf.js or jspdf.
+
+📄 Prompt Code:
+js
+Copy
+Edit
+const element = document.getElementById("prescription-preview");
+html2pdf().from(element).set({
+  margin: 1,
+  filename: 'prescription.pdf',
+  html2canvas: { scale: 2 }
+}).save();
+🧾 Prescription Template:
+html
+Copy
+Edit
+<div id="prescription-preview">
+  <h2>Dr. AI Consultation</h2>
+  <p><b>Patient Name:</b> {{patient_name}}</p>
+  <p><b>Date:</b> {{date}}</p>
+  <h3>Prescribed Medicines</h3>
+  <ul>
+    <li>Paracetamol 500mg – 2 times daily</li>
+    <li>ORS – After every loose motion</li>
+  </ul>
+  <p><i>This is an AI-generated prescription. Please consult a certified doctor before use.</i></p>
+</div>
+🚀 Final Prompt Summary
+You can now structure your prompt or development checklist as:
+
+yaml
+Copy
+Edit
+Fixes:
+  - Upgrade speech recognition to Whisper for Hinglish support
+  - Refactor mobile UI using CSS media queries
+  - Enhance LLM with symptom mapping & contextual memory
+  - Add robust error handling for camera/mic/API failures
+  - Implement downloadable, well-formatted PDF prescriptions

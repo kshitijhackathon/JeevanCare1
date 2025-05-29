@@ -20,6 +20,39 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
 });
 
 export async function registerRoutes(app: Express): Promise<Server> {
+  // Whisper transcription endpoint for accurate voice recognition
+  app.post('/api/whisper-transcribe', async (req, res) => {
+    try {
+      if (!process.env.OPENAI_API_KEY) {
+        return res.status(500).json({ error: 'OpenAI API key not configured' });
+      }
+
+      // Forward FormData to OpenAI Whisper API
+      const response = await fetch('https://api.openai.com/v1/audio/transcriptions', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${process.env.OPENAI_API_KEY}`,
+        },
+        body: req.body
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`Whisper API error: ${response.status} - ${errorText}`);
+      }
+
+      const result = await response.json();
+      res.json(result);
+
+    } catch (error) {
+      console.error('Whisper transcription error:', error);
+      res.status(500).json({ 
+        error: 'Transcription failed',
+        message: error.message 
+      });
+    }
+  });
+
   // Auth middleware
   await setupAuth(app);
 

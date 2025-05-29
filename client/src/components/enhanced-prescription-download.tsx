@@ -169,115 +169,191 @@ Doctor: ${prescription.doctorName}
   };
 
   return (
-    <div className="space-y-4">
-      {/* Prescription Content */}
-      <div id="prescription-content" className="bg-white p-8 rounded-lg border">
-        {/* Header */}
-        <div className="text-center border-b-2 border-blue-600 pb-4 mb-6">
-          <h1 className="text-2xl font-bold text-blue-600">JeevanCare AI Clinic</h1>
-          <p className="text-gray-600">Digital Healthcare Solutions</p>
-          <p className="text-sm text-gray-500">Prescription ID: {prescription.id}</p>
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+      <div className="bg-white rounded-lg max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+        {/* Close Button */}
+        <div className="flex justify-between items-center p-4 border-b">
+          <h2 className="text-xl font-semibold text-gray-800">Medical Prescription</h2>
+          {onClose && (
+            <Button onClick={onClose} variant="ghost" size="sm" className="text-gray-500 hover:text-gray-700">
+              ✕
+            </Button>
+          )}
         </div>
-
-        {/* Patient Information */}
-        <div className="grid grid-cols-2 gap-4 mb-6">
-          <div>
-            <p><strong>Patient Name:</strong> {prescription.patientName}</p>
-            <p><strong>Age:</strong> {prescription.age} years</p>
-          </div>
-          <div>
-            <p><strong>Gender:</strong> {prescription.gender}</p>
-            <p><strong>Blood Group:</strong> {prescription.bloodGroup}</p>
-          </div>
-          <div className="col-span-2">
-            <p><strong>Date:</strong> {prescription.date}</p>
-          </div>
-        </div>
-
-        {/* Symptoms */}
-        <div className="mb-6">
-          <h3 className="text-lg font-semibold mb-2">Symptoms:</h3>
-          <p className="text-gray-700 bg-gray-50 p-3 rounded">{prescription.symptoms}</p>
-        </div>
-
-        {/* Medications */}
-        <div className="mb-6">
-          <h3 className="text-lg font-semibold mb-3">Prescribed Medications:</h3>
-          {prescription.medications.map((medication, index) => (
-            <div key={index} className="bg-blue-50 p-4 mb-3 rounded-lg border-l-4 border-blue-500">
-              <div className="grid grid-cols-2 gap-2">
-                <p><strong>Medicine:</strong> {medication.name}</p>
-                <p><strong>Dosage:</strong> {medication.dosage}</p>
-                <p><strong>Frequency:</strong> {medication.frequency}</p>
-                <p><strong>Duration:</strong> {medication.duration}</p>
-              </div>
-              {medication.instructions && (
-                <p className="mt-2"><strong>Instructions:</strong> {medication.instructions}</p>
-              )}
+        
+        {/* Prescription Content */}
+        <div id="prescription-content" className="bg-gradient-to-br from-blue-50 to-white p-8">
+          {/* Header */}
+          <div className="text-center border-b-4 border-gradient-to-r from-blue-600 to-purple-600 pb-6 mb-8">
+            <div className="bg-gradient-to-r from-blue-600 to-purple-600 text-white p-4 rounded-lg mb-4">
+              <h1 className="text-3xl font-bold">🏥 JeevanCare AI Clinic</h1>
+              <p className="text-blue-100">Advanced Digital Healthcare Solutions</p>
             </div>
-          ))}
+            <p className="text-sm text-gray-500 bg-gray-100 px-3 py-1 rounded-full inline-block">
+              📋 Prescription ID: {prescription.id}
+            </p>
+          </div>
+
+          {/* Patient Information Card */}
+          <div className="bg-gradient-to-r from-green-50 to-blue-50 p-6 rounded-xl mb-8 border-l-4 border-green-500">
+            <h3 className="text-xl font-bold text-gray-800 mb-4 flex items-center">
+              👤 Patient Information
+            </h3>
+            <div className="grid grid-cols-2 gap-6">
+              <div className="space-y-3">
+                <div className="flex items-center space-x-2">
+                  <span className="text-sm font-medium text-gray-600 bg-white px-2 py-1 rounded">Name:</span>
+                  <span className="font-semibold text-gray-800">{prescription.patientName}</span>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <span className="text-sm font-medium text-gray-600 bg-white px-2 py-1 rounded">Age:</span>
+                  <span className="font-semibold text-gray-800">{prescription.age} years</span>
+                </div>
+              </div>
+              <div className="space-y-3">
+                <div className="flex items-center space-x-2">
+                  <span className="text-sm font-medium text-gray-600 bg-white px-2 py-1 rounded">Gender:</span>
+                  <span className="font-semibold text-gray-800">{prescription.gender}</span>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <span className="text-sm font-medium text-gray-600 bg-white px-2 py-1 rounded">Blood:</span>
+                  <span className="font-semibold text-red-600">{prescription.bloodGroup}</span>
+                </div>
+              </div>
+              <div className="col-span-2">
+                <div className="flex items-center space-x-2">
+                  <span className="text-sm font-medium text-gray-600 bg-white px-2 py-1 rounded">📅 Date:</span>
+                  <span className="font-semibold text-gray-800">{prescription.date}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Symptoms Card */}
+          <div className="bg-gradient-to-r from-yellow-50 to-orange-50 p-6 rounded-xl mb-8 border-l-4 border-yellow-500">
+            <h3 className="text-xl font-bold text-gray-800 mb-4 flex items-center">
+              🩺 Symptoms Diagnosed
+            </h3>
+            <div className="bg-white p-4 rounded-lg border shadow-sm">
+              <p className="text-gray-700 leading-relaxed">{prescription.symptoms}</p>
+            </div>
+          </div>
+
+          {/* Medications Card */}
+          <div className="bg-gradient-to-r from-purple-50 to-pink-50 p-6 rounded-xl mb-8 border-l-4 border-purple-500">
+            <h3 className="text-xl font-bold text-gray-800 mb-6 flex items-center">
+              💊 Prescribed Medications
+            </h3>
+            <div className="space-y-4">
+              {prescription.medications.map((medication, index) => (
+                <div key={index} className="bg-white p-5 rounded-lg border-2 border-purple-100 shadow-sm hover:shadow-md transition-shadow">
+                  <div className="flex items-center justify-between mb-3">
+                    <h4 className="text-lg font-bold text-purple-700">{medication.name}</h4>
+                    <span className="bg-purple-100 text-purple-700 px-3 py-1 rounded-full text-sm font-medium">
+                      Medicine {index + 1}
+                    </span>
+                  </div>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="flex items-center space-x-2">
+                      <span className="text-sm font-medium text-gray-600 bg-gray-100 px-2 py-1 rounded">💊 Dosage:</span>
+                      <span className="font-semibold text-gray-800">{medication.dosage}</span>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <span className="text-sm font-medium text-gray-600 bg-gray-100 px-2 py-1 rounded">⏰ Frequency:</span>
+                      <span className="font-semibold text-gray-800">{medication.frequency}</span>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <span className="text-sm font-medium text-gray-600 bg-gray-100 px-2 py-1 rounded">📅 Duration:</span>
+                      <span className="font-semibold text-gray-800">{medication.duration}</span>
+                    </div>
+                  </div>
+                  {medication.instructions && (
+                    <div className="mt-4 p-3 bg-blue-50 rounded-lg border-l-4 border-blue-400">
+                      <p className="text-sm"><strong>⚠️ Special Instructions:</strong> {medication.instructions}</p>
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* General Instructions Card */}
+          {prescription.instructions.length > 0 && (
+            <div className="bg-gradient-to-r from-red-50 to-pink-50 p-6 rounded-xl mb-8 border-l-4 border-red-500">
+              <h3 className="text-xl font-bold text-gray-800 mb-4 flex items-center">
+                📝 General Instructions
+              </h3>
+              <div className="bg-white p-4 rounded-lg border shadow-sm">
+                <ul className="space-y-3">
+                  {prescription.instructions.map((instruction, index) => (
+                    <li key={index} className="flex items-start space-x-3">
+                      <span className="bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-sm font-bold flex-shrink-0 mt-0.5">
+                        {index + 1}
+                      </span>
+                      <span className="text-gray-700 leading-relaxed">{instruction}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </div>
+          )}
+
+          {/* Doctor Information Footer */}
+          <div className="bg-gradient-to-r from-gray-50 to-blue-50 p-6 rounded-xl border-2 border-gray-200">
+            <div className="text-center">
+              <div className="bg-white p-4 rounded-lg shadow-sm mb-4">
+                <h4 className="text-lg font-bold text-gray-800 mb-2">👨‍⚕️ Consulting Doctor</h4>
+                <p className="text-xl font-bold text-blue-600">{prescription.doctorName}</p>
+                <p className="text-gray-600 font-medium">{prescription.clinicName}</p>
+              </div>
+              <div className="text-sm text-gray-500 space-y-1">
+                <p>🔏 Digital Signature: {prescription.signature}</p>
+                <p className="bg-yellow-100 text-yellow-800 px-3 py-2 rounded-lg">
+                  ⚠️ This is a digitally generated prescription. Please consult your doctor for any clarifications.
+                </p>
+              </div>
+            </div>
+          </div>
         </div>
 
-        {/* General Instructions */}
-        {prescription.instructions.length > 0 && (
-          <div className="mb-6">
-            <h3 className="text-lg font-semibold mb-2">General Instructions:</h3>
-            <ul className="list-disc list-inside space-y-1">
-              {prescription.instructions.map((instruction, index) => (
-                <li key={index} className="text-gray-700">{instruction}</li>
-              ))}
-            </ul>
-          </div>
-        )}
+        {/* Action Buttons */}
+        <div className="bg-gray-50 p-6 rounded-lg flex flex-wrap gap-3 justify-center">
+          <Button 
+            onClick={generatePDF}
+            disabled={isGenerating}
+            className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white px-6 py-3"
+          >
+            {isGenerating ? (
+              <div className="animate-spin w-4 h-4 border-2 border-white border-t-transparent rounded-full mr-2" />
+            ) : (
+              <Download className="h-4 w-4 mr-2" />
+            )}
+            Download PDF
+          </Button>
 
-        {/* Footer */}
-        <div className="text-center border-t pt-4 mt-8">
-          <p><strong>Doctor:</strong> {prescription.doctorName}</p>
-          <p className="text-sm text-gray-600">{prescription.clinicName}</p>
-          <p className="text-xs text-gray-500 mt-2">Digital Signature: {prescription.signature}</p>
-          <p className="text-xs text-gray-400 mt-2">
-            This is a digitally generated prescription. Please consult your doctor for any clarifications.
+          <Button onClick={printPrescription} variant="outline" className="px-6 py-3">
+            <Printer className="h-4 w-4 mr-2" />
+            Print
+          </Button>
+
+          <Button onClick={sharePrescription} variant="outline" className="px-6 py-3">
+            <Share2 className="h-4 w-4 mr-2" />
+            Share
+          </Button>
+
+          {onClose && (
+            <Button onClick={onClose} variant="secondary" className="px-6 py-3">
+              Close
+            </Button>
+          )}
+        </div>
+
+        {/* QR Code for Verification (Optional) */}
+        <div className="text-center mt-4 p-4">
+          <p className="text-xs text-gray-500 bg-yellow-50 px-3 py-2 rounded-lg">
+            📱 Prescription can be verified at participating pharmacies using ID: {prescription.id}
           </p>
         </div>
-      </div>
-
-      {/* Action Buttons */}
-      <div className="flex flex-wrap gap-3 justify-center">
-        <Button 
-          onClick={generatePDF}
-          disabled={isGenerating}
-          className="bg-blue-600 hover:bg-blue-700"
-        >
-          {isGenerating ? (
-            <div className="animate-spin w-4 h-4 border-2 border-white border-t-transparent rounded-full mr-2" />
-          ) : (
-            <Download className="h-4 w-4 mr-2" />
-          )}
-          Download PDF
-        </Button>
-
-        <Button onClick={printPrescription} variant="outline">
-          <Printer className="h-4 w-4 mr-2" />
-          Print
-        </Button>
-
-        <Button onClick={sharePrescription} variant="outline">
-          <Share2 className="h-4 w-4 mr-2" />
-          Share
-        </Button>
-
-        {onClose && (
-          <Button onClick={onClose} variant="secondary">
-            Close
-          </Button>
-        )}
-      </div>
-
-      {/* QR Code for Verification (Optional) */}
-      <div className="text-center mt-4">
-        <p className="text-xs text-gray-500">
-          Prescription can be verified at participating pharmacies using ID: {prescription.id}
-        </p>
       </div>
     </div>
   );

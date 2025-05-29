@@ -12,7 +12,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useMutation } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import PrescriptionTemplate from "@/components/prescription-template";
-import AdvancedVoiceRecognition from "@/components/advanced-voice-recognition";
+import ContinuousVoiceRecognition from "@/components/continuous-voice-recognition";
 import PersonalizedAIAvatar from "@/components/personalized-ai-avatar";
 import { extractEntities, mergeWithContext } from "@/lib/symptomNLP";
 import { getCtx, setCtx, addConversationTurn, resetCtx } from "@/lib/contextStore";

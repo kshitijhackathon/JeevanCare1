@@ -15,6 +15,7 @@ import { diseasePredictionEngine } from "./disease-prediction-engine";
 import { enhancedLocalMedicalEngine } from "./enhanced-local-medical-engine";
 import { groqMedicalService } from "./groq-medical-service";
 import { geminiGrokMedicalEngine } from "./gemini-grok-medical-engine";
+import { enhancedPrescriptionEngine } from "./enhanced-prescription-engine";
 
 if (!process.env.STRIPE_SECRET_KEY) {
   throw new Error('Missing required Stripe secret: STRIPE_SECRET_KEY');
@@ -829,11 +830,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
     } catch (error) {
       console.error("Voice consultation error:", error);
+      const errorLang = geminiGrokMedicalEngine.detectLanguage(req.body.message || '');
       res.status(500).json({ 
-        response: language?.startsWith('hi') 
+        response: errorLang?.startsWith('hi') 
           ? "वॉयस चिकित्सा सेवा अस्थायी रूप से अनुपलब्ध है। कृपया पुनः प्रयास करें।"
           : "Voice medical service temporarily unavailable. Please try again.",
-        error: "Failed to process voice consultation"
+        error: "Failed to process voice consultation",
+        detectedLanguage: errorLang || 'english'
       });
     }
   });

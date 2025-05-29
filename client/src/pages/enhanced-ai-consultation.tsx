@@ -39,6 +39,7 @@ export default function EnhancedAIConsultation() {
   
   // State management
   const [step, setStep] = useState<'details' | 'video-call'>('details');
+  const [hasStartedCall, setHasStartedCall] = useState(false);
   const [patientDetails, setPatientDetails] = useState<PatientDetails>({
     name: '',
     gender: '',
@@ -74,7 +75,7 @@ export default function EnhancedAIConsultation() {
     };
   }, []);
 
-  // Start video call
+  // Start video call with enhanced error handling
   const startVideoCall = async () => {
     console.log('Starting video call...', patientDetails);
     
@@ -88,25 +89,31 @@ export default function EnhancedAIConsultation() {
     }
 
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({ 
-        video: { 
-          width: { ideal: 1280 },
-          height: { ideal: 720 },
-          facingMode: 'user'
-        }, 
-        audio: true 
-      });
-      
-      if (videoRef.current) {
-        videoRef.current.srcObject = stream;
-        videoRef.current.play();
+      // Request camera permission with graceful fallback
+      if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+        const stream = await navigator.mediaDevices.getUserMedia({ 
+          video: { 
+            width: { ideal: 1280 },
+            height: { ideal: 720 },
+            facingMode: 'user'
+          }, 
+          audio: true 
+        });
+        
+        if (videoRef.current) {
+          videoRef.current.srcObject = stream;
+          videoRef.current.play();
+        }
+        
+        streamRef.current = stream;
+        setIsCameraOn(true);
       }
       
-      streamRef.current = stream;
-      setIsCameraOn(true);
+      // Transition to video call
       setStep('video-call');
+      setHasStartedCall(true);
       
-      // Add welcome message
+      // Add welcome message with enhanced medical context
       const welcomeMessage: ChatMessage = {
         role: 'doctor',
         content: patientDetails.language === 'hindi' 
@@ -118,20 +125,25 @@ export default function EnhancedAIConsultation() {
       
       setMessages([welcomeMessage]);
       
-      console.log('Video stream started successfully');
+      console.log('Video consultation started successfully');
     } catch (error) {
-      console.error('Failed to start video:', error);
+      console.error('Camera access error:', error);
       toast({
-        title: "Camera Access Failed",
-        description: "Please allow camera access or continue with voice/text only.",
+        title: "Camera Access Issue",
+        description: "Camera permission denied. You can still continue with voice and text consultation.",
         variant: "destructive",
       });
+      
+      // Continue without camera
+      setStep('video-call');
+      setHasStartedCall(true);
+      setIsCameraOn(false);
     }
   };
 
   // Initialize context when consultation starts
   useEffect(() => {
-    if (hasStartedCall && !getCtx().sessionId) {
+    if (step === 'video-call' && !getCtx().sessionId) {
       const initialCtx = resetCtx();
       setCtx({
         ...initialCtx,
@@ -144,7 +156,7 @@ export default function EnhancedAIConsultation() {
         }
       });
     }
-  }, [hasStartedCall, patientDetails]);
+  }, [step, patientDetails]);
 
   // Handle voice transcript from advanced voice recognition
   const handleVoiceTranscript = (transcript: string) => {
@@ -173,11 +185,11 @@ export default function EnhancedAIConsultation() {
     
     // Update detected symptoms for UI
     const newSymptoms = entities
-      .filter(entity => entity.type === 'symptom')
-      .map(entity => entity.entity);
+      .filter((entity: any) => entity.type === 'symptom')
+      .map((entity: any) => entity.entity);
     
     if (newSymptoms.length > 0) {
-      setDetectedSymptoms(prev => [...new Set([...prev, ...newSymptoms])]);
+      setDetectedSymptoms(prev => Array.from(new Set([...prev, ...newSymptoms])));
     }
     
     return { entities, updatedCtx };
@@ -314,6 +326,8 @@ export default function EnhancedAIConsultation() {
     
     return symptoms;
   };
+
+
 
   const generateConsultationSummary = (): string => {
     const symptomsText = detectedSymptoms.length > 0 

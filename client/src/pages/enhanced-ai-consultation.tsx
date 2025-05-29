@@ -15,6 +15,7 @@ import PrescriptionTemplate from "@/components/prescription-template";
 import ContinuousVoiceRecognition from "@/components/continuous-voice-recognition";
 import PersonalizedAIAvatar from "@/components/personalized-ai-avatar";
 import SmartSymptomDisplay from "@/components/smart-symptom-display";
+import { voiceToneAdapter } from "@/lib/voice-tone-adapter";
 import { extractEntities, mergeWithContext } from "@/lib/symptomNLP";
 import { getCtx, setCtx, addConversationTurn, resetCtx } from "@/lib/contextStore";
 import { buildDoctorPrompt, generateFollowUpQuestions } from "@/lib/doctorPrompt";
@@ -314,13 +315,9 @@ export default function EnhancedAIConsultation() {
         setDetectedSymptoms(prev => Array.from(new Set([...prev, data.detectedDisease.disease])));
       }
       
-      // Text-to-speech
-      if ('speechSynthesis' in window) {
-        const utterance = new SpeechSynthesisUtterance(data.response);
-        utterance.lang = patientDetails.language === 'hindi' ? 'hi-IN' : 'en-US';
-        utterance.rate = 0.9;
-        speechSynthesis.speak(utterance);
-      }
+      // Enhanced multilingual text-to-speech
+      const messageContext = data.diagnosis ? 'diagnosis' : data.medications ? 'prescription' : 'general';
+      speakText(data.response, messageContext);
       
       setIsProcessing(false);
     },
@@ -589,82 +586,27 @@ export default function EnhancedAIConsultation() {
     });
   };
 
-  // Text-to-speech function
-  const speakText = (text: string) => {
-    if ('speechSynthesis' in window) {
-      // Cancel any ongoing speech
-      window.speechSynthesis.cancel();
-      
-      // Clean the text for better speech
-      const cleanText = text
-        .replace(/\*\*/g, '') // Remove bold markers
-        .replace(/🌡️|💊|⚠️|🩺|•|🫁|❤️|🤢|🧠|🦴|🟡/g, '') // Remove emojis
-        .replace(/\n\n/g, '. ') // Replace double newlines with periods
-        .replace(/\n/g, ' '); // Replace newlines with spaces
-      
-      const utterance = new SpeechSynthesisUtterance(cleanText);
-      
-      // Set language
-      if (patientDetails.language === 'hindi') {
-        utterance.lang = 'hi-IN';
+  // Enhanced multilingual text-to-speech with adaptive voice tones
+  const speakText = async (text: string, context: 'diagnosis' | 'prescription' | 'general' | 'emergency' = 'general') => {
+    if (!text.trim()) return;
+    
+    try {
+      await voiceToneAdapter.speakText(
+        text,
+        patientDetails.language || 'english',
+        patientDetails.gender?.toLowerCase(),
+        context
+      );
+    } catch (error) {
+      console.warn('Advanced voice synthesis failed, using basic fallback:', error);
+      // Fallback to basic speech synthesis
+      if ('speechSynthesis' in window) {
+        window.speechSynthesis.cancel();
+        const utterance = new SpeechSynthesisUtterance(text);
+        utterance.lang = patientDetails.language === 'hindi' ? 'hi-IN' : 'en-US';
         utterance.rate = 0.85;
-      } else {
-        utterance.lang = 'en-US';
-        utterance.rate = 0.9;
+        window.speechSynthesis.speak(utterance);
       }
-      
-      // Use consistent voice selection based on patient gender
-      const voices = window.speechSynthesis.getVoices();
-      if (voices.length > 0) {
-        const patientGender = patientDetails.gender?.toLowerCase();
-        
-        // Store the selected voice in sessionStorage for consistency
-        const voiceKey = `doctorVoice_${patientGender}`;
-        let selectedVoiceName = sessionStorage.getItem(voiceKey);
-        
-        if (!selectedVoiceName) {
-          // First time selection - find appropriate voice
-          let preferredVoice;
-          
-          if (patientGender === 'male') {
-            // Male patient gets female doctor voice
-            preferredVoice = voices.find(voice => 
-              voice.name.toLowerCase().includes('female') || 
-              voice.name.toLowerCase().includes('samantha') ||
-              voice.name.toLowerCase().includes('karen') ||
-              voice.name.toLowerCase().includes('moira') ||
-              voice.name.toLowerCase().includes('zira') ||
-              voice.name.toLowerCase().includes('susan')
-            );
-          } else {
-            // Female patient gets male doctor voice
-            preferredVoice = voices.find(voice => 
-              voice.name.toLowerCase().includes('male') || 
-              voice.name.toLowerCase().includes('alex') ||
-              voice.name.toLowerCase().includes('daniel') ||
-              voice.name.toLowerCase().includes('thomas') ||
-              voice.name.toLowerCase().includes('david')
-            );
-          }
-          
-          if (preferredVoice) {
-            sessionStorage.setItem(voiceKey, preferredVoice.name);
-            utterance.voice = preferredVoice;
-          }
-        } else {
-          // Use the previously selected voice for consistency
-          const voice = voices.find(v => v.name === selectedVoiceName);
-          if (voice) {
-            utterance.voice = voice;
-          }
-        }
-      }
-      
-      utterance.pitch = 1.1;
-      utterance.volume = 0.9;
-      
-      // Speak the text
-      window.speechSynthesis.speak(utterance);
     }
   };
 

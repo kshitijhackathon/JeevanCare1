@@ -13,6 +13,7 @@ import { Strategy as FacebookStrategy } from 'passport-facebook';
 import { medicalAI } from "./medical-ai-engine";
 import { diseasePredictionEngine } from "./disease-prediction-engine";
 import { enhancedLocalMedicalEngine } from "./enhanced-local-medical-engine";
+import { groqMedicalService } from "./groq-medical-service";
 
 if (!process.env.STRIPE_SECRET_KEY) {
   throw new Error('Missing required Stripe secret: STRIPE_SECRET_KEY');

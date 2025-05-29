@@ -126,8 +126,7 @@ const MEDICINE_DATABASE: Record<string, Medicine[]> = {
   ]
 };
 
-const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
-
+// Enhanced local disease prediction model
 export class DiseasePredictionEngine {
   
   // Advanced symptom extraction with medical terminology

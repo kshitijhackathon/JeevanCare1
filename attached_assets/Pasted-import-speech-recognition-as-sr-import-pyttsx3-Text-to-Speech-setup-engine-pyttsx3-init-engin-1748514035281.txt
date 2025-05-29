@@ -1,0 +1,217 @@
+import speech_recognition as sr
+import pyttsx3
+
+# Text-to-Speech setup
+engine = pyttsx3.init()
+engine.setProperty('rate', 150)
+
+# Disease data with English, Hindi, and slang variations
+DISEASE_DATABASE = {
+    "malaria": {
+        "hinglish": ["मलेरिया", "maleria", "bukhar wali bimari", "machhar wala bukhar"],
+        "medication": "Antimalarials (Chloroquine, Artemisinin)",
+        "warning": "Prevent mosquito bites, avoid stagnant water"
+    },
+    "dengue": {
+        "hinglish": ["डेंगू", "dengu", "platelet kam hona", "haddi tod bukhar"],
+        "medication": "Hydration, Paracetamol (avoid Aspirin)",
+        "warning": "Platelet monitoring, no NSAIDs"
+    },
+    "typhoid": {
+        "hinglish": ["टायफाइड", "taifoid", "pani wala bukhar"],
+        "medication": "Antibiotics (Ciprofloxacin, Azithromycin)",
+        "warning": "Boil water, hygiene important"
+    },
+    "tuberculosis": {
+        "hinglish": ["टीबी", "tb", "tuberculosis", "khaansi wali bimari", "phephdo ka rog"],
+        "medication": "DOTS therapy (Rifampin, Isoniazid)",
+        "warning": "Complete course, avoid alcohol"
+    },
+    "cholera": {
+        "hinglish": ["हैजा", "haija", "ultii dast ki bimari"],
+        "medication": "ORS, Antibiotics (Doxycycline)",
+        "warning": "Drink clean water, hygiene"
+    },
+    "hypertension": {
+        "hinglish": ["हाई बीपी", "high bp", "bp badhna", "blood pressure"],
+        "medication": "Beta-blockers (Atenolol), ACE inhibitors",
+        "warning": "Low salt, regular checkup"
+    },
+    "coronary artery disease": {
+        "hinglish": ["दिल की ब्लॉकेज", "heart blockage", "dil ki naali band"],
+        "medication": "Statins (Atorvastatin), Aspirin",
+        "warning": "Avoid fatty foods, exercise"
+    },
+    "heart attack": {
+        "hinglish": ["हार्ट अटैक", "dil ka daura", "heart fail", "attack aaya"],
+        "medication": "Clopidogrel, Nitroglycerin",
+        "warning": "Emergency help needed"
+    },
+    "stroke": {
+        "hinglish": ["पक्षाघात", "stroke", "lakwa", "half body bandh"],
+        "medication": "Clot-busters (tPA), Blood thinners",
+        "warning": "FAST test (Face-Arm-Speech-Time)"
+    },
+    "diabetes": {
+        "hinglish": ["शुगर", "sugar", "sugar ki bimari", "blood sugar"],
+        "medication": "Metformin, Insulin",
+        "warning": "Avoid sweets, exercise"
+    },
+    "hypothyroidism": {
+        "hinglish": ["थायराइड", "thyroid", "gala ki bimari"],
+        "medication": "Levothyroxine",
+        "warning": "Regular TSH test"
+    },
+    "pcos": {
+        "hinglish": ["पीसीओएस", "pcos", "mahine ki dikkat", "periods ka problem"],
+        "medication": "Birth control pills, Metformin",
+        "warning": "Weight management"
+    },
+    "gout": {
+        "hinglish": ["गाउट", "gout", "joint pain", "gathiya"],
+        "medication": "Allopurinol, NSAIDs",
+        "warning": "Avoid red meat, alcohol"
+    },
+    "acidity": {
+        "hinglish": ["एसिडिटी", "acid", "pet me jalan", "ultee jaisi feeling"],
+        "medication": "Antacids (Pantoprazole)",
+        "warning": "Avoid spicy food"
+    },
+    "ibs": {
+        "hinglish": ["पेट की गड़बड़", "gas", "kabj", "loose motion"],
+        "medication": "Fiber supplements",
+        "warning": "Stress management"
+    },
+    "ulcer": {
+        "hinglish": ["अल्सर", "ulser", "pet ka ghao"],
+        "medication": "Antibiotics (H. pylori treatment)",
+        "warning": "No smoking, alcohol"
+    },
+    "jaundice": {
+        "hinglish": ["पीलिया", "piliya", "yellow eyes", "peela rang"],
+        "medication": "Hydration, Liver support",
+        "warning": "Avoid fatty foods"
+    },
+    "asthma": {
+        "hinglish": ["दमा", "asthma", "saans ki takleef", "inhaler wali bimari"],
+        "medication": "Inhalers (Salbutamol)",
+        "warning": "Avoid dust, smoke"
+    },
+    "copd": {
+        "hinglish": ["सीओपीडी", "copd", "chronic khaansi"],
+        "medication": "Bronchodilators",
+        "warning": "Quit smoking"
+    },
+    "pneumonia": {
+        "hinglish": ["निमोनिया", "pneumonia", "phephde ka infection"],
+        "medication": "Antibiotics (Azithromycin)",
+        "warning": "Vaccination (PCV)"
+    },
+    "migraine": {
+        "hinglish": ["माइग्रेन", "migraine", "sirdard", "headache", "dimaag phatna"],
+        "medication": "Painkillers (Sumatriptan)",
+        "warning": "Avoid triggers"
+    },
+    "epilepsy": {
+        "hinglish": ["मिर्गी", "mirgi", "fits", "jhatke", "seizure"],
+        "medication": "Anti-seizure (Carbamazepine)",
+        "warning": "Don’t stop meds suddenly"
+    },
+    "parkinson": {
+        "hinglish": ["पार्किंसंस", "parkinson", "hath kaanpna"],
+        "medication": "Levodopa",
+        "warning": "Physical therapy"
+    },
+    "alzheimer": {
+        "hinglish": ["भूलने की बीमारी", "alzheimer", "yaadashth jaana"],
+        "medication": "Memantine",
+        "warning": "Mental exercises"
+    },
+    "breast cancer": {
+        "hinglish": ["स्तन कैंसर", "stan cancer", "boob ka cancer"],
+        "medication": "Chemo, Surgery",
+        "warning": "Early detection key"
+    },
+    "lung cancer": {
+        "hinglish": ["फेफड़ों का कैंसर", "phephdon ka cancer", "cough cancer"],
+        "medication": "Targeted therapy",
+        "warning": "No smoking"
+    },
+    "prostate cancer": {
+        "hinglish": ["प्रोस्टेट कैंसर", "prostate cancer", "male cancer"],
+        "medication": "Hormone therapy",
+        "warning": "Regular PSA test"
+    },
+    "leukemia": {
+        "hinglish": ["ब्लड कैंसर", "blood cancer", "rakht ka cancer"],
+        "medication": "Bone marrow transplant",
+        "warning": "Avoid infections"
+    },
+    "eczema": {
+        "hinglish": ["एक्जिमा", "eczema", "skin allergy", "khujli wali bimari"],
+        "medication": "Steroid creams",
+        "warning": "Avoid allergens"
+    },
+    "psoriasis": {
+        "hinglish": ["सोरायसिस", "psoriasis", "safed daag"],
+        "medication": "Immunosuppressants",
+        "warning": "No scratching"
+    },
+    "acne": {
+        "hinglish": ["मुंहासे", "muhase", "pimples", "daane"],
+        "medication": "Retinoids, Antibiotics",
+        "warning": "Don’t pop pimples"
+    },
+    "ringworm": {
+        "hinglish": ["दाद", "daad", "fungal infection", "gola daag"],
+        "medication": "Antifungal (Clotrimazole)",
+        "warning": "Keep dry & clean"
+    }
+}
+
+# Disease detection logic
+def detect_disease(text):
+    text = text.lower()
+    for disease, info in DISEASE_DATABASE.items():
+        for keyword in info["hinglish"]:
+            if keyword in text:
+                return disease, info
+    return None, None
+
+# Respond with medication and warning
+def respond(disease, info):
+    response = f"{disease.title()} detected.\nMedication: {info['medication']}\nWarning: {info['warning']}"
+    print(response)
+    engine.say(response)
+    engine.runAndWait()
+
+# Listen from mic
+def listen():
+    r = sr.Recognizer()
+    with sr.Microphone() as source:
+        print("🎤 Speak now...")
+        audio = r.listen(source, phrase_time_limit=5)
+        try:
+            text = r.recognize_google(audio, language='hi-IN')
+            print(f"🗣 You said: {text}")
+            return text
+        except sr.UnknownValueError:
+            print("❌ Could not understand audio.")
+        except sr.RequestError:
+            print("⚠ Could not request results.")
+    return ""
+
+# Main loop
+if _name_ == "_main_":
+    print("✅ Disease Detection AI (Voice/Text)")
+    print("Type 'voice' to use mic or type symptoms manually.")
+    while True:
+        mode = input("Enter 'voice', 'text', or 'exit': ").strip().lower()
+        if mode == "voice":
+            spoken_text = listen()
+            if spoken_text:
+                disease, info = detect_disease(spoken_text)
+                if disease:
+                    respond(disease, info)
+                else:
+                    print("❓ Disease not recognized.")

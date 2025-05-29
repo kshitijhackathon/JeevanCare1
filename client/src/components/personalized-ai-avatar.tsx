@@ -35,9 +35,24 @@ export default function PersonalizedAIAvatar({
     return {
       gender: isOppositeGender,
       ageGroup: isElderly ? 'elderly' : isChild ? 'young' : 'adult',
-      ethnicity: 'indian', // Based on Hindi/Hinglish support
-      attire: 'professional' // Doctor's coat
+      ethnicity: 'indian',
+      attire: 'professional'
     };
+  };
+
+  // Generate doctor image based on patient gender (opposite gender)
+  const getDoctorImageUrl = () => {
+    const patientGender = patientDetails.gender?.toLowerCase();
+    const doctorGender = patientGender === 'male' ? 'female' : 'male';
+    
+    // Female doctor images for male patients
+    if (doctorGender === 'female') {
+      return 'https://images.unsplash.com/photo-1559839734-2b71ea197ec2?w=400&h=400&fit=crop&crop=face';
+    }
+    // Male doctor images for female patients  
+    else {
+      return 'https://images.unsplash.com/photo-1612349317150-e413f6a5b16d?w=400&h=400&fit=crop&crop=face';
+    }
   };
 
   const avatarStyle = getAvatarStyle();
@@ -131,18 +146,31 @@ export default function PersonalizedAIAvatar({
     <div className="flex flex-col items-center space-y-6 p-6">
       {/* Avatar Display */}
       <div className="relative">
-        <div className={getAvatarAppearance()}>
-          {avatarStyle.gender === 'female' ? (
-            <div className="flex flex-col items-center">
-              <Bot className="h-20 w-20 mb-2" />
-              <Stethoscope className="h-8 w-8" />
-            </div>
-          ) : (
-            <div className="flex flex-col items-center">
-              <Bot className="h-20 w-20 mb-2" />
-              <Heart className="h-8 w-8" />
-            </div>
-          )}
+        <div className="w-48 h-48 rounded-full overflow-hidden shadow-2xl border-4 border-white">
+          <img 
+            src={getDoctorImageUrl()} 
+            alt={`${avatarStyle.gender === 'female' ? 'Female' : 'Male'} AI Doctor`}
+            className="w-full h-full object-cover"
+            onError={(e) => {
+              // Fallback to icon if image fails to load
+              e.currentTarget.style.display = 'none';
+              e.currentTarget.nextElementSibling.style.display = 'flex';
+            }}
+          />
+          {/* Fallback icon display */}
+          <div className={`${getAvatarAppearance()} hidden`}>
+            {avatarStyle.gender === 'female' ? (
+              <div className="flex flex-col items-center">
+                <Bot className="h-20 w-20 mb-2" />
+                <Stethoscope className="h-8 w-8" />
+              </div>
+            ) : (
+              <div className="flex flex-col items-center">
+                <Bot className="h-20 w-20 mb-2" />
+                <Heart className="h-8 w-8" />
+              </div>
+            )}
+          </div>
         </div>
         
         {/* Status indicator */}

@@ -159,9 +159,33 @@ export default function EnhancedAIConsultation() {
     }
   }, [step, patientDetails]);
 
-  // Handle voice transcript from advanced voice recognition
-  const handleVoiceTranscript = (transcript: string) => {
+  // Handle voice transcript with immediate symptom detection
+  const handleVoiceTranscript = async (transcript: string) => {
     if (transcript.trim()) {
+      console.log('Voice transcript received:', transcript);
+      
+      // Process with enhanced symptom detection before sending
+      try {
+        const { detectSymptomsFromText, generateContextualResponse } = await import('@/lib/enhanced-symptom-detection.js');
+        const symptomContext = detectSymptomsFromText(transcript);
+        
+        // Update detected symptoms immediately
+        if (symptomContext.symptoms && symptomContext.symptoms.length > 0) {
+          const newSymptoms = symptomContext.symptoms.map((s: any) => s.normalized || s.original || s);
+          setDetectedSymptoms(prev => Array.from(new Set([...prev, ...newSymptoms])));
+          console.log('Detected symptoms from voice:', newSymptoms);
+        }
+        
+        // If disease detected, add it
+        if (symptomContext.detectedDisease) {
+          setDetectedSymptoms(prev => Array.from(new Set([...prev, symptomContext.detectedDisease.disease])));
+          console.log('Detected disease from voice:', symptomContext.detectedDisease.disease);
+        }
+      } catch (error) {
+        console.error('Error processing voice transcript:', error);
+      }
+      
+      // Send the message for AI response
       handleSendMessage(transcript);
     }
   };
@@ -242,10 +266,15 @@ export default function EnhancedAIConsultation() {
       
       setMessages(prev => [...prev, doctorMessage]);
       
-      // Extract symptoms for prescription generation
-      const symptoms = extractSymptomsFromResponse(data.response);
-      if (symptoms.length > 0) {
-        setDetectedSymptoms(symptoms);
+      // Extract symptoms from the response and update detected symptoms
+      if (data.symptoms && data.symptoms.length > 0) {
+        const newSymptoms = data.symptoms.map((s: any) => s.normalized || s.original || s);
+        setDetectedSymptoms(prev => Array.from(new Set([...prev, ...newSymptoms])));
+      }
+      
+      // If disease detected, add it to symptoms
+      if (data.detectedDisease) {
+        setDetectedSymptoms(prev => Array.from(new Set([...prev, data.detectedDisease.disease])));
       }
       
       // Text-to-speech
@@ -381,21 +410,50 @@ export default function EnhancedAIConsultation() {
     }
   };
 
-  // End consultation
+  // End consultation with proper cleanup
   const endConsultation = () => {
-    if (streamRef.current) {
-      streamRef.current.getTracks().forEach(track => track.stop());
-      streamRef.current = null;
+    try {
+      // Stop all media tracks
+      if (streamRef.current) {
+        streamRef.current.getTracks().forEach(track => {
+          track.stop();
+          console.log('Media track stopped:', track.kind);
+        });
+        streamRef.current = null;
+      }
+      
+      // Reset video element
+      if (videoRef.current) {
+        videoRef.current.srcObject = null;
+      }
+      
+      // Reset states
+      setIsCameraOn(false);
+      setStep('details');
+      setHasStartedCall(false);
+      setMessages([]);
+      setDetectedSymptoms([]);
+      setCurrentMessage('');
+      setIsProcessing(false);
+      setShowPrescription(false);
+      
+      // Generate consultation summary
+      const summary = generateConsultationSummary();
+      toast({
+        title: "Consultation Ended Successfully",
+        description: summary,
+        duration: 5000,
+      });
+      
+      console.log('Consultation ended and cleaned up');
+    } catch (error) {
+      console.error('Error ending consultation:', error);
+      toast({
+        title: "Session Ended",
+        description: "Consultation completed. Thank you for using our service.",
+        duration: 3000,
+      });
     }
-    setIsCameraOn(false);
-    
-    // Generate consultation summary
-    const summary = generateConsultationSummary();
-    toast({
-      title: "Consultation Ended",
-      description: summary,
-      duration: 5000,
-    });
   };
 
   const extractSymptomsFromResponse = (response: string): string[] => {

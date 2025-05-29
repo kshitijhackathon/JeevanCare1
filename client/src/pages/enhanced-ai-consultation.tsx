@@ -13,6 +13,7 @@ import { useMutation } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import PrescriptionTemplate from "@/components/prescription-template";
 import AdvancedVoiceRecognition from "@/components/advanced-voice-recognition";
+import PersonalizedAIAvatar from "@/components/personalized-ai-avatar";
 import { extractEntities, mergeWithContext } from "@/lib/symptomNLP";
 import { getCtx, setCtx, addConversationTurn, resetCtx } from "@/lib/contextStore";
 import { buildDoctorPrompt, generateFollowUpQuestions } from "@/lib/doctorPrompt";
@@ -195,17 +196,41 @@ export default function EnhancedAIConsultation() {
     return { entities, updatedCtx };
   };
 
-  // Send message mutation
+  // Send message mutation with enhanced symptom detection
   const sendMessage = useMutation({
     mutationFn: async (message: string) => {
-      const response = await apiRequest("POST", "/api/ai-doctor/groq-medical-chat", {
-        message,
-        language: patientDetails.language,
-        patientDetails,
-        conversationHistory: messages.slice(-5)
-      });
-      if (!response.ok) throw new Error("Failed to send message");
-      return response.json();
+      // Use our enhanced symptom detection locally first
+      const { detectSymptomsFromText, generateContextualResponse } = await import('@/lib/enhanced-symptom-detection.js');
+      const symptomContext = detectSymptomsFromText(message);
+      
+      // Generate response using our enhanced detection
+      if (symptomContext.detectedDisease || symptomContext.symptoms.length > 0) {
+        const response = generateContextualResponse(symptomContext.symptoms, symptomContext, patientDetails);
+        return { 
+          response,
+          symptoms: symptomContext.symptoms,
+          detectedDisease: symptomContext.detectedDisease,
+          local: true 
+        };
+      }
+      
+      // Fallback to API if needed
+      try {
+        const response = await apiRequest("POST", "/api/ai-doctor/groq-medical-chat", {
+          message,
+          language: patientDetails.language,
+          patientDetails,
+          conversationHistory: messages.slice(-5)
+        });
+        if (!response.ok) throw new Error("API failed, using local detection");
+        return await response.json();
+      } catch (error) {
+        // Use local processing as fallback
+        const basicResponse = patientDetails.language === 'hindi' 
+          ? "Main aapke symptoms samjhne ki koshish kar raha hun. Kripaya aur detail mein bataaiye."
+          : "I'm analyzing your symptoms. Please provide more details about your condition.";
+        return { response: basicResponse, local: true };
+      }
     },
     onSuccess: (data) => {
       const doctorMessage: ChatMessage = {
@@ -260,32 +285,97 @@ export default function EnhancedAIConsultation() {
     sendMessage.mutate(message);
   };
 
-  // Generate prescription
+  // Generate prescription using enhanced detection
   const generatePrescription = async () => {
     try {
-      const response = await apiRequest("POST", "/api/ai-doctor/generate-prescription", {
-        symptoms: detectedSymptoms,
-        patientDetails,
-        medications: null
-      });
+      // Use local medication suggestions from our enhanced detection
+      const { generateMedicationSuggestions, DISEASE_DATABASE } = await import('@/lib/enhanced-symptom-detection.js');
       
-      if (response.ok) {
-        const data = await response.json();
+      // Find detected disease and generate appropriate medications
+      let medications = [];
+      let prescriptionText = '';
+      
+      if (detectedSymptoms.length > 0) {
+        // Check if any detected symptoms match diseases in our database
+        for (const [disease, info] of Object.entries(DISEASE_DATABASE)) {
+          const hasMatchingSymptom = detectedSymptoms.some(symptom => 
+            info.hinglish.some(keyword => 
+              symptom.toLowerCase().includes(keyword.toLowerCase()) ||
+              keyword.toLowerCase().includes(symptom.toLowerCase())
+            )
+          );
+          
+          if (hasMatchingSymptom) {
+            const prescription = {
+              patientName: patientDetails.name,
+              age: patientDetails.age,
+              gender: patientDetails.gender,
+              bloodGroup: patientDetails.bloodGroup,
+              diagnosis: disease,
+              medications: [{
+                name: info.medication,
+                dosage: "As prescribed",
+                frequency: "Follow medical advice",
+                duration: "As needed"
+              }],
+              instructions: [info.warning],
+              doctorName: "Dr. AI Assistant",
+              clinicName: "Jeevan Care Digital Health",
+              date: new Date().toLocaleDateString()
+            };
+            
+            const prescriptionMessage: ChatMessage = {
+              role: 'doctor',
+              content: `Prescription generated for ${disease}. Please follow the medication guidelines carefully.`,
+              timestamp: new Date(),
+              type: 'prescription',
+              prescription: prescription
+            };
+            
+            setMessages(prev => [...prev, prescriptionMessage]);
+            setShowPrescription(true);
+            return;
+          }
+        }
+        
+        // Fallback: generate general prescription for symptoms
+        medications = generateMedicationSuggestions(detectedSymptoms.map(s => ({ normalized: s })));
+        
+        const generalPrescription = {
+          patientName: patientDetails.name,
+          age: patientDetails.age,
+          gender: patientDetails.gender,
+          bloodGroup: patientDetails.bloodGroup,
+          diagnosis: `Symptoms: ${detectedSymptoms.join(', ')}`,
+          medications: medications,
+          instructions: ["Follow medication schedule", "Rest adequately", "Stay hydrated"],
+          doctorName: "Dr. AI Assistant",
+          clinicName: "Jeevan Care Digital Health",
+          date: new Date().toLocaleDateString()
+        };
+        
         const prescriptionMessage: ChatMessage = {
           role: 'doctor',
-          content: 'Prescription generated successfully. You can view and download it below.',
+          content: 'Prescription generated based on your symptoms. Please review and follow the instructions.',
           timestamp: new Date(),
           type: 'prescription',
-          prescription: data.prescription
+          prescription: generalPrescription
         };
         
         setMessages(prev => [...prev, prescriptionMessage]);
         setShowPrescription(true);
+      } else {
+        toast({
+          title: "No Symptoms Detected",
+          description: "Please describe your symptoms first to generate a prescription.",
+          variant: "destructive",
+        });
       }
     } catch (error) {
+      console.error('Prescription generation error:', error);
       toast({
         title: "Error",
-        description: "Failed to generate prescription.",
+        description: "Failed to generate prescription. Please try again.",
         variant: "destructive",
       });
     }
@@ -477,9 +567,13 @@ export default function EnhancedAIConsultation() {
             />
           ) : (
             <div className="bg-gray-700 rounded-lg p-8 text-center max-w-md">
-              <Bot className="h-24 w-24 mx-auto mb-4 text-blue-400" />
-              <h3 className="text-xl font-semibold mb-2">AI Doctor Avatar</h3>
-              <p className="text-gray-300 mb-4">Professional medical consultation with personalized AI doctor</p>
+              <PersonalizedAIAvatar 
+                patientDetails={patientDetails}
+                isActive={hasStartedCall}
+                doctorTone="friendly"
+              />
+              <h3 className="text-xl font-semibold mb-2 mt-4">Your AI Doctor</h3>
+              <p className="text-gray-300 mb-4">Personalized consultation based on your profile</p>
               <Button onClick={startVideoCall} className="bg-blue-600 hover:bg-blue-700">
                 <Camera className="h-4 w-4 mr-2" />
                 Enable Camera

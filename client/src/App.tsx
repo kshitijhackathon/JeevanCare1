@@ -27,6 +27,7 @@ import Notifications from "@/pages/notifications";
 import Prescription from "@/pages/prescription";
 import SymptomChecker from "@/pages/symptom-checker";
 import VoiceCompanion from "@/pages/voice-companion";
+import MedicalTest from "@/pages/medical-test";
 import NotFound from "@/pages/not-found";
 import GetStarted from "@/pages/auth/get-started";
 import SignUp from "@/pages/auth/signup";
@@ -100,6 +101,7 @@ function Router() {
           <Route path="/prescription" component={Prescription} />
           <Route path="/symptom-checker" component={SymptomChecker} />
           <Route path="/voice-companion" component={VoiceCompanion} />
+          <Route path="/medical-test" component={MedicalTest} />
         </>
       )}
       <Route component={NotFound} />

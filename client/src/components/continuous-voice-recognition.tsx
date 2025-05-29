@@ -73,18 +73,27 @@ export default function ContinuousVoiceRecognition({
 
       setTranscript(interimTranscript || finalTranscript);
 
-      // Process final transcript
+      // Process final transcript immediately
       if (finalTranscript.trim()) {
         // Clear any existing timeout
         if (timeoutRef.current) {
           clearTimeout(timeoutRef.current);
         }
         
-        // Set timeout to process transcript after 2 seconds of silence
-        timeoutRef.current = setTimeout(() => {
-          onTranscript(finalTranscript.trim());
-          setTranscript('');
-        }, 2000);
+        // Process transcript immediately for better responsiveness
+        onTranscript(finalTranscript.trim());
+        setTranscript('');
+        
+        // Continue listening after processing
+        restartTimeoutRef.current = setTimeout(() => {
+          if (isEnabled && recognitionRef.current) {
+            try {
+              recognitionRef.current.start();
+            } catch (error) {
+              console.log('Recognition restart error:', error);
+            }
+          }
+        }, 100);
       }
     };
 

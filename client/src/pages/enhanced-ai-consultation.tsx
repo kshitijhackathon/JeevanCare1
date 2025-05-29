@@ -7,7 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import { ArrowLeft, Video, VideoOff, Mic, MicOff, MessageSquare, Phone, Camera, FileText, Send, Download, Bot, User2, Stethoscope } from "lucide-react";
+import { ArrowLeft, Video, VideoOff, Mic, MicOff, MessageSquare, Phone, Camera, FileText, Send, Download, Bot, User2, Stethoscope, Volume2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useMutation } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
@@ -500,6 +500,66 @@ export default function EnhancedAIConsultation() {
     return symptoms;
   };
 
+  // Format message content with enhanced styling
+  const formatMessageContent = (content: string) => {
+    // Convert markdown-style formatting to JSX elements
+    const parts = content.split(/(\*\*.*?\*\*)/g);
+    
+    return parts.map((part, index) => {
+      if (part.startsWith('**') && part.endsWith('**')) {
+        const text = part.slice(2, -2);
+        if (text.includes('fever') || text.includes('bukhar')) {
+          return <span key={index} className="font-bold text-red-600 bg-red-50 px-2 py-1 rounded">🌡️ {text}</span>;
+        } else if (text.includes('Treatment') || text.includes('Recommended')) {
+          return <span key={index} className="font-bold text-green-600 bg-green-50 px-2 py-1 rounded">💊 {text}</span>;
+        } else if (text.includes('Warning') || text.includes('EMERGENCY')) {
+          return <span key={index} className="font-bold text-red-700 bg-red-100 px-2 py-1 rounded border-l-4 border-red-500">⚠️ {text}</span>;
+        } else {
+          return <span key={index} className="font-bold text-blue-600 bg-blue-50 px-2 py-1 rounded">🩺 {text}</span>;
+        }
+      }
+      
+      // Add bullet point styling
+      if (part.includes('•')) {
+        return <span key={index} className="block ml-4 text-gray-700">{part}</span>;
+      }
+      
+      return <span key={index}>{part}</span>;
+    });
+  };
+
+  // Text-to-speech function
+  const speakText = (text: string) => {
+    if ('speechSynthesis' in window) {
+      // Cancel any ongoing speech
+      window.speechSynthesis.cancel();
+      
+      // Clean the text for better speech
+      const cleanText = text
+        .replace(/\*\*/g, '') // Remove bold markers
+        .replace(/🌡️|💊|⚠️|🩺|•/g, '') // Remove emojis
+        .replace(/\n\n/g, '. ') // Replace double newlines with periods
+        .replace(/\n/g, ' '); // Replace newlines with spaces
+      
+      const utterance = new SpeechSynthesisUtterance(cleanText);
+      
+      // Set voice properties based on language
+      if (patientDetails.language === 'hindi') {
+        utterance.lang = 'hi-IN';
+        utterance.rate = 0.9;
+      } else {
+        utterance.lang = 'en-US';
+        utterance.rate = 0.95;
+      }
+      
+      utterance.pitch = 1;
+      utterance.volume = 0.8;
+      
+      // Speak the text
+      window.speechSynthesis.speak(utterance);
+    }
+  };
+
 
 
   // Get consistent doctor name based on patient details
@@ -716,7 +776,18 @@ export default function EnhancedAIConsultation() {
                     {message.role === 'doctor' && <Bot className="h-4 w-4 mt-1 flex-shrink-0 text-blue-600" />}
                     {message.role === 'user' && <User2 className="h-4 w-4 mt-1 flex-shrink-0" />}
                     <div className="flex-1">
-                      <p className="text-sm whitespace-pre-wrap">{message.content}</p>
+                      <div className="text-sm whitespace-pre-wrap">{formatMessageContent(message.content)}</div>
+                      {message.role === 'doctor' && (
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          onClick={() => speakText(message.content)}
+                          className="mt-2 text-blue-600 hover:bg-blue-50 p-1 h-6"
+                        >
+                          <Volume2 className="h-3 w-3 mr-1" />
+                          Speak
+                        </Button>
+                      )}
                       {message.type === 'prescription' && message.prescription && (
                         <div className="mt-3 p-2 bg-blue-50 rounded border">
                           <p className="text-xs text-blue-800 font-medium">Prescription Generated</p>

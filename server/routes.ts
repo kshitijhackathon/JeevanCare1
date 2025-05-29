@@ -1074,6 +1074,69 @@ export async function registerRoutes(app: Express): Promise<Server> {
     return { hindi: hindiResponse, english: englishResponse };
   }
 
+  // Enhanced General Complaint Prescription with Authentic Medicine Database
+  app.post("/api/general-prescription", isAuthenticated, async (req, res) => {
+    try {
+      const { complaint, patientDetails } = req.body;
+
+      if (!complaint || !patientDetails) {
+        return res.status(400).json({ 
+          message: "Chief complaint and patient details are required" 
+        });
+      }
+
+      // Generate prescription using authentic medicine database
+      const prescription = enhancedPrescriptionEngine.generateGeneralComplaintPrescription(
+        complaint,
+        patientDetails.age || '25',
+        patientDetails.gender || 'male'
+      );
+
+      // Format response with detailed medicine information from your authentic database
+      const response = {
+        prescriptionId: `GCP-${Date.now()}`,
+        complaint: prescription.complaint,
+        patientDetails: {
+          name: patientDetails.name || 'Patient',
+          age: patientDetails.age || '25',
+          gender: patientDetails.gender || 'male',
+          bloodGroup: patientDetails.bloodGroup || 'Unknown'
+        },
+        medicines: prescription.medicines.map(item => ({
+          name: item.medicine.name,
+          manufacturer: item.medicine.manufacturer,
+          price: item.medicine.price,
+          dosage: item.dosage,
+          frequency: item.frequency,
+          duration: item.duration,
+          instructions: item.instructions,
+          timing: item.timing,
+          composition: item.medicine.composition,
+          type: item.medicine.type,
+          category: item.medicine.category,
+          prescriptionRequired: item.medicine.prescriptionRequired
+        })),
+        totalCost: prescription.medicines.reduce((sum, item) => sum + item.medicine.price, 0),
+        generalInstructions: prescription.generalInstructions,
+        dietRecommendations: prescription.dietRecommendations,
+        precautions: prescription.precautions,
+        followUp: prescription.followUp,
+        generatedAt: new Date().toISOString(),
+        doctorName: patientDetails.gender === 'female' ? 'Dr. Rajesh Kumar' : 'Dr. Priya Sharma',
+        clinicName: 'JeevanCare AI Medical Center'
+      };
+
+      res.json(response);
+
+    } catch (error) {
+      console.error("General prescription error:", error);
+      res.status(500).json({ 
+        message: "Failed to generate prescription from authentic database",
+        error: error instanceof Error ? error.message : "Unknown error"
+      });
+    }
+  });
+
   app.post("/api/ai-doctor/chat", isAuthenticated, async (req, res) => {
     try {
       const { message, language, patientDetails, selectedBodyPart, capturedImage } = req.body;

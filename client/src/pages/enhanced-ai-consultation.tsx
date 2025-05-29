@@ -588,23 +588,54 @@ export default function EnhancedAIConsultation() {
       // Clean the text for better speech
       const cleanText = text
         .replace(/\*\*/g, '') // Remove bold markers
-        .replace(/🌡️|💊|⚠️|🩺|•/g, '') // Remove emojis
+        .replace(/🌡️|💊|⚠️|🩺|•|🫁|❤️|🤢|🧠|🦴|🟡/g, '') // Remove emojis
         .replace(/\n\n/g, '. ') // Replace double newlines with periods
         .replace(/\n/g, ' '); // Replace newlines with spaces
       
       const utterance = new SpeechSynthesisUtterance(cleanText);
       
-      // Set voice properties based on language
+      // Set language
       if (patientDetails.language === 'hindi') {
         utterance.lang = 'hi-IN';
-        utterance.rate = 0.9;
+        utterance.rate = 0.85;
       } else {
         utterance.lang = 'en-US';
-        utterance.rate = 0.95;
+        utterance.rate = 0.9;
       }
       
-      utterance.pitch = 1;
-      utterance.volume = 0.8;
+      // Configure gender-appropriate voice (opposite gender for doctor)
+      const voices = window.speechSynthesis.getVoices();
+      if (voices.length > 0) {
+        const patientGender = patientDetails.gender?.toLowerCase();
+        let preferredVoice;
+        
+        if (patientGender === 'male') {
+          // Male patient gets female doctor voice
+          preferredVoice = voices.find(voice => 
+            voice.name.toLowerCase().includes('female') || 
+            voice.name.toLowerCase().includes('samantha') ||
+            voice.name.toLowerCase().includes('karen') ||
+            voice.name.toLowerCase().includes('moira') ||
+            voice.name.toLowerCase().includes('zira')
+          );
+        } else {
+          // Female patient gets male doctor voice
+          preferredVoice = voices.find(voice => 
+            voice.name.toLowerCase().includes('male') || 
+            voice.name.toLowerCase().includes('alex') ||
+            voice.name.toLowerCase().includes('daniel') ||
+            voice.name.toLowerCase().includes('thomas') ||
+            voice.name.toLowerCase().includes('david')
+          );
+        }
+        
+        if (preferredVoice) {
+          utterance.voice = preferredVoice;
+        }
+      }
+      
+      utterance.pitch = 1.1;
+      utterance.volume = 0.9;
       
       // Speak the text
       window.speechSynthesis.speak(utterance);

@@ -94,16 +94,23 @@ export default function ContinuousVoiceRecognition({
     };
 
     recognition.onerror = (event: any) => {
-      console.error('Speech recognition error:', event.error);
+      console.log('Speech recognition event:', event.error);
+      
+      // Handle specific error types
+      if (event.error === 'aborted') {
+        // Don't restart on abort, it's intentional
+        return;
+      }
+      
       setState('error');
       
-      // Auto-restart after error (except for permission errors)
-      if (event.error !== 'not-allowed' && isEnabled) {
+      // Auto-restart after error (except for permission errors and aborts)
+      if (event.error !== 'not-allowed' && event.error !== 'aborted' && isEnabled) {
         restartTimeoutRef.current = setTimeout(() => {
           if (isEnabled) {
             startListening();
           }
-        }, 1000);
+        }, 1500);
       }
     };
 

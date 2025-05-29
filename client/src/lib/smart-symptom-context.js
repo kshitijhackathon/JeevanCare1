@@ -248,36 +248,52 @@ export class SmartSymptomDetector {
     
     if (detectedSymptoms.length === 0) {
       return {
-        hindi: "मुझे आपके लक्षणों की पहचान करने में कुछ कठिनाई हो रही है। कृपया अधिक विस्तार से बताएं।",
-        english: "I'm having some difficulty identifying your symptoms. Please provide more detailed information.",
+        hindi: `प्रिय ${patientDetails.name} जी, मैं आपकी मदद करना चाहती हूं। कृपया अपने लक्षणों के बारे में थोड़ा और विस्तार से बताएं ताकि मैं आपको बेहतर सलाह दे सकूं। 💕`,
+        english: `Dear ${patientDetails.name}, I'm here to help you feel better. Please tell me a bit more about your symptoms so I can provide you with the best care possible. 💕`,
         confidence: 0
       };
     }
 
-    let hindiResponse = `**${patientDetails.name}** जी, मैंने आपके लक्षणों का विश्लेषण किया है:\n\n`;
-    let englishResponse = `**${patientDetails.name}**, I've analyzed your symptoms:\n\n`;
+    let hindiResponse = `प्रिय ${patientDetails.name} जी, आपने बहुत अच्छे से अपनी समस्या बताई है। मैंने आपके लक्षणों का सावधानीपूर्वक विश्लेषण किया है:\n\n`;
+    let englishResponse = `Dear ${patientDetails.name}, thank you for sharing your concerns with me. I've carefully analyzed your symptoms and I'm here to help you feel better:\n\n`;
 
-    // Add detected symptoms with emoji hints
+    // Add detected symptoms with emoji hints and caring tone
     detectedSymptoms.forEach((symptom, index) => {
-      hindiResponse += `${symptom.emoji} **${symptom.category}**: ${symptom.description}\n`;
-      englishResponse += `${symptom.emoji} **${symptom.category}**: ${symptom.description}\n`;
+      const sweetDescription = this.getSweetSymptomDescription(symptom.category, symptom.severity, patientDetails.language);
+      hindiResponse += `${symptom.emoji} **${this.getCategoryNameHindi(symptom.category)}**: ${sweetDescription.hindi}\n`;
+      englishResponse += `${symptom.emoji} **${this.getCategoryNameEnglish(symptom.category)}**: ${sweetDescription.english}\n`;
     });
 
-    // Add contextual information
+    // Add contextual information with care
     if (contextualInfo.timeContext) {
-      hindiResponse += `\n⏰ **समय संदर्भ**: ${contextualInfo.timeContext} के दौरान लक्षण\n`;
-      englishResponse += `\n⏰ **Time Context**: Symptoms during ${contextualInfo.timeContext}\n`;
+      hindiResponse += `\n⏰ मैंने देखा है कि आपको ${contextualInfo.timeContext} के समय परेशानी होती है। यह जानकारी इलाज में बहुत मददगार है।\n`;
+      englishResponse += `\n⏰ I notice your symptoms occur during ${contextualInfo.timeContext}. This information helps me provide better care for you.\n`;
     }
 
     if (contextualInfo.duration) {
-      hindiResponse += `📅 **अवधि**: ${contextualInfo.duration === 'acute' ? 'अचानक शुरू' : 'लंबे समय से'}\n`;
-      englishResponse += `📅 **Duration**: ${contextualInfo.duration} onset\n`;
+      const durationText = contextualInfo.duration === 'acute' ? 
+        { hindi: 'अचानक शुरू हुई', english: 'started suddenly' } :
+        { hindi: 'कुछ समय से चल रही', english: 'been ongoing' };
+      hindiResponse += `📅 आपकी समस्या ${durationText.hindi} है, जिससे मुझे सही इलाज की दिशा मिल गई है।\n`;
+      englishResponse += `📅 Your symptoms have ${durationText.english}, which helps me understand how to best help you.\n`;
     }
 
-    // Emergency flag
+    // Sweet encouragement based on severity
+    if (contextualInfo.severity === 'mild') {
+      hindiResponse += `\n💚 खुशी की बात यह है कि आपकी समस्या हल्की है। सही देखभाल के साथ आप जल्दी ठीक हो जाएंगे।\n`;
+      englishResponse += `\n💚 The good news is that your symptoms are mild. With proper care, you'll feel much better soon.\n`;
+    } else if (contextualInfo.severity === 'moderate') {
+      hindiResponse += `\n💛 चिंता न करें, आपकी समस्या का इलाज संभव है। मैं आपको ऐसी दवाएं सुझाऊंगी जो आपको आराम दिलाएंगी।\n`;
+      englishResponse += `\n💛 Please don't worry - your condition is treatable. I'll recommend medications that will help you feel comfortable and heal properly.\n`;
+    }
+
+    // Emergency flag with care
     if (contextualInfo.emergencyFlag) {
-      hindiResponse += `\n🚨 **आपातकाल**: ये लक्षण गंभीर हैं! तुरंत अस्पताल जाएं या 108 कॉल करें।\n`;
-      englishResponse += `\n🚨 **EMERGENCY**: These symptoms are serious! Seek immediate medical attention or call emergency services.\n`;
+      hindiResponse += `\n🚨 प्रिय ${patientDetails.name} जी, आपकी सुरक्षा मेरी प्राथमिकता है। कृपया तुरंत नजदीकी अस्पताल जाएं या 108 पर कॉल करें। आप बिल्कुल ठीक हो जाएंगे! 💕\n`;
+      englishResponse += `\n🚨 Dear ${patientDetails.name}, your safety is my top priority. Please go to the nearest hospital immediately or call emergency services. You're going to be okay! 💕\n`;
+    } else {
+      hindiResponse += `\n✨ आप बहुत जल्दी बेहतर महसूस करेंगे। मैं आपके साथ हूं! 🌟`;
+      englishResponse += `\n✨ You're going to feel so much better very soon. I'm here to support you! 🌟`;
     }
 
     return {
@@ -286,6 +302,71 @@ export class SmartSymptomDetector {
       confidence: analysis.analysisConfidence,
       severity: contextualInfo.severity,
       emergencyFlag: contextualInfo.emergencyFlag
+    };
+  }
+
+  getCategoryNameHindi(category) {
+    const names = {
+      respiratory: 'सांस संबंधी',
+      cardiovascular: 'हृदय संबंधी', 
+      gastrointestinal: 'पेट संबंधी',
+      neurological: 'न्यूरोलॉजिकल',
+      musculoskeletal: 'हड्डी-मांसपेशी',
+      dermatological: 'त्वचा संबंधी',
+      infectious: 'संक्रमण संबंधी'
+    };
+    return names[category] || category;
+  }
+
+  getCategoryNameEnglish(category) {
+    const names = {
+      respiratory: 'Respiratory Care',
+      cardiovascular: 'Heart Health', 
+      gastrointestinal: 'Digestive Wellness',
+      neurological: 'Neurological Health',
+      musculoskeletal: 'Bone & Muscle Care',
+      dermatological: 'Skin Health',
+      infectious: 'Infection Management'
+    };
+    return names[category] || category;
+  }
+
+  getSweetSymptomDescription(category, severity, language) {
+    const descriptions = {
+      respiratory: {
+        mild: {
+          hindi: 'आपकी सांस की हल्की परेशानी ठीक हो जाएगी। थोड़ा आराम और सही दवा से आप बेहतर महसूस करेंगे। 💚',
+          english: 'Your breathing discomfort is mild and will improve with proper rest and care. You\'ll feel much better soon! 💚'
+        },
+        moderate: {
+          hindi: 'आपकी सांस की समस्या का इलाज है। मैं आपको कुछ दवाएं दूंगी जो आराम दिलाएंगी। 💛',
+          english: 'Your breathing concerns are manageable. I\'ll recommend treatments that will help you breathe easier and feel more comfortable. 💛'
+        },
+        severe: {
+          hindi: 'आपकी सांस की गंभीर समस्या के लिए तुरंत चिकित्सा सहायता लें। आप ठीक हो जाएंगे! ❤️',
+          english: 'Your breathing symptoms need immediate medical attention. Please get help right away - you\'re going to be okay! ❤️'
+        }
+      },
+      cardiovascular: {
+        mild: {
+          hindi: 'आपके दिल की हल्की परेशानी चिंता की बात नहीं। आराम और सही देखभाल से ठीक हो जाएगी। 💚',
+          english: 'Your heart symptoms are mild and nothing to worry about. With proper care and rest, you\'ll feel much better! 💚'
+        },
+        moderate: {
+          hindi: 'आपके दिल की समस्या का सही इलाज है। मैं आपको वह दवाएं दूंगी जो आराम दिलाएंगी। 💛',
+          english: 'Your heart condition is very treatable. I\'ll prescribe medications that will help you feel comfortable and strong again. 💛'
+        },
+        severe: {
+          hindi: 'आपके दिल की सुरक्षा के लिए तुरंत अस्पताल जाना जरूरी है। आप बहुत जल्दी ठीक हो जाएंगे! ❤️',
+          english: 'For your heart\'s safety, please get immediate medical care. You\'re going to recover beautifully! ❤️'
+        }
+      }
+      // Add more categories as needed
+    };
+    
+    return descriptions[category]?.[severity] || {
+      hindi: 'आपकी समस्या का इलाज संभव है। सही देखभाल से आप जल्दी ठीक हो जाएंगे! 💕',
+      english: 'Your condition is treatable. With proper care, you\'ll feel wonderful again very soon! 💕'
     };
   }
 }

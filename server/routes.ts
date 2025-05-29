@@ -599,124 +599,186 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Enhanced Medical Chat with Robust Disease Detection
-  app.post("/api/ai-doctor/groq-medical-chat", isAuthenticated, async (req, res) => {
+  // Public medical consultation endpoint (no auth required)
+  app.post("/api/medical-consultation", async (req, res) => {
     try {
-      const { message, language, patientDetails } = req.body;
+      const { message, language = 'english' } = req.body;
       
       if (!message) {
         return res.status(400).json({ error: 'Message is required' });
       }
 
-      // Use enhanced local medical engine for accurate symptom detection
+      // Extract symptoms
       const symptoms = enhancedLocalMedicalEngine.extractSymptoms(message);
-      console.log('Extracted symptoms:', symptoms);
       
       if (symptoms.length === 0) {
-        const promptResponse = language === 'hindi' ? 
-          `Main aapka AI doctor hun. Kripya apne symptoms detail mein batayiye:\n\n• **Bukhar** - kitna temperature hai?\n• **Dard** - kahan dard hai?\n• **Khansi** - dry ya wet cough?\n• **Pet** - ulti, dast, gas?\n• **Skin** - rash, khujli?\n• **Other** - weakness, dizziness?\n\nJitna detail batayenge, utna accurate diagnosis milega.` :
-          `I'm your AI doctor. Please describe your symptoms in detail:\n\n• **Fever** - what's your temperature?\n• **Pain** - where does it hurt?\n• **Cough** - dry or wet cough?\n• **Stomach** - nausea, vomiting, diarrhea?\n• **Skin** - rash, itching?\n• **Other** - weakness, dizziness?\n\nThe more details you provide, the more accurate diagnosis I can give.`;
-        
-        return res.json({ response: promptResponse });
+        return res.json({ 
+          response: 'Please describe your symptoms like: fever, headache, stomach pain, cough, etc.',
+          needsMoreInfo: true
+        });
       }
 
-      // Predict disease using enhanced algorithm
+      // Predict disease
       const prediction = enhancedLocalMedicalEngine.predictDisease(symptoms);
-      console.log('Disease prediction:', prediction);
 
-      if (!prediction || prediction.confidence < 30) {
-        const lowConfidenceResponse = language === 'hindi' ? 
-          `Aapke symptoms "${symptoms.join(', ')}" ke base par main confirm diagnosis nahi de sakta. Kripya:\n\n1. Aur specific symptoms batayiye\n2. Duration batayiye (kitne din se hai)\n3. Severity batayiye (mild/moderate/severe)\n\nYa phir kisi doctor se miliye proper checkup ke liye.` :
-          `Based on your symptoms "${symptoms.join(', ')}", I cannot provide a confident diagnosis. Please:\n\n1. Provide more specific symptoms\n2. Mention duration (how many days)\n3. Describe severity (mild/moderate/severe)\n\nOr consult a doctor for proper examination.`;
-        
-        return res.json({ response: lowConfidenceResponse });
+      if (!prediction || prediction.confidence < 25) {
+        return res.json({ 
+          response: `I detected these symptoms: ${symptoms.join(', ')}\n\nHowever, I need more specific information to provide accurate diagnosis. Please describe your symptoms in more detail including duration and severity.`,
+          symptoms,
+          needsMoreInfo: true
+        });
       }
 
-      // Get medicines and treatment recommendations
+      // Get medicines and recommendations
       const medicines = diseasePredictionEngine.getMedicinesForDisease(prediction.disease, prediction.severity);
       const recommendations = enhancedLocalMedicalEngine.getTreatmentRecommendations(prediction.disease);
-      
-      console.log('Medicines found:', medicines.length);
-      console.log('Recommendations:', recommendations);
 
-      // Generate comprehensive medical response
-      let response = '';
+      // Generate comprehensive response
+      let response = `**DIAGNOSIS: ${prediction.disease}**\n`;
+      response += `**CONFIDENCE: ${prediction.confidence}%**\n`;
+      response += `**SEVERITY: ${prediction.severity}**\n\n`;
+      response += `**DETECTED SYMPTOMS:** ${symptoms.join(', ')}\n\n`;
       
-      if (language === 'hindi') {
-        response = `**निदान (Diagnosis):** ${prediction.disease}\n`;
-        response += `**विश्वसनीयता (Confidence):** ${prediction.confidence}%\n`;
-        response += `**गंभीरता (Severity):** ${prediction.severity}\n\n`;
-        response += `**पहचाने गए लक्षण:** ${symptoms.join(', ')}\n\n`;
-        
-        response += `**क्या करें:**\n`;
-        recommendations.doList.slice(0, 5).forEach((item, index) => {
-          response += `${index + 1}. ${item}\n`;
+      response += `**WHAT TO DO:**\n`;
+      recommendations.doList.slice(0, 4).forEach((item, index) => {
+        response += `${index + 1}. ${item}\n`;
+      });
+      
+      response += `\n**WHAT NOT TO DO:**\n`;
+      recommendations.dontList.slice(0, 4).forEach((item, index) => {
+        response += `${index + 1}. ${item}\n`;
+      });
+      
+      if (medicines.length > 0) {
+        response += `\n**RECOMMENDED MEDICINES:**\n`;
+        medicines.slice(0, 3).forEach((med, index) => {
+          response += `${index + 1}. ${med.name}\n`;
+          response += `   Dosage: 1 tablet, ${prediction.severity === 'severe' ? '3 times daily' : '2 times daily'}\n`;
+          response += `   Price: ₹${med.price}\n`;
         });
-        
-        response += `\n**क्या न करें:**\n`;
-        recommendations.dontList.slice(0, 5).forEach((item, index) => {
-          response += `${index + 1}. ${item}\n`;
-        });
-        
-        if (medicines.length > 0) {
-          response += `\n**सुझाई गई दवाएं:**\n`;
-          medicines.slice(0, 3).forEach((med, index) => {
-            response += `${index + 1}. ${med.name} - ₹${med.price}\n`;
-          });
-        }
-        
-        response += `\n**महत्वपूर्ण:** यह AI द्वारा बनाया गया आकलन है। कृपया उचित निदान और उपचार के लिए योग्य स्वास्थ्य सेवा पेशेवर से सलाह लें।`;
-      } else {
-        response = `**DIAGNOSIS:** ${prediction.disease}\n`;
-        response += `**CONFIDENCE:** ${prediction.confidence}%\n`;
-        response += `**SEVERITY:** ${prediction.severity}\n\n`;
-        response += `**DETECTED SYMPTOMS:** ${symptoms.join(', ')}\n\n`;
-        
-        response += `**WHAT TO DO:**\n`;
-        recommendations.doList.slice(0, 5).forEach((item, index) => {
-          response += `${index + 1}. ${item}\n`;
-        });
-        
-        response += `\n**WHAT NOT TO DO:**\n`;
-        recommendations.dontList.slice(0, 5).forEach((item, index) => {
-          response += `${index + 1}. ${item}\n`;
-        });
-        
-        response += `\n**DIET RECOMMENDATIONS:**\n`;
-        recommendations.diet.slice(0, 4).forEach((item, index) => {
-          response += `${index + 1}. ${item}\n`;
-        });
-        
-        if (medicines.length > 0) {
-          response += `\n**RECOMMENDED MEDICATIONS:**\n`;
-          medicines.slice(0, 3).forEach((med, index) => {
-            response += `${index + 1}. ${med.name} - ₹${med.price}\n   ${med.composition}\n`;
-          });
-        }
-        
-        response += `\n**IMPORTANT:** This is an AI-generated assessment. Please consult with a qualified healthcare professional for proper diagnosis and treatment.`;
       }
+      
+      response += `\n**IMPORTANT:** This is an AI assessment. Consult a healthcare professional for proper diagnosis.`;
 
-      // Include structured data for prescription generation
-      const responseData = {
+      res.json({
         response,
         diagnosis: prediction.disease,
         confidence: prediction.confidence,
         severity: prediction.severity,
         symptoms,
-        matchedSymptoms: prediction.matchedSymptoms,
         medications: medicines,
         recommendations,
-        canGeneratePrescription: medicines.length > 0
-      };
+        success: true
+      });
 
-      res.json(responseData);
     } catch (error) {
-      console.error("Enhanced medical chat error:", error);
+      console.error('Medical consultation error:', error);
       res.status(500).json({ 
-        response: language === 'hindi' 
-          ? "चिकित्सा प्रणाली अस्थायी रूप से अनुपलब्ध है। कृपया पुनः प्रयास करें।"
-          : "Medical system temporarily unavailable. Please try again."
+        response: 'Medical system error. Please try again.',
+        error: error.message,
+        success: false
+      });
+    }
+  });
+
+  // Fixed Medical Chat with Working Disease Detection
+  app.post("/api/ai-doctor/groq-medical-chat", async (req, res) => {
+    try {
+      const { message, language = 'english' } = req.body;
+      
+      console.log('=== MEDICAL CONSULTATION REQUEST ===');
+      console.log('Message:', message);
+      console.log('Language:', language);
+      
+      if (!message) {
+        return res.status(400).json({ error: 'Message is required' });
+      }
+
+      // STEP 1: Extract symptoms using enhanced engine
+      const symptoms = enhancedLocalMedicalEngine.extractSymptoms(message);
+      console.log('STEP 1 - Extracted symptoms:', symptoms);
+      
+      if (symptoms.length === 0) {
+        console.log('No symptoms detected, sending prompt');
+        return res.json({ 
+          response: language === 'hindi' ? 
+            'कृपया अपने लक्षण बताएं जैसे: बुखार, सिरदर्द, पेट दर्द, खांसी आदि।' :
+            'Please describe your symptoms like: fever, headache, stomach pain, cough, etc.'
+        });
+      }
+
+      // STEP 2: Predict disease
+      const prediction = enhancedLocalMedicalEngine.predictDisease(symptoms);
+      console.log('STEP 2 - Disease prediction:', prediction);
+
+      if (!prediction || prediction.confidence < 25) {
+        console.log('Low confidence prediction');
+        return res.json({ 
+          response: `Detected symptoms: ${symptoms.join(', ')}\n\nI need more specific information to provide accurate diagnosis. Please describe your symptoms in more detail.`
+        });
+      }
+
+      // STEP 3: Get medicines and recommendations
+      const medicines = diseasePredictionEngine.getMedicinesForDisease(prediction.disease, prediction.severity);
+      const recommendations = enhancedLocalMedicalEngine.getTreatmentRecommendations(prediction.disease);
+      
+      console.log('STEP 3 - Medicines found:', medicines.length);
+      console.log('STEP 3 - Recommendations available:', !!recommendations);
+
+      // STEP 4: Generate response
+      let response = `**DIAGNOSIS: ${prediction.disease}**\n`;
+      response += `**CONFIDENCE: ${prediction.confidence}%**\n`;
+      response += `**SEVERITY: ${prediction.severity}**\n\n`;
+      response += `**DETECTED SYMPTOMS:** ${symptoms.join(', ')}\n\n`;
+      
+      response += `**WHAT TO DO:**\n`;
+      recommendations.doList.slice(0, 4).forEach((item, index) => {
+        response += `${index + 1}. ${item}\n`;
+      });
+      
+      response += `\n**WHAT NOT TO DO:**\n`;
+      recommendations.dontList.slice(0, 4).forEach((item, index) => {
+        response += `${index + 1}. ${item}\n`;
+      });
+      
+      if (medicines.length > 0) {
+        response += `\n**RECOMMENDED MEDICINES:**\n`;
+        medicines.slice(0, 3).forEach((med, index) => {
+          const dosage = med.type?.includes('Tablet') ? '1 tablet' : '10ml';
+          const frequency = prediction.severity === 'severe' ? '3 times daily' : '2 times daily';
+          response += `${index + 1}. ${med.name} - ${dosage}, ${frequency}\n`;
+          response += `   Price: ₹${med.price} | ${med.composition}\n`;
+        });
+      }
+      
+      response += `\n**DIET RECOMMENDATIONS:**\n`;
+      recommendations.diet.slice(0, 3).forEach((item, index) => {
+        response += `${index + 1}. ${item}\n`;
+      });
+      
+      response += `\n**IMPORTANT:** This is an AI assessment. Consult a healthcare professional for proper diagnosis.`;
+
+      console.log('STEP 4 - Response generated successfully');
+
+      // Return comprehensive data
+      res.json({
+        response,
+        diagnosis: prediction.disease,
+        confidence: prediction.confidence,
+        severity: prediction.severity,
+        symptoms,
+        medications: medicines,
+        recommendations,
+        success: true,
+        canGeneratePrescription: medicines.length > 0
+      });
+
+    } catch (error) {
+      console.error('Medical consultation error:', error);
+      res.status(500).json({ 
+        response: 'Medical system error. Please try again.',
+        error: error.message,
+        success: false
       });
     }
   });

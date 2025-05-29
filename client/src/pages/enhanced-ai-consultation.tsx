@@ -363,8 +363,11 @@ export default function EnhancedAIConsultation() {
         
         setMessages(prev => [...prev, doctorMessage]);
         
+        // Store smart analysis result for display
+        setSmartAnalysisResult(smartAnalysis);
+        
         // Update detected symptoms with smart analysis
-        const symptomNames = smartAnalysis.detectedSymptoms.map(s => s.category);
+        const symptomNames = smartAnalysis.detectedSymptoms.map((s: any) => s.category);
         setDetectedSymptoms(prev => Array.from(new Set([...prev, ...symptomNames])));
         
         // Auto-speak if important or emergency
@@ -869,6 +872,16 @@ export default function EnhancedAIConsultation() {
             )}
             <div ref={messagesEndRef} />
           </div>
+
+          {/* Smart Symptom Analysis Display */}
+          {smartAnalysisResult && (
+            <div className="p-3 md:p-4 border-t bg-gradient-to-r from-blue-50 to-cyan-50">
+              <SmartSymptomDisplay 
+                analysis={smartAnalysisResult}
+                patientDetails={patientDetails}
+              />
+            </div>
+          )}
 
           {/* Advanced Voice Recognition Section - Mobile Optimized */}
           <div className="p-3 md:p-4 border-t bg-gray-50">

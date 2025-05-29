@@ -76,42 +76,21 @@ export default function SmartSymptomDisplay({ analysis, patientDetails }: SmartS
             </Badge>
           </div>
 
-          {/* Detected Symptoms */}
-          <div className="space-y-3">
-            <h4 className="font-medium text-gray-700 flex items-center gap-2">
-              <TrendingUp className="h-4 w-4" />
-              {patientDetails.language === 'hindi' ? 'पहचाने गए लक्षण:' : 'Detected Symptoms:'}
-            </h4>
-            
-            <div className="grid gap-3">
-              {detectedSymptoms.map((symptom, index) => (
-                <div key={index} className={`p-3 rounded-lg border ${getSeverityColor(symptom.severity)}`}>
-                  <div className="flex items-start justify-between">
-                    <div className="flex items-center gap-2">
-                      <span className="text-2xl">{symptom.emoji}</span>
-                      <div>
-                        <h5 className="font-semibold capitalize">{symptom.category}</h5>
-                        <p className="text-sm opacity-90">{symptom.description}</p>
-                      </div>
-                    </div>
-                    <Badge variant="secondary" className="ml-2">
-                      {symptom.severity === 'mild' && (patientDetails.language === 'hindi' ? 'हल्का' : 'Mild')}
-                      {symptom.severity === 'moderate' && (patientDetails.language === 'hindi' ? 'मध्यम' : 'Moderate')}
-                      {symptom.severity === 'severe' && (patientDetails.language === 'hindi' ? 'गंभीर' : 'Severe')}
-                    </Badge>
-                  </div>
-                  
-                  {/* Keywords found */}
-                  <div className="mt-2 flex flex-wrap gap-1">
-                    {symptom.keywords.map((keyword, idx) => (
-                      <span key={idx} className="text-xs bg-white bg-opacity-60 px-2 py-1 rounded">
-                        "{keyword}"
-                      </span>
-                    ))}
-                  </div>
+          {/* Detected Symptoms - Simplified */}
+          <div className="space-y-2">
+            {detectedSymptoms.map((symptom, index) => (
+              <div key={index} className="flex items-center gap-3 p-2 rounded bg-white bg-opacity-60">
+                <span className="text-xl">{symptom.emoji}</span>
+                <div className="flex-1">
+                  <h5 className="font-medium text-sm capitalize">{symptom.category}</h5>
                 </div>
-              ))}
-            </div>
+                <Badge variant="outline" className={getSeverityColor(symptom.severity)}>
+                  {symptom.severity === 'mild' && (patientDetails.language === 'hindi' ? 'हल्का' : 'Mild')}
+                  {symptom.severity === 'moderate' && (patientDetails.language === 'hindi' ? 'मध्यम' : 'Moderate')}
+                  {symptom.severity === 'severe' && (patientDetails.language === 'hindi' ? 'गंभीर' : 'Severe')}
+                </Badge>
+              </div>
+            ))}
           </div>
 
           {/* Contextual Information */}

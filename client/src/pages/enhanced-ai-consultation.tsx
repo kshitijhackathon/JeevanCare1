@@ -380,6 +380,11 @@ export default function EnhancedAIConsultation() {
         }
         
         setIsProcessing(false);
+        
+        // Reset for next detection after a short delay
+        setTimeout(() => {
+          setSmartAnalysisResult(null);
+        }, 10000); // Clear after 10 seconds to allow new detection
       } else {
         // Fallback to original sendMessage
         sendMessage.mutate(message);

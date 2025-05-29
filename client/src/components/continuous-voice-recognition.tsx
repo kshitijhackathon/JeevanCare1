@@ -115,13 +115,17 @@ export default function ContinuousVoiceRecognition({
     };
 
     recognition.onend = () => {
-      // Auto-restart if still enabled
-      if (isEnabled && state !== 'paused') {
+      // Only auto-restart if still enabled and not aborted
+      if (isEnabled && state !== 'paused' && state !== 'error') {
         restartTimeoutRef.current = setTimeout(() => {
-          if (isEnabled) {
-            startListening();
+          if (isEnabled && recognitionRef.current === recognition) {
+            try {
+              startListening();
+            } catch (error) {
+              console.log('Restart failed:', error);
+            }
           }
-        }, 500);
+        }, 1000);
       }
     };
 
@@ -137,6 +141,17 @@ export default function ContinuousVoiceRecognition({
         variant: "destructive",
       });
       return;
+    }
+
+    // Stop any existing recognition first
+    if (recognitionRef.current) {
+      try {
+        recognitionRef.current.stop();
+        recognitionRef.current.abort();
+      } catch (e) {
+        console.log('Cleanup before start:', e);
+      }
+      recognitionRef.current = null;
     }
 
     try {
@@ -189,6 +204,9 @@ export default function ContinuousVoiceRecognition({
 
   // Enhanced cleanup function
   const cleanup = useCallback(() => {
+    setIsEnabled(false);
+    setState('paused');
+    
     if (timeoutRef.current) {
       clearTimeout(timeoutRef.current);
       timeoutRef.current = null;
@@ -199,6 +217,9 @@ export default function ContinuousVoiceRecognition({
     }
     if (recognitionRef.current) {
       try {
+        recognitionRef.current.onend = null;
+        recognitionRef.current.onerror = null;
+        recognitionRef.current.onresult = null;
         recognitionRef.current.stop();
         recognitionRef.current.abort();
       } catch (e) {
@@ -206,8 +227,6 @@ export default function ContinuousVoiceRecognition({
       }
       recognitionRef.current = null;
     }
-    setIsEnabled(false);
-    setState('paused');
     setTranscript('');
   }, []);
 

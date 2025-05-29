@@ -254,8 +254,8 @@ export class SmartSymptomDetector {
       };
     }
 
-    let hindiResponse = `प्रिय ${patientDetails.name} जी, आपने बहुत अच्छे से अपनी समस्या बताई है। मैंने आपके लक्षणों का सावधानीपूर्वक विश्लेषण किया है:\n\n`;
-    let englishResponse = `Dear ${patientDetails.name}, thank you for sharing your concerns with me. I've carefully analyzed your symptoms and I'm here to help you feel better:\n\n`;
+    let hindiResponse = `${patientDetails.name} जी, आपके लक्षणों को देखते हुए:\n\n`;
+    let englishResponse = `${patientDetails.name}, based on your symptoms:\n\n`;
 
     // Add detected symptoms with emoji hints and caring tone
     detectedSymptoms.forEach((symptom, index) => {

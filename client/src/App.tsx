@@ -28,6 +28,7 @@ import Prescription from "@/pages/prescription";
 import SymptomChecker from "@/pages/symptom-checker";
 import VoiceCompanion from "@/pages/voice-companion";
 import VoiceToneTest from "@/pages/voice-tone-test";
+import GeminiGrokMedicalTest from "@/pages/gemini-grok-medical-test";
 import MedicalTest from "@/pages/medical-test";
 import NotFound from "@/pages/not-found";
 import GetStarted from "@/pages/auth/get-started";
@@ -103,6 +104,7 @@ function Router() {
           <Route path="/symptom-checker" component={SymptomChecker} />
           <Route path="/voice-companion" component={VoiceCompanion} />
           <Route path="/voice-tone-test" component={VoiceToneTest} />
+          <Route path="/gemini-grok-test" component={GeminiGrokMedicalTest} />
           <Route path="/medical-test" component={MedicalTest} />
         </>
       )}

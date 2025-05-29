@@ -126,24 +126,63 @@ export const symptomMap = {
   "soojan": "swelling"
 };
 
-// Enhanced disease detection using comprehensive database
+// Enhanced disease detection with better matching logic
 export function detectDiseaseFromText(text) {
-  const normalizedText = text.toLowerCase();
+  const normalizedText = text.toLowerCase().trim();
+  let bestMatch = null;
+  let highestConfidence = 0;
   
+  // Check each disease in database
   for (const [disease, info] of Object.entries(DISEASE_DATABASE)) {
     for (const keyword of info.hinglish) {
-      if (normalizedText.includes(keyword.toLowerCase())) {
+      const normalizedKeyword = keyword.toLowerCase();
+      
+      // Exact match gets highest confidence
+      if (normalizedText === normalizedKeyword) {
         return {
           disease: disease,
           medication: info.medication,
           warning: info.warning,
-          confidence: 0.95,
+          confidence: 0.98,
           matchedKeyword: keyword
         };
       }
+      
+      // Partial match within word boundaries
+      const keywordRegex = new RegExp(`\\b${normalizedKeyword}\\b`, 'i');
+      if (keywordRegex.test(normalizedText)) {
+        const confidence = normalizedKeyword.length / normalizedText.length;
+        if (confidence > highestConfidence) {
+          highestConfidence = confidence;
+          bestMatch = {
+            disease: disease,
+            medication: info.medication,
+            warning: info.warning,
+            confidence: 0.85 + confidence * 0.1,
+            matchedKeyword: keyword
+          };
+        }
+      }
+      
+      // Contains keyword (lower confidence)
+      else if (normalizedText.includes(normalizedKeyword)) {
+        const confidence = normalizedKeyword.length / normalizedText.length * 0.7;
+        if (confidence > highestConfidence) {
+          highestConfidence = confidence;
+          bestMatch = {
+            disease: disease,
+            medication: info.medication,
+            warning: info.warning,
+            confidence: 0.75,
+            matchedKeyword: keyword
+          };
+        }
+      }
     }
   }
-  return null;
+  
+  // Only return if confidence is above threshold
+  return (bestMatch && bestMatch.confidence > 0.6) ? bestMatch : null;
 }
 
 export function detectSymptomsFromText(text) {
@@ -293,52 +332,83 @@ export function generateContextualResponse(symptoms, context, patientDetails) {
   return response;
 }
 
-export function generateMedicationSuggestions(symptoms, severity = 'moderate') {
-  const medications = [];
+export function generateMedicationSuggestions(detectedDisease, symptoms, severity = 'moderate') {
+  let medications = [];
   
+  // If specific disease detected, use database medication
+  if (detectedDisease && DISEASE_DATABASE[detectedDisease.disease]) {
+    const diseaseInfo = DISEASE_DATABASE[detectedDisease.disease];
+    return [{
+      name: diseaseInfo.medication,
+      dosage: "As prescribed by doctor",
+      frequency: "Follow medical advice",
+      duration: "Complete the course",
+      instructions: diseaseInfo.warning
+    }];
+  }
+  
+  // Otherwise, generate based on symptoms
   symptoms.forEach(symptom => {
-    const normalizedSymptom = symptom.normalized;
+    const normalizedSymptom = symptom.normalized || symptom;
     
-    if (normalizedSymptom.includes('fever')) {
+    // Fever treatment
+    if (normalizedSymptom.includes('fever') || normalizedSymptom.includes('bukhar')) {
       medications.push({
-        name: 'Paracetamol',
-        dosage: severity === 'severe' ? '650mg' : '500mg',
-        frequency: 'Every 6-8 hours',
+        name: 'Paracetamol 500mg',
+        dosage: severity === 'severe' ? '2 tablets' : '1 tablet',
+        frequency: 'Every 6 hours',
         duration: '3-5 days',
-        instructions: 'Take with food'
+        instructions: 'Take with water after food. Monitor temperature regularly.'
       });
     }
     
-    if (normalizedSymptom.includes('pain')) {
+    // Pain treatment
+    if (normalizedSymptom.includes('pain') || normalizedSymptom.includes('dard')) {
       medications.push({
-        name: 'Ibuprofen',
-        dosage: '400mg',
+        name: 'Ibuprofen 400mg',
+        dosage: '1 tablet',
         frequency: 'Every 8 hours',
         duration: '3-5 days',
-        instructions: 'Take after meals'
+        instructions: 'Take after meals. Avoid on empty stomach.'
       });
     }
     
-    if (normalizedSymptom.includes('cough')) {
+    // Cough treatment
+    if (normalizedSymptom.includes('cough') || normalizedSymptom.includes('khansi')) {
       medications.push({
-        name: 'Honey and ginger tea',
-        dosage: '1 teaspoon honey',
+        name: 'Dextromethorphan Syrup',
+        dosage: '10ml',
         frequency: '3 times daily',
-        duration: '1 week',
-        instructions: 'Natural remedy, safe for all ages'
+        duration: '5-7 days',
+        instructions: 'Take with warm water. Avoid cold drinks.'
       });
     }
     
-    if (normalizedSymptom.includes('stomach') || normalizedSymptom.includes('vomiting')) {
+    // Stomach issues
+    if (normalizedSymptom.includes('stomach') || normalizedSymptom.includes('pet') || normalizedSymptom.includes('vomiting')) {
       medications.push({
-        name: 'ORS solution',
-        dosage: '1 packet in 200ml water',
+        name: 'Domperidone + ORS',
+        dosage: '1 tablet + 200ml ORS',
+        frequency: 'Every 6 hours',
+        duration: 'Until symptoms subside',
+        instructions: 'Take small frequent sips. Avoid spicy food.'
+      });
+    }
+    
+    // Diarrhea treatment
+    if (normalizedSymptom.includes('diarrhea') || normalizedSymptom.includes('dast') || normalizedSymptom.includes('loose motion')) {
+      medications.push({
+        name: 'Loperamide + Zinc',
+        dosage: '2mg tablet + 20mg zinc',
         frequency: 'After each loose motion',
-        duration: 'Until symptoms improve',
-        instructions: 'Prevents dehydration'
+        duration: 'Until normal stool',
+        instructions: 'Stay hydrated. BRAT diet recommended.'
       });
     }
   });
   
-  return medications;
+  // Remove duplicates and return
+  return medications.filter((med, index, self) => 
+    index === self.findIndex(m => m.name === med.name)
+  );
 }

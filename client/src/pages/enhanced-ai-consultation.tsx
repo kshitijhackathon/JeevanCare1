@@ -166,20 +166,45 @@ export default function EnhancedAIConsultation() {
       
       // Process with enhanced symptom detection before sending
       try {
-        const { detectSymptomsFromText, generateContextualResponse } = await import('@/lib/enhanced-symptom-detection.js');
-        const symptomContext = detectSymptomsFromText(transcript);
+        const { detectSymptomsFromText, detectDiseaseFromText } = await import('@/lib/enhanced-symptom-detection.js');
         
-        // Update detected symptoms immediately
+        // First try to detect specific disease
+        const diseaseResult = detectDiseaseFromText(transcript);
+        console.log('Disease detection result:', diseaseResult);
+        
+        if (diseaseResult) {
+          // Add the detected disease as a symptom for tracking
+          setDetectedSymptoms(prev => Array.from(new Set([...prev, diseaseResult.disease])));
+          console.log('Detected disease from voice:', diseaseResult.disease);
+          
+          // Generate immediate response for the detected disease
+          const response = patientDetails.language === 'hindi' 
+            ? `समझ गया, आपको ${diseaseResult.disease} की समस्या है। दवा: ${diseaseResult.medication}। सावधानी: ${diseaseResult.warning}`
+            : `I understand you have ${diseaseResult.disease}. Treatment: ${diseaseResult.medication}. Warning: ${diseaseResult.warning}`;
+          
+          const doctorMessage = {
+            role: 'doctor' as const,
+            content: response,
+            timestamp: new Date(),
+            type: 'text' as const
+          };
+          
+          setMessages(prev => [...prev, {
+            role: 'user' as const,
+            content: transcript,
+            timestamp: new Date(),
+            type: 'text' as const
+          }, doctorMessage]);
+          
+          return; // Don't process further if disease detected
+        }
+        
+        // Fallback to general symptom detection
+        const symptomContext = detectSymptomsFromText(transcript);
         if (symptomContext.symptoms && symptomContext.symptoms.length > 0) {
           const newSymptoms = symptomContext.symptoms.map((s: any) => s.normalized || s.original || s);
           setDetectedSymptoms(prev => Array.from(new Set([...prev, ...newSymptoms])));
           console.log('Detected symptoms from voice:', newSymptoms);
-        }
-        
-        // If disease detected, add it
-        if (symptomContext.detectedDisease) {
-          setDetectedSymptoms(prev => Array.from(new Set([...prev, symptomContext.detectedDisease.disease])));
-          console.log('Detected disease from voice:', symptomContext.detectedDisease.disease);
         }
       } catch (error) {
         console.error('Error processing voice transcript:', error);
@@ -368,7 +393,7 @@ export default function EnhancedAIConsultation() {
         }
         
         // Fallback: generate general prescription for symptoms
-        medications = generateMedicationSuggestions(detectedSymptoms.map(s => ({ normalized: s })));
+        medications = generateMedicationSuggestions(null, detectedSymptoms.map(s => ({ normalized: s })));
         
         const generalPrescription = {
           patientName: patientDetails.name,

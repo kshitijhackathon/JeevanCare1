@@ -770,9 +770,9 @@ export default function EnhancedAIConsultation() {
               </div>
             )}
             
-            {/* Advanced Voice Recognition Component */}
+            {/* Continuous Voice Recognition Component */}
             <div className="mb-3 md:mb-4">
-              <AdvancedVoiceRecognition
+              <ContinuousVoiceRecognition
                 onTranscript={handleVoiceTranscript}
                 language={patientDetails.language}
                 onLanguageChange={handleLanguageChange}

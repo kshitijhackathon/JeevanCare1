@@ -14,9 +14,11 @@ import { apiRequest } from "@/lib/queryClient";
 import PrescriptionTemplate from "@/components/prescription-template";
 import ContinuousVoiceRecognition from "@/components/continuous-voice-recognition";
 import PersonalizedAIAvatar from "@/components/personalized-ai-avatar";
+import SmartSymptomDisplay from "@/components/smart-symptom-display";
 import { extractEntities, mergeWithContext } from "@/lib/symptomNLP";
 import { getCtx, setCtx, addConversationTurn, resetCtx } from "@/lib/contextStore";
 import { buildDoctorPrompt, generateFollowUpQuestions } from "@/lib/doctorPrompt";
+import { smartSymptomDetector } from "@/lib/smart-symptom-context";
 
 interface PatientDetails {
   name: string;
@@ -56,6 +58,7 @@ export default function EnhancedAIConsultation() {
   const [isProcessing, setIsProcessing] = useState(false);
   const [showPrescription, setShowPrescription] = useState(false);
   const [detectedSymptoms, setDetectedSymptoms] = useState<string[]>([]);
+  const [smartAnalysisResult, setSmartAnalysisResult] = useState<any>(null);
   
   // Refs
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -336,7 +339,48 @@ export default function EnhancedAIConsultation() {
     setMessages(prev => [...prev, userMessage]);
     setCurrentMessage('');
     setIsProcessing(true);
-    sendMessage.mutate(message);
+    
+    // Use smart symptom context detection
+    processMessageWithSmartDetection(message);
+  };
+
+  const processMessageWithSmartDetection = async (message: string) => {
+    try {
+      // Smart symptom context detection
+      const smartAnalysis = smartSymptomDetector.detectSymptomContext(message);
+      
+      if (smartAnalysis.detectedSymptoms.length > 0) {
+        const contextualResponse = smartSymptomDetector.generateContextualResponse(smartAnalysis, patientDetails);
+        const responseText = patientDetails.language === 'hindi' ? contextualResponse.hindi : contextualResponse.english;
+        
+        // Add doctor's response with enhanced formatting
+        const doctorMessage: ChatMessage = {
+          role: 'doctor',
+          content: responseText,
+          timestamp: new Date(),
+          type: contextualResponse.emergencyFlag ? 'emergency' : 'analysis'
+        };
+        
+        setMessages(prev => [...prev, doctorMessage]);
+        
+        // Update detected symptoms with smart analysis
+        const symptomNames = smartAnalysis.detectedSymptoms.map(s => s.category);
+        setDetectedSymptoms(prev => Array.from(new Set([...prev, ...symptomNames])));
+        
+        // Auto-speak if important or emergency
+        if (contextualResponse.emergencyFlag || contextualResponse.confidence > 70) {
+          setTimeout(() => speakText(responseText), 500);
+        }
+        
+        setIsProcessing(false);
+      } else {
+        // Fallback to original sendMessage
+        sendMessage.mutate(message);
+      }
+    } catch (error) {
+      console.error('Smart detection error:', error);
+      sendMessage.mutate(message);
+    }
   };
 
   // Generate prescription using enhanced detection

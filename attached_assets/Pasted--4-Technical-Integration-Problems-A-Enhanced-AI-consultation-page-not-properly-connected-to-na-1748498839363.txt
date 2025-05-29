@@ -1,0 +1,99 @@
+🔧 4. Technical Integration Problems
+❌ A. Enhanced AI consultation page not properly connected to navigation
+Issue: Users are unable to access or return to the AI consultation screen easily.
+
+Symptoms:
+
+Clicking from home page doesn’t lead to AI screen.
+
+“Back” or “Consult again” buttons don’t work reliably.
+
+Probable Causes:
+
+Broken or missing route/link in front-end code.
+
+Incomplete router configuration (if using SPA like React).
+
+State not preserved when switching pages.
+
+Suggested Fixes:
+
+Ensure proper route binding (e.g. /consult) in router or JavaScript navigation code.
+
+Use client-side navigation (window.history.pushState or router-based).
+
+Pass required state/context using localStorage, global store, or query params.
+
+❌ B. Prescription generation sometimes fails
+Issue: After consultation, downloadable or viewable prescription isn't always created.
+
+Symptoms:
+
+Blank prescription page.
+
+Button does nothing or shows an error.
+
+Probable Causes:
+
+Missing or malformed response from AI (e.g. LLM didn’t return proper JSON or text format).
+
+PDF generation code not handling empty/missing fields.
+
+Client doesn’t wait for AI response before generating.
+
+Suggested Fixes:
+
+Validate AI output before using in prescription function.
+
+Add fallback defaults for missing fields.
+
+Use async/await properly and add loading indicators.
+
+❌ C. Real-time AI responses taking too long
+Issue: User input takes several seconds to return a response from the AI.
+
+Symptoms:
+
+Perceived lag between question and answer.
+
+Sometimes UI appears frozen.
+
+Probable Causes:
+
+Slow API response time from backend/LLM (e.g., Claude, OpenAI).
+
+No intermediate “typing…” or loading UI feedback.
+
+Suggested Fixes:
+
+Add loading indicator or typewriter animation to reduce perceived delay.
+
+Use AbortController to cancel long requests.
+
+Consider streaming LLM APIs if supported (for faster first-token display).
+
+Cache static responses (e.g., "What is BP?") locally for instant replies.
+
+❌ D. Camera permissions not handled gracefully
+Issue: When camera access is denied or fails, user gets no clear message or fallback.
+
+Symptoms:
+
+Video screen stays black or crashes.
+
+No guidance given to user on how to enable camera.
+
+Probable Causes:
+
+getUserMedia() rejection not caught.
+
+No fallback UI or error messaging.
+
+Suggested Fixes:
+
+Wrap navigator.mediaDevices.getUserMedia() in try/catch and show user-friendly alerts.
+
+Guide user to allow permissions manually in browser.
+
+Add fallback screen/image if camera unavailable.
+

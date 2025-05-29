@@ -13,6 +13,9 @@ import { useMutation } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import PrescriptionTemplate from "@/components/prescription-template";
 import AdvancedVoiceRecognition from "@/components/advanced-voice-recognition";
+import { extractEntities, mergeWithContext } from "@/lib/symptomNLP";
+import { getCtx, setCtx, addConversationTurn, resetCtx } from "@/lib/contextStore";
+import { buildDoctorPrompt, generateFollowUpQuestions } from "@/lib/doctorPrompt";
 
 interface PatientDetails {
   name: string;
@@ -126,6 +129,23 @@ export default function EnhancedAIConsultation() {
     }
   };
 
+  // Initialize context when consultation starts
+  useEffect(() => {
+    if (hasStartedCall && !getCtx().sessionId) {
+      const initialCtx = resetCtx();
+      setCtx({
+        ...initialCtx,
+        userInfo: {
+          name: patientDetails.name,
+          age: patientDetails.age,
+          gender: patientDetails.gender,
+          bloodGroup: patientDetails.bloodGroup,
+          language: patientDetails.language
+        }
+      });
+    }
+  }, [hasStartedCall, patientDetails]);
+
   // Handle voice transcript from advanced voice recognition
   const handleVoiceTranscript = (transcript: string) => {
     if (transcript.trim()) {
@@ -136,6 +156,31 @@ export default function EnhancedAIConsultation() {
   // Handle language change
   const handleLanguageChange = (newLanguage: string) => {
     setPatientDetails(prev => ({ ...prev, language: newLanguage }));
+  };
+
+  // Enhanced message processing with NLP
+  const processMessageWithNLP = (message: string) => {
+    // Extract entities using the new NLP system
+    const entities = extractEntities(message, patientDetails.language === 'hindi' ? 'hi-IN' : 'en-US');
+    
+    // Get current context and merge with new entities
+    const currentCtx = getCtx();
+    const updatedCtx = mergeWithContext(entities, currentCtx);
+    setCtx(updatedCtx);
+    
+    // Add conversation turn
+    addConversationTurn('user', message, entities);
+    
+    // Update detected symptoms for UI
+    const newSymptoms = entities
+      .filter(entity => entity.type === 'symptom')
+      .map(entity => entity.entity);
+    
+    if (newSymptoms.length > 0) {
+      setDetectedSymptoms(prev => [...new Set([...prev, ...newSymptoms])]);
+    }
+    
+    return { entities, updatedCtx };
   };
 
   // Send message mutation

@@ -1,0 +1,156 @@
+🔔  PROJECT CONTEXT
+I’m building a browser-based Healthcare assistant on Replit.  
+Front-end: HTML + Tailwind CSS + JavaScript  
+Back-end: pure browser JS calling an LLM endpoint (currently Groq / Claude) for dialogue.  
+Target language: Hinglish.  
+Key feature:  the AI must read the user’s free-text or voice-to-text messages, extract symptoms accurately, keep conversation context, recognise regional synonyms (“dard”, “takleef”, “jalan”, “sujan”, etc.), and reply with precise, doctor-style Hinglish answers—**never** generic “Main aapki baat samajh gaya” lines.
+
+At present we see four gaps:  
+1 ️⃣ **Generic fallback answers.** Model sometimes replies “Main aapki baat samajh gaya” without specific diagnostic follow-ups.  
+2 ️⃣ **Complex condition miss.** It fails to connect multi-symptom inputs (e.g., “bukhaar + pet dard + loose motions”) to likely diagnoses (gastroenteritis, appendicitis, etc.).  
+3 ️⃣ **Regional synonym miss.** Different Hindi words for pain (“dard”, “peeda”, “takleef”) or burning (“jalan”, “sooja”, “jalan”) are not mapped, so NLU fails.  
+4 ️⃣ **No context memory.** Each new user line is treated in isolation; the model forgets previous complaints, medicines already suggested, or vitals collected.
+
+⚠️  We must fix these WITHOUT leaving the browser sandbox (no server-side Python), but we can call remote APIs (Groq / Claude / OpenAI etc.) and can ship static files (JSON, JS modules) within Replit.
+
+──────────────────────────────────────────────────────────
+🎯  WHAT I NEED FROM YOU (REPLIT AI)
+
+Design and generate the **code, data, and LLM-prompt strategy** that will close the four gaps above.  Deliver:
+
+A.  **JavaScript module `symptomNLP.js`** that runs 100 % in the browser and exports:
+    • `extractEntities(text, lang)`  → returns array of {entity, type} where type ∈ {symptom, duration, severity, body_part}.  
+    • `normalizeWord(word)` using a **synonym map** you will generate (see C).  
+    • `mergeWithContext(entities, sessionCtx)` to produce an updated `sessionCtx` object.
+
+B.  **Session-context store** (simple in-memory JS object) with helpers:
+    • `getCtx()` / `setCtx()`  
+    • `resetCtx()` when a new consultation starts.  
+    This ensures the LLM prompt always contains last N user + assistant turns, vitals, allergies, tests already ordered, etc.
+
+C.  **`symptom_synonyms.json`** containing at least **150 Hindi/Hinglish symptom synonyms** mapped to canonical English medical terms, e.g.  
+```json
+{ "dard": "pain", "takleef": "pain", "peeda": "pain",
+  "bukhaar": "fever", "tap": "fever",
+  "jalan": "burning", "jalaa": "burning",
+  "sujan": "swelling", "soojan": "swelling",
+  "ulTi": "vomiting", "ulti": "vomiting",
+  ...
+}
+You can hard-code this as a JS object or import the JSON.
+
+D. Improved LLM prompt template (doctorPrompt.js) that:
+
+Injects the normalised symptom list and sessionCtx into the system-level prompt EACH TURN.
+
+Includes a “medical reasoning scaffold” instructing the model to:
+• Acknowledge each recognised symptom with Hinglish restatement.
+• Ask at least one follow-up question per unclarified symptom.
+• Suggest likely diagnoses ranked by probability.
+• Avoid generic replies; if unsure, ask clarifying questions.
+
+States a hard rule: replies must be professional Hinglish; avoid pure fillers.
+
+E. Test harness:
+• HTML test page with a textarea for input and a pre tag for JSON debug output.
+• Script runs extractEntities, updates context, then prints the outbound prompt so we can inspect what goes to the LLM.
+• Provide 5 demo sentences illustrating edge cases (combo symptoms, synonym use, context reference).
+
+F. Edge-case unit tests written with plain JS or Vitest (if available) proving:
+• Same meaning phrase with different synonyms maps to same canonical entity.
+• Previous-turn context is retained.
+• Combined multi-symptom message yields >2 entities.
+• No generic fallback appears in LLM response stub (you may mock with regex).
+
+G. Comment blocks explaining how to plug your module into existing main.js where voice transcript arrives:
+
+js
+Copy
+Edit
+import { extractEntities, mergeWithContext } from "./symptomNLP.js";
+const speechText = transcript.toLowerCase();
+const ents = extractEntities(speechText, "hi-IN");
+ctx = mergeWithContext(ents, ctx);
+const prompt = buildPrompt(ctx, doctorPromptTemplate);
+const response = await fetchLLM(prompt);
+──────────────────────────────────────────────────────────
+🚀 ARCHITECTURE & IMPLEMENTATION DETAILS
+
+Entity extraction approach (browser-only).
+Use a two-step rule-based method—fast and no server:
+• Tokenise input with a simple regex (/\w+/gu).
+• For each token, normalizeWord(token) → canonical term via symptom_synonyms.
+• Collect multi-word patterns (e.g., “pet dard”, “seene mein jalan”) with small regex library; return entities with offsets for future UI highlighting.
+
+Context modelling.
+Represent context as:
+
+js
+Copy
+Edit
+ctx = {
+  userInfo: { name, age, gender, allergies },
+  symptoms: { "pain": {location:"abdomen", duration:"3 days"} , "fever": {...} },
+  testsOrdered: [],
+  lastAssistantTurn: "",
+  lastUserTurn: ""
+}
+mergeWithContext updates/extends ctx.symptoms rather than overwriting, giving the LLM cumulative knowledge.
+
+Prompt assembly.
+Build a string roughly like:
+
+yaml
+Copy
+Edit
+System: Aap ek AI doctor ho jo Hinglish mein baat karta hai...
+Known context: {ctx as JSON}
+User said (latest): "<raw user text>"
+Extracted entities: pain (abdomen, 3 days), fever (high)...
+Rules: 1) Har symptom ko address karo. 2) Generic replies mana hai...
+Model choice & temperature.
+Maintain low temperature (0.2) to reduce hallucination.
+Include a stop condition that if model tries to fall back to “Main samajh gaya” without specifics, the front-end shows a “clarification required” notice and automatically re-prompts user for details.
+
+Regional language expansion.
+Extend synonym map to include Urdu-influenced words (“sardard”, “kabz”), Marathi/Tamil borrowings if plausible. Add a quick-add helper so we can push new synonyms to symptom_synonyms.json without redeploying.
+
+Performance note.
+Keep symptomNLP.js < 25 KB gzipped; load once and cache.
+Use Intl.Segmenter if available for better tokenisation on Hindi scripts; else fallback to regex.
+
+──────────────────────────────────────────────────────────
+🔬 DELIVERABLE FORMAT
+
+Please output:
+
+symptomNLP.js – fully commented ES module
+
+symptom_synonyms.json – initial 150+ entries
+
+doctorPrompt.js – template string with placeholders and builder function
+
+contextStore.js – get/set/reset helpers
+
+testHarness.html + testHarness.js – demo/testing UI
+
+README_FIX_VOICE.md – quick setup & wiring guide (≤ 300 words)
+
+All files should be saved in Replit root so I can click “Run” and test.
+
+──────────────────────────────────────────────────────────
+✅ SUCCESS CRITERIA
+
+After integrating your output:
+
+AI no longer answers with generic “Main samajh gaya” lines.
+
+For input “Kal se pet dard aur ulti ho rahi hai, bukhaar bhi 101 hai” the extracted entities list must include pain (abdomen), vomiting, fever (high).
+
+The subsequent LLM reply must:
+• Restate each symptom in Hinglish,
+• Ask at least one clarifying question (duration, intensity, triggers),
+• Suggest a likely diagnosis set (e.g., gastroenteritis, food poisoning) and relevant tests (CBC, stool test),
+• Prescribe safe medicine examples with dosage.
+
+If the user later says “Aur aaj se pet me jalan bhi hai”, the assistant must merge this into the same context and refine its assessment.

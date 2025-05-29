@@ -100,13 +100,16 @@ export default function PersonalizedAIAvatar({
     return `${baseStyle} ${bgGradient} ${animation}`;
   };
 
-  // Get doctor's name based on characteristics
+  // Get doctor's name based on characteristics (stable selection)
   const getDoctorName = () => {
+    const patientName = patientDetails.name?.toLowerCase() || 'patient';
+    const hash = patientName.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
+    
     const femaleNames = ['Dr. Priya Sharma', 'Dr. Anita Patel', 'Dr. Kavya Singh'];
     const maleNames = ['Dr. Rajesh Kumar', 'Dr. Amit Gupta', 'Dr. Vikash Joshi'];
     
     const names = avatarStyle.gender === 'female' ? femaleNames : maleNames;
-    return names[Math.floor(Math.random() * names.length)];
+    return names[hash % names.length];
   };
 
   // Get greeting message based on patient and doctor characteristics

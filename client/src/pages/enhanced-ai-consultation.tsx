@@ -373,7 +373,7 @@ export default function EnhancedAIConsultation() {
                 duration: "As needed"
               }],
               instructions: [info.warning],
-              doctorName: "Dr. AI Assistant",
+              doctorName: getConsistentDoctorName(),
               clinicName: "Jeevan Care Digital Health",
               date: new Date().toLocaleDateString()
             };
@@ -403,7 +403,7 @@ export default function EnhancedAIConsultation() {
           diagnosis: `Symptoms: ${detectedSymptoms.join(', ')}`,
           medications: medications,
           instructions: ["Follow medication schedule", "Rest adequately", "Stay hydrated"],
-          doctorName: "Dr. AI Assistant",
+          doctorName: getConsistentDoctorName(),
           clinicName: "Jeevan Care Digital Health",
           date: new Date().toLocaleDateString()
         };
@@ -501,6 +501,21 @@ export default function EnhancedAIConsultation() {
   };
 
 
+
+  // Get consistent doctor name based on patient details
+  const getConsistentDoctorName = (): string => {
+    const patientName = patientDetails.name?.toLowerCase() || 'patient';
+    const hash = patientName.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
+    
+    const patientGender = patientDetails.gender?.toLowerCase();
+    if (patientGender === 'male') {
+      const femaleNames = ['Dr. Priya Sharma', 'Dr. Anita Patel', 'Dr. Kavya Singh'];
+      return femaleNames[hash % femaleNames.length];
+    } else {
+      const maleNames = ['Dr. Rajesh Kumar', 'Dr. Amit Gupta', 'Dr. Vikash Joshi'];
+      return maleNames[hash % maleNames.length];
+    }
+  };
 
   const generateConsultationSummary = (): string => {
     const symptomsText = detectedSymptoms.length > 0 

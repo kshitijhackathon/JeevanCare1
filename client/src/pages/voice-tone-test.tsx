@@ -85,13 +85,13 @@ export default function VoiceToneTest() {
       await voiceToneAdapter.speakText(
         textToSpeak,
         selectedLanguage,
-        selectedGender,
+        selectedGender || undefined,
         context
       );
       
       toast({
         title: "Voice Test Complete",
-        description: `Played ${context} scenario in ${languageNames[selectedLanguage as keyof typeof languageNames]}`,
+        description: `Played ${context} scenario in ${languageNames[selectedLanguage as keyof typeof languageNames] || selectedLanguage}`,
       });
     } catch (error) {
       toast({

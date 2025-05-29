@@ -842,7 +842,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Enhanced AI Medical Consultation with Gemini + Grok + Authentic Medicine Database
-  app.post("/api/ai-doctor/enhanced-consultation", isAuthenticated, async (req, res) => {
+  app.post("/api/ai-doctor/enhanced-consultation", async (req, res) => {
     try {
       const { message, patientDetails } = req.body;
       
@@ -860,19 +860,53 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log("Diagnosis confidence:", result.confidence);
       console.log("Found medicines:", result.medicines.length);
       
+      // If no specific diagnosis found, provide general medicines from authentic database
+      let finalMedicines = result.medicines;
+      let finalDiagnosis = result.geminiAnalysis?.primaryDiagnosis || result.grokAnalysis?.diagnosis;
+      
+      if (!finalDiagnosis || result.confidence < 60) {
+        // Generate general prescription for symptom relief
+        const generalPrescription = enhancedPrescriptionEngine.generateGeneralComplaintPrescription(
+          message,
+          patientDetails.age || '25',
+          patientDetails.gender || 'male'
+        );
+        
+        finalMedicines = generalPrescription.medicines.map(item => ({
+          id: item.medicine.id,
+          name: item.medicine.name,
+          price: item.medicine.price,
+          manufacturer: item.medicine.manufacturer,
+          type: item.medicine.type,
+          composition: item.medicine.composition,
+          description: item.medicine.description,
+          category: item.medicine.category,
+          dosageForm: item.medicine.dosageForm,
+          strength: item.medicine.strength,
+          packageSize: item.medicine.packageSize,
+          prescriptionRequired: item.medicine.prescriptionRequired,
+          dosage: item.dosage,
+          frequency: item.frequency,
+          duration: item.duration,
+          instructions: item.instructions
+        }));
+        
+        finalDiagnosis = 'General symptomatic treatment';
+      }
+
       // Format response for frontend
       const response = {
         response: result.finalResponse,
         detectedLanguage: result.detectedLanguage,
-        diagnosis: result.geminiAnalysis?.primaryDiagnosis || result.grokAnalysis?.diagnosis,
+        diagnosis: finalDiagnosis,
         confidence: result.confidence,
         severity: result.severity,
-        medicines: result.medicines,
+        medicines: finalMedicines,
         geminiAnalysis: result.geminiAnalysis,
         grokAnalysis: result.grokAnalysis,
         urgency: result.geminiAnalysis?.urgency || result.grokAnalysis?.emergencyAlert ? 'high' : 'low',
         followUp: result.geminiAnalysis?.followUp || result.grokAnalysis?.whenToSeeDoctor,
-        type: result.severity === 'severe' ? 'emergency' : result.medicines?.length > 0 ? 'prescription' : 'analysis'
+        type: result.severity === 'severe' ? 'emergency' : finalMedicines?.length > 0 ? 'prescription' : 'analysis'
       };
       
       res.json(response);

@@ -32,7 +32,7 @@ interface ChatMessage {
   role: 'user' | 'doctor';
   content: string;
   timestamp: Date;
-  type: 'text' | 'prescription';
+  type: 'text' | 'prescription' | 'emergency' | 'analysis';
   prescription?: any;
 }
 
@@ -138,9 +138,7 @@ export default function EnhancedAIConsultation() {
     // Add welcome message to chat area
     const welcomeMessage: ChatMessage = {
       role: 'doctor',
-      content: patientDetails.language === 'hindi' 
-        ? `नमस्ते ${patientDetails.name}! मैं डॉ. ${doctorInfo.name} हूं। कृपया चिंता न करें, मैं आपकी मदद के लिए यहां हूं। अपनी समस्याओं के बारे में विस्तार से बताएं।`
-        : `Good evening ${patientDetails.name}! I'm Dr. ${doctorInfo.name}. Please don't worry, I'm here to help you. Tell me about your concerns in detail.`,
+      content: `Good evening ${patientDetails.name}! I'm Dr. ${doctorInfo.name}. Please don't worry, I'm here to help you. Tell me about your concerns in detail.`,
       timestamp: new Date(),
       type: 'text'
     };
@@ -762,18 +760,12 @@ export default function EnhancedAIConsultation() {
       <div className="flex flex-col lg:flex-row h-[calc(100vh-80px)]">
         {/* Doctor Avatar Section - Clean Design */}
         <div className="flex-1 relative bg-gradient-to-br from-blue-50 to-cyan-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-3xl p-6 text-center w-full max-w-sm shadow-xl border">
+          <div className="bg-white rounded-2xl p-4 text-center w-full max-w-xs shadow-lg border">
             <PersonalizedAIAvatar 
               patientDetails={patientDetails}
               isActive={hasStartedCall}
               doctorTone="friendly"
             />
-            <h3 className="text-xl font-bold text-gray-800 mb-2 mt-4">AI Medical Assistant</h3>
-            <p className="text-gray-600 mb-4">General Physician</p>
-            <div className="flex items-center justify-center space-x-2">
-              <div className="w-3 h-3 bg-green-500 rounded-full animate-pulse"></div>
-              <span className="text-green-600 font-semibold">Available Now</span>
-            </div>
           </div>
 
           {/* Clean Controls */}

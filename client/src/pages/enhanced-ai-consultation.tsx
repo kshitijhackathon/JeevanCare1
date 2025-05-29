@@ -385,17 +385,19 @@ export default function EnhancedAIConsultation() {
 
   return (
     <div className="min-h-screen bg-gray-900 text-white relative overflow-hidden">
-      {/* Header */}
-      <div className="bg-gray-800 p-4 flex items-center justify-between shadow-lg">
-        <div className="flex items-center space-x-3">
+      {/* Header - Mobile Optimized */}
+      <div className="bg-gray-800 p-3 md:p-4 flex items-center justify-between shadow-lg">
+        <div className="flex items-center space-x-2 md:space-x-3 min-w-0 flex-1">
           <Link href="/">
-            <Button variant="ghost" size="sm" className="text-white hover:bg-gray-700">
+            <Button variant="ghost" size="sm" className="text-white hover:bg-gray-700 min-w-[40px] h-[40px] p-2">
               <ArrowLeft className="h-4 w-4" />
             </Button>
           </Link>
-          <div>
-            <h2 className="font-semibold">AI Doctor Consultation</h2>
-            <p className="text-sm text-gray-300">{patientDetails.name} • {patientDetails.age}y • {patientDetails.gender}</p>
+          <div className="min-w-0 flex-1">
+            <h2 className="font-semibold text-sm md:text-base truncate">AI Doctor Consultation</h2>
+            <p className="text-xs md:text-sm text-gray-300 truncate">
+              {patientDetails.name} • {patientDetails.age}y • {patientDetails.gender}
+            </p>
           </div>
         </div>
         <div className="flex items-center space-x-2">
@@ -426,27 +428,32 @@ export default function EnhancedAIConsultation() {
             </div>
           )}
 
-          {/* Video Controls */}
-          <div className="absolute bottom-6 left-1/2 transform -translate-x-1/2 flex space-x-4">
+          {/* Video Controls - Mobile Optimized */}
+          <div className="absolute bottom-4 md:bottom-6 left-1/2 transform -translate-x-1/2 flex space-x-3 md:space-x-4">
             <Button
               onClick={() => setIsCameraOn(!isCameraOn)}
-              className={`rounded-full w-12 h-12 md:w-14 md:h-14 ${isCameraOn ? 'bg-gray-600 hover:bg-gray-700' : 'bg-red-600 hover:bg-red-700'}`}
+              className={`rounded-full min-w-[48px] min-h-[48px] md:w-14 md:h-14 p-3 shadow-lg ${isCameraOn ? 'bg-gray-600 hover:bg-gray-700' : 'bg-red-600 hover:bg-red-700'}`}
             >
               {isCameraOn ? <Video className="h-5 w-5 md:h-6 md:w-6" /> : <VideoOff className="h-5 w-5 md:h-6 md:w-6" />}
             </Button>
             <Button
               onClick={endConsultation}
-              className="rounded-full w-12 h-12 md:w-14 md:h-14 bg-red-600 hover:bg-red-700"
+              className="rounded-full min-w-[48px] min-h-[48px] md:w-14 md:h-14 p-3 bg-red-600 hover:bg-red-700 shadow-lg"
             >
               <Phone className="h-5 w-5 md:h-6 md:w-6" />
             </Button>
           </div>
         </div>
 
-        {/* Chat Section */}
-        <div className="w-full lg:w-96 bg-white text-gray-900 flex flex-col">
+        {/* Chat Section - Mobile Responsive */}
+        <div className="w-full lg:w-96 bg-white text-gray-900 flex flex-col min-h-[40vh] lg:min-h-full">
+          {/* Chat Header - Mobile */}
+          <div className="lg:hidden bg-gray-50 px-4 py-3 border-b flex items-center justify-between">
+            <h3 className="font-semibold text-gray-800">Chat with AI Doctor</h3>
+          </div>
+          
           {/* Messages */}
-          <div className="flex-1 p-4 overflow-y-auto space-y-4">
+          <div className="flex-1 p-3 md:p-4 overflow-y-auto space-y-3 md:space-y-4">
             {messages.map((message, index) => (
               <div key={index} className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}>
                 <div className={`max-w-[85%] p-3 rounded-lg ${
@@ -497,14 +504,14 @@ export default function EnhancedAIConsultation() {
             <div ref={messagesEndRef} />
           </div>
 
-          {/* Advanced Voice Recognition Section */}
-          <div className="p-4 border-t bg-gray-50">
+          {/* Advanced Voice Recognition Section - Mobile Optimized */}
+          <div className="p-3 md:p-4 border-t bg-gray-50">
             {detectedSymptoms.length > 0 && (
               <div className="mb-3">
                 <Button
                   onClick={generatePrescription}
                   size="sm"
-                  className="w-full bg-green-600 hover:bg-green-700"
+                  className="w-full bg-green-600 hover:bg-green-700 min-h-[44px]"
                 >
                   <FileText className="h-4 w-4 mr-2" />
                   Generate Prescription
@@ -513,7 +520,7 @@ export default function EnhancedAIConsultation() {
             )}
             
             {/* Advanced Voice Recognition Component */}
-            <div className="mb-4">
+            <div className="mb-3 md:mb-4">
               <AdvancedVoiceRecognition
                 onTranscript={handleVoiceTranscript}
                 language={patientDetails.language}
@@ -522,19 +529,20 @@ export default function EnhancedAIConsultation() {
               />
             </div>
             
-            {/* Text Input as Fallback */}
+            {/* Text Input as Fallback - Mobile Friendly */}
             <div className="flex space-x-2">
               <Textarea
                 value={currentMessage}
                 onChange={(e) => setCurrentMessage(e.target.value)}
                 placeholder="Type your symptoms here or use voice input above..."
-                className="flex-1 resize-none"
+                className="flex-1 resize-none text-base"
                 rows={2}
+                style={{ fontSize: '16px' }} // Prevents zoom on iOS
               />
               <Button
                 onClick={() => handleSendMessage()}
                 disabled={!currentMessage.trim() || isProcessing}
-                className="px-4"
+                className="min-w-[44px] min-h-[44px] px-3"
               >
                 <Send className="h-4 w-4" />
               </Button>

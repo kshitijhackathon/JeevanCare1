@@ -639,6 +639,60 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Voice Consultation API with Multilingual Support
+  app.post("/api/ai-doctor/voice-consultation", isAuthenticated, async (req, res) => {
+    try {
+      const { message, language, patientDetails } = req.body;
+      
+      if (!message || !patientDetails) {
+        return res.status(400).json({ error: "Message and patient details are required" });
+      }
+
+      console.log('Voice consultation request:', { message, language, patientDetails });
+
+      // Use comprehensive disease prediction engine for voice input
+      const medicalConsultation = await diseasePredictionEngine.generateMedicalConsultation(
+        message,
+        patientDetails
+      );
+
+      const { symptoms, prediction, medicines, advice, prescription } = medicalConsultation;
+
+      // Format response based on language
+      let response = advice;
+      if (language?.startsWith('hi')) {
+        // Provide Hindi response if available
+        if (prediction) {
+          response = `आपके लक्षणों के आधार पर, संभावित निदान ${prediction.disease} है। ${advice}`;
+        }
+      }
+
+      // Create comprehensive voice response
+      const voiceResponse = {
+        response,
+        symptoms: symptoms || [],
+        diagnosis: prediction?.disease || null,
+        confidence: prediction?.confidence || 0,
+        severity: prediction?.severity || 'mild',
+        medicines: medicines || [],
+        prescription,
+        language,
+        type: prescription ? 'prescription' : prediction ? 'analysis' : 'text'
+      };
+
+      res.json(voiceResponse);
+
+    } catch (error) {
+      console.error("Voice consultation error:", error);
+      res.status(500).json({ 
+        response: language?.startsWith('hi') 
+          ? "वॉयस चिकित्सा सेवा अस्थायी रूप से अनुपलब्ध है। कृपया पुनः प्रयास करें।"
+          : "Voice medical service temporarily unavailable. Please try again.",
+        error: "Failed to process voice consultation"
+      });
+    }
+  });
+
   // Generate Prescription API using Disease Prediction Engine
   app.post("/api/ai-doctor/generate-prescription", isAuthenticated, async (req, res) => {
     try {

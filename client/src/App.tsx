@@ -26,6 +26,7 @@ import HealthAssistant from "@/pages/health-assistant";
 import Notifications from "@/pages/notifications";
 import Prescription from "@/pages/prescription";
 import SymptomChecker from "@/pages/symptom-checker";
+import VoiceCompanion from "@/pages/voice-companion";
 import NotFound from "@/pages/not-found";
 import GetStarted from "@/pages/auth/get-started";
 import SignUp from "@/pages/auth/signup";

@@ -320,52 +320,51 @@ export default function AdvancedVoiceRecognition({
 
   return (
     <Card className="w-full">
-      <CardContent className="p-4 space-y-4">
-        {/* Language Selection */}
-        <div className="flex items-center space-x-2">
-          <label className="text-sm font-medium">Language:</label>
-          <Select value={language} onValueChange={onLanguageChange}>
-            <SelectTrigger className="w-48">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="english">🇬🇧 English</SelectItem>
-              <SelectItem value="hindi">🇮🇳 हिंदी (Hindi)</SelectItem>
-              <SelectItem value="hinglish">🌏 Hinglish</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
+      <CardContent className="p-2 space-y-2">
+        {/* Language Selection - Compact */}
+        <div className="flex items-center justify-between">
+          <div className="flex items-center space-x-2">
+            <label className="text-xs font-medium">Language:</label>
+            <Select value={language} onValueChange={onLanguageChange}>
+              <SelectTrigger className="w-32 h-8 text-xs">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="english">English</SelectItem>
+                <SelectItem value="hindi">हिंदी</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
 
-        {/* Voice Control Button */}
-        <div className="flex justify-center">
+          {/* Voice Control Button - Compact */}
           <Button
             onClick={state === 'listening' ? stopListening : startListening}
             disabled={isProcessing || state === 'processing'}
-            className={`w-20 h-20 rounded-full ${getButtonClass()}`}
+            className={`w-12 h-12 rounded-full ${getButtonClass()}`}
           >
             {state === 'listening' ? (
-              <MicOff className="h-8 w-8" />
+              <MicOff className="h-5 w-5" />
             ) : state === 'processing' ? (
-              <RefreshCw className="h-8 w-8 animate-spin" />
+              <RefreshCw className="h-5 w-5 animate-spin" />
             ) : (
-              <Mic className="h-8 w-8" />
+              <Mic className="h-5 w-5" />
             )}
           </Button>
         </div>
 
-        {/* Status Message */}
+        {/* Status Message - Compact */}
         <div className="text-center">
-          <p className={`text-sm ${state === 'error' ? 'text-red-600' : 'text-gray-600'}`}>
+          <p className={`text-xs ${state === 'error' ? 'text-red-600' : 'text-gray-600'}`}>
             {getStatusMessage()}
           </p>
         </div>
 
-        {/* Real-time Transcript Display */}
+        {/* Real-time Transcript Display - Compact */}
         {(interimTranscript || finalTranscript) && (
-          <div className="bg-gray-50 p-3 rounded-lg border-l-4 border-blue-500">
-            <div className="text-sm">
+          <div className="bg-gray-50 p-2 rounded border-l-2 border-blue-500">
+            <div className="text-xs">
               {finalTranscript && (
-                <div className="font-medium text-gray-800 mb-1">
+                <div className="font-medium text-gray-800">
                   ✓ {finalTranscript}
                 </div>
               )}
@@ -375,11 +374,6 @@ export default function AdvancedVoiceRecognition({
                 </div>
               )}
             </div>
-            {confidenceLevel > 0 && (
-              <div className="mt-2 text-xs text-gray-500">
-                Confidence: {Math.round(confidenceLevel * 100)}%
-              </div>
-            )}
           </div>
         )}
 

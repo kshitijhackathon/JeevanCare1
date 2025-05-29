@@ -7,7 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import { ArrowLeft, Video, VideoOff, Mic, MicOff, MessageSquare, Phone, Camera, FileText, Send, Download, Bot, User2, Stethoscope, Volume2 } from "lucide-react";
+import { ArrowLeft, Video, VideoOff, Mic, MicOff, MessageSquare, Phone, PhoneOff, Camera, FileText, Send, Download, Bot, User2, Stethoscope, Volume2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useMutation } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
@@ -846,7 +846,7 @@ export default function EnhancedAIConsultation() {
               onClick={handleGoBack}
               className="rounded-full w-16 h-16 bg-red-500 hover:bg-red-600 shadow-xl"
             >
-              <PhoneOff className="h-6 w-6" />
+              <Phone className="h-6 w-6" />
             </Button>
           </div>
         </div>

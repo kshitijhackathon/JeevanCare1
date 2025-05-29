@@ -83,6 +83,7 @@ function Router() {
           <Route path="/checkout" component={Checkout} />
           <Route path="/profile" component={Profile} />
           <Route path="/consultation" component={EnhancedAIConsultation} />
+          <Route path="/enhanced-ai-consultation" component={EnhancedAIConsultation} />
           <Route path="/ai-doctor" component={AIDoctorConsultation} />
           <Route path="/book-test" component={BookTest} />
           <Route path="/medicine-delivery" component={MedicineDelivery} />

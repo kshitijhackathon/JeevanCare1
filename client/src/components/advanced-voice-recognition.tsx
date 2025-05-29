@@ -319,97 +319,56 @@ export default function AdvancedVoiceRecognition({
   }
 
   return (
-    <Card className="w-full">
-      <CardContent className="p-2 space-y-2">
-        {/* Language Selection - Compact */}
-        <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-2">
-            <label className="text-xs font-medium">Language:</label>
-            <Select value={language} onValueChange={onLanguageChange}>
-              <SelectTrigger className="w-32 h-8 text-xs">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="english">English</SelectItem>
-                <SelectItem value="hindi">हिंदी</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-
-          {/* Voice Control Button - Compact */}
-          <Button
-            onClick={state === 'listening' ? stopListening : startListening}
-            disabled={isProcessing || state === 'processing'}
-            className={`w-12 h-12 rounded-full ${getButtonClass()}`}
-          >
-            {state === 'listening' ? (
-              <MicOff className="h-5 w-5" />
-            ) : state === 'processing' ? (
-              <RefreshCw className="h-5 w-5 animate-spin" />
-            ) : (
-              <Mic className="h-5 w-5" />
-            )}
-          </Button>
+    <div className="w-full bg-gray-50 rounded-lg p-2 border border-gray-200">
+      {/* Ultra-compact single row layout */}
+      <div className="flex items-center justify-between gap-2">
+        {/* Language selector - minimal */}
+        <div className="flex items-center gap-1">
+          <span className="text-xs text-gray-600">Lang:</span>
+          <Select value={language} onValueChange={onLanguageChange}>
+            <SelectTrigger className="w-16 h-6 text-xs border-gray-300">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="english">EN</SelectItem>
+              <SelectItem value="hindi">हिं</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
 
-        {/* Status Message - Compact */}
-        <div className="text-center">
-          <p className={`text-xs ${state === 'error' ? 'text-red-600' : 'text-gray-600'}`}>
-            {getStatusMessage()}
-          </p>
+        {/* Status - inline and minimal */}
+        <div className="flex-1 text-center">
+          <span className={`text-xs ${state === 'listening' ? 'text-green-600' : state === 'error' ? 'text-red-600' : 'text-gray-600'}`}>
+            {state === 'listening' ? '🎤 Listening...' : 
+             state === 'processing' ? '⚡ Processing...' : 
+             state === 'error' ? 'Error' : 'Tap mic'}
+          </span>
         </div>
 
-        {/* Real-time Transcript Display - Compact */}
-        {(interimTranscript || finalTranscript) && (
-          <div className="bg-gray-50 p-2 rounded border-l-2 border-blue-500">
-            <div className="text-xs">
-              {finalTranscript && (
-                <div className="font-medium text-gray-800">
-                  ✓ {finalTranscript}
-                </div>
-              )}
-              {interimTranscript && (
-                <div className="text-gray-500 italic">
-                  💭 {interimTranscript}
-                </div>
-              )}
-            </div>
-          </div>
-        )}
-
-        {/* Error State with Retry */}
-        {state === 'error' && (
-          <div className="flex justify-center space-x-2">
-            <Button onClick={resetAndRetry} variant="outline" size="sm">
-              <RefreshCw className="h-4 w-4 mr-1" />
-              Try Again
-            </Button>
-          </div>
-        )}
-
-        {/* Mobile-specific tips */}
-        {isMobile && (
-          <div className="text-xs text-gray-500 text-center bg-blue-50 p-2 rounded">
-            💡 Tip: Speak clearly and hold the phone close to your mouth for better recognition
-          </div>
-        )}
-        
-        {/* Network status indicator */}
-        <div className="flex items-center justify-center space-x-1 text-xs text-gray-400">
-          {navigator.onLine ? (
-            <>
-              <Wifi className="h-3 w-3 text-green-500" />
-              <span>Connected</span>
-            </>
+        {/* Voice button - compact */}
+        <Button
+          onClick={state === 'listening' ? stopListening : startListening}
+          disabled={isProcessing || state === 'processing'}
+          className={`w-8 h-8 rounded-full p-0 ${getButtonClass()}`}
+        >
+          {state === 'listening' ? (
+            <MicOff className="h-3 w-3" />
+          ) : state === 'processing' ? (
+            <RefreshCw className="h-3 w-3 animate-spin" />
           ) : (
-            <>
-              <WifiOff className="h-3 w-3 text-red-500" />
-              <span>Offline</span>
-            </>
+            <Mic className="h-3 w-3" />
           )}
+        </Button>
+      </div>
+
+      {/* Transcript - only when needed, very compact */}
+      {(finalTranscript || interimTranscript) && (
+        <div className="mt-1 p-1 bg-white rounded text-xs border border-gray-200">
+          {finalTranscript && <span className="text-gray-800">✓ {finalTranscript}</span>}
+          {interimTranscript && <span className="text-gray-500 italic"> {interimTranscript}</span>}
         </div>
-      </CardContent>
-    </Card>
+      )}
+    </div>
   );
 }
 

@@ -236,17 +236,7 @@ export default function PersonalizedAIAvatar({
         </Card>
       )}
 
-      {/* Greeting Message */}
-      <Card className="w-full max-w-md">
-        <CardContent className="p-4">
-          <div className="text-sm text-gray-700 leading-relaxed">
-            <div className="flex items-start space-x-2">
-              <Bot className="h-4 w-4 mt-1 text-blue-500 flex-shrink-0" />
-              <p>{getGreetingMessage()}</p>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
+
 
       {/* Activity Status */}
       <div className="text-center">

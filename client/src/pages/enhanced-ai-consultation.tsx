@@ -759,8 +759,8 @@ export default function EnhancedAIConsultation() {
 
       <div className="flex flex-col lg:flex-row h-[calc(100vh-80px)]">
         {/* Doctor Avatar Section - Clean Design */}
-        <div className="flex-1 relative bg-gradient-to-br from-blue-50 to-cyan-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl p-4 text-center w-full max-w-xs shadow-lg border">
+        <div className="flex-1 relative bg-gradient-to-br from-blue-50 to-cyan-50 flex items-center justify-center p-4 overflow-hidden">
+          <div className="bg-white rounded-2xl p-3 text-center w-full max-w-xs max-h-[70vh] shadow-lg border overflow-hidden">
             <PersonalizedAIAvatar 
               patientDetails={patientDetails}
               isActive={hasStartedCall}

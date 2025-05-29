@@ -363,9 +363,14 @@ Be direct, practical, and consider Indian healthcare context.
       const geminiAnalysis = geminiResult.status === 'fulfilled' ? geminiResult.value : null;
       const grokAnalysis = grokResult.status === 'fulfilled' ? grokResult.value : null;
 
-      // Extract diagnosis for medicine search
-      const primaryDiagnosis = geminiAnalysis?.primaryDiagnosis || grokAnalysis?.diagnosis || 'general symptoms';
-      const extractedSymptoms = geminiAnalysis?.symptoms || this.extractSymptoms(symptoms);
+      // Extract diagnosis for medicine search with enhanced symptom detection
+      const extractedSymptoms = this.extractSymptoms(symptoms);
+      let primaryDiagnosis = geminiAnalysis?.primaryDiagnosis || grokAnalysis?.diagnosis;
+      
+      // Enhanced symptom-to-condition mapping using authentic database
+      if (!primaryDiagnosis) {
+        primaryDiagnosis = this.mapSymptomsToCondition(extractedSymptoms);
+      }
 
       // Search for relevant medicines
       const medicines = this.searchMedicines(primaryDiagnosis, extractedSymptoms);
@@ -394,6 +399,42 @@ Be direct, practical, and consider Indian healthcare context.
       console.error('Comprehensive analysis failed:', error);
       throw error;
     }
+  }
+
+  private mapSymptomsToCondition(symptoms: string[]): string {
+    // Enhanced symptom-to-condition mapping based on common patterns
+    const symptomMap: { [key: string]: string[] } = {
+      'stomach pain': ['stomach', 'abdomen', 'belly', 'tummy', 'gastric', 'acid', 'indigestion'],
+      'headache': ['head', 'headache', 'migraine', 'pain in head'],
+      'fever': ['fever', 'temperature', 'hot', 'warm', 'chills'],
+      'cold': ['cold', 'cough', 'sneeze', 'runny nose', 'congestion'],
+      'back pain': ['back', 'spine', 'lower back', 'upper back'],
+      'muscle pain': ['muscle', 'ache', 'cramp', 'stiff', 'sore'],
+      'digestive issues': ['digestion', 'bloating', 'gas', 'constipation', 'diarrhea'],
+      'respiratory issues': ['breathing', 'chest', 'lung', 'breath', 'asthma'],
+      'skin issues': ['skin', 'rash', 'itch', 'allergy', 'dermatitis'],
+      'joint pain': ['joint', 'knee', 'ankle', 'wrist', 'arthritis']
+    };
+
+    // Count matches for each condition
+    const conditionScores: { [key: string]: number } = {};
+    
+    for (const [condition, keywords] of Object.entries(symptomMap)) {
+      conditionScores[condition] = 0;
+      for (const symptom of symptoms) {
+        for (const keyword of keywords) {
+          if (symptom.toLowerCase().includes(keyword)) {
+            conditionScores[condition]++;
+          }
+        }
+      }
+    }
+
+    // Return the condition with highest score
+    const bestMatch = Object.entries(conditionScores)
+      .sort(([,a], [,b]) => b - a)[0];
+      
+    return bestMatch && bestMatch[1] > 0 ? bestMatch[0] : 'general symptoms';
   }
 
   private extractSymptoms(text: string): string[] {

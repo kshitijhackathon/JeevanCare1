@@ -10,6 +10,8 @@ import { insertProductSchema, insertCartItemSchema, insertConsultationSchema } f
 import passport from 'passport';
 import { Strategy as GoogleStrategy } from 'passport-google-oauth20';
 import { Strategy as FacebookStrategy } from 'passport-facebook';
+import { medicalAI } from "./medical-ai-engine";
+import { diseasePredictionEngine } from "./disease-prediction-engine";
 
 if (!process.env.STRIPE_SECRET_KEY) {
   throw new Error('Missing required Stripe secret: STRIPE_SECRET_KEY');

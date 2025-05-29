@@ -704,7 +704,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (diagnosis && medications?.length > 0) {
         // Use provided diagnosis and medications
         const severity = symptoms?.length >= 4 ? 'moderate' : 'mild';
-        prescription = diseasePredictionEngine['generatePrescription'](
+        prescription = diseasePredictionEngine.generatePrescription(
           diagnosis,
           medications,
           patientDetails,

@@ -133,45 +133,66 @@ export class DiseasePredictionEngine {
   // Advanced symptom extraction with medical terminology
   extractMedicalSymptoms(text: string): string[] {
     const symptoms = new Set<string>();
-    const normalizedText = text.toLowerCase();
+    const normalizedText = text.toLowerCase().trim();
     
-    // Comprehensive symptom mapping with multiple variations
+    // Comprehensive symptom mapping with multiple variations and word boundaries
     const symptomPatterns = {
-      'fever': ['fever', 'temperature', 'high temp', 'hot', 'chills', 'bukhar', 'तेज बुखार'],
-      'headache': ['headache', 'head pain', 'sir dard', 'migraine', 'सिरदर्द'],
-      'cough': ['cough', 'coughing', 'khansi', 'dry cough', 'wet cough', 'खांसी'],
-      'sore_throat': ['sore throat', 'throat pain', 'gala kharab', 'throat infection', 'गले में दर्द'],
-      'runny_nose': ['runny nose', 'nasal discharge', 'nazla', 'nose running', 'नाक बहना'],
-      'sneezing': ['sneezing', 'achoo', 'chheenk', 'छींक'],
-      'body_aches': ['body aches', 'body pain', 'muscle pain', 'badan dard', 'शरीर दर्द'],
-      'fatigue': ['tired', 'weakness', 'fatigue', 'exhausted', 'kamzori', 'कमजोरी'],
-      'nausea': ['nausea', 'feeling sick', 'queasy', 'ulti', 'जी मिचलाना'],
-      'vomiting': ['vomiting', 'throwing up', 'ulti', 'vomit', 'उल्टी'],
-      'diarrhea': ['diarrhea', 'loose stools', 'dast', 'stomach upset', 'दस्त'],
-      'stomach_pain': ['stomach pain', 'abdominal pain', 'pet dard', 'stomach ache', 'पेट दर्द'],
-      'chest_pain': ['chest pain', 'chest discomfort', 'seene mein dard', 'सीने में दर्द'],
-      'shortness_of_breath': ['shortness of breath', 'difficulty breathing', 'breathless', 'saans ki takleef', 'सांस लेने में तकलीफ'],
-      'dizziness': ['dizziness', 'dizzy', 'lightheaded', 'chakkar', 'चक्कर'],
-      'rash': ['rash', 'skin rash', 'itching', 'khujli', 'खुजली'],
-      'burning_urination': ['burning urination', 'painful urination', 'peshab mein jalan', 'पेशाब में जलन'],
-      'frequent_urination': ['frequent urination', 'bar bar peshab', 'बार बार पेशाब'],
-      'joint_pain': ['joint pain', 'arthritis', 'jodon mein dard', 'जोड़ों में दर्द'],
-      'back_pain': ['back pain', 'kamar dard', 'कमर दर्द'],
-      'sleep_problems': ['insomnia', 'sleeplessness', 'neend nahi aana', 'नींद नहीं आना'],
-      'excessive_thirst': ['excessive thirst', 'increased thirst', 'zyada pyaas', 'ज्यादा प्यास'],
-      'weight_loss': ['weight loss', 'wajan kam hona', 'वजन कम होना'],
-      'night_sweats': ['night sweats', 'raat mein pasina', 'रात में पसीना'],
-      'loss_of_appetite': ['loss of appetite', 'bhookh na lagna', 'भूख न लगना']
+      'fever': ['fever', 'temperature', 'high temp', 'hot', 'chills', 'bukhar', 'तेज बुखार', 'बुखार', 'तापमान'],
+      'headache': ['headache', 'head pain', 'sir dard', 'migraine', 'सिरदर्द', 'सिर में दर्द', 'head ache'],
+      'cough': ['cough', 'coughing', 'khansi', 'dry cough', 'wet cough', 'खांसी', 'कफ', 'खासी'],
+      'sore_throat': ['sore throat', 'throat pain', 'gala kharab', 'throat infection', 'गले में दर्द', 'गला खराब'],
+      'runny_nose': ['runny nose', 'nasal discharge', 'nazla', 'nose running', 'नाक बहना', 'नजला'],
+      'sneezing': ['sneezing', 'achoo', 'chheenk', 'छींक', 'छीकना'],
+      'body_aches': ['body aches', 'body pain', 'muscle pain', 'badan dard', 'शरीर दर्द', 'बदन दर्द'],
+      'fatigue': ['tired', 'weakness', 'fatigue', 'exhausted', 'kamzori', 'कमजोरी', 'थकान', 'कमजोर'],
+      'nausea': ['nausea', 'feeling sick', 'queasy', 'ulti', 'जी मिचलाना', 'मिचली', 'उल्टी सा लगना'],
+      'vomiting': ['vomiting', 'throwing up', 'ulti', 'vomit', 'उल्टी', 'कै', 'उलटी'],
+      'diarrhea': ['diarrhea', 'loose stools', 'dast', 'stomach upset', 'दस्त', 'पेचिश', 'loose motion'],
+      'stomach_pain': ['stomach pain', 'abdominal pain', 'pet dard', 'stomach ache', 'पेट दर्द', 'पेट में दर्द'],
+      'chest_pain': ['chest pain', 'chest discomfort', 'seene mein dard', 'सीने में दर्द', 'छाती में दर्द'],
+      'shortness_of_breath': ['shortness of breath', 'difficulty breathing', 'breathless', 'saans ki takleef', 'सांस लेने में तकलीफ', 'सांस फूलना'],
+      'dizziness': ['dizziness', 'dizzy', 'lightheaded', 'chakkar', 'चक्कर', 'चक्कर आना'],
+      'rash': ['rash', 'skin rash', 'itching', 'khujli', 'खुजली', 'दाने', 'चकत्ते'],
+      'burning_urination': ['burning urination', 'painful urination', 'peshab mein jalan', 'पेशाब में जलन', 'पेशाब में दर्द'],
+      'frequent_urination': ['frequent urination', 'bar bar peshab', 'बार बार पेशाब', 'बार बार मूत्र'],
+      'joint_pain': ['joint pain', 'arthritis', 'jodon mein dard', 'जोड़ों में दर्द', 'गठिया'],
+      'back_pain': ['back pain', 'kamar dard', 'कमर दर्द', 'पीठ दर्द'],
+      'sleep_problems': ['insomnia', 'sleeplessness', 'neend nahi aana', 'नींद नहीं आना', 'अनिद्रा'],
+      'excessive_thirst': ['excessive thirst', 'increased thirst', 'zyada pyaas', 'ज्यादा प्यास', 'अधिक प्यास'],
+      'weight_loss': ['weight loss', 'wajan kam hona', 'वजन कम होना', 'वजन घटना'],
+      'night_sweats': ['night sweats', 'raat mein pasina', 'रात में पसीना', 'रात को पसीना'],
+      'loss_of_appetite': ['loss of appetite', 'bhookh na lagna', 'भूख न लगना', 'भूख नहीं लगना'],
+      'blurred_vision': ['blurred vision', 'vision problems', 'nazar ki samasya', 'धुंधला दिखना'],
+      'skin_problems': ['skin problems', 'skin issues', 'twacha ki samasya', 'त्वचा की समस्या'],
+      'swelling': ['swelling', 'bloating', 'sujan', 'सूजन', 'फूलना'],
+      'constipation': ['constipation', 'kabj', 'कब्ज', 'पेट साफ नहीं होना'],
+      'acid_reflux': ['acid reflux', 'heartburn', 'acidity', 'एसिडिटी', 'सीने में जलन']
     };
 
-    // Extract symptoms based on patterns
+    // Extract symptoms with improved pattern matching
     for (const [symptom, patterns] of Object.entries(symptomPatterns)) {
       for (const pattern of patterns) {
-        if (normalizedText.includes(pattern)) {
+        // Use word boundaries and partial matching for better detection
+        const regex = new RegExp(`\\b${pattern.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}`, 'i');
+        if (regex.test(normalizedText) || normalizedText.includes(pattern.toLowerCase())) {
           symptoms.add(symptom);
           break;
         }
       }
+    }
+
+    // Additional context-based detection
+    if (normalizedText.includes('pain') || normalizedText.includes('दर्द')) {
+      if (normalizedText.includes('head') || normalizedText.includes('सिर')) symptoms.add('headache');
+      if (normalizedText.includes('chest') || normalizedText.includes('सीना')) symptoms.add('chest_pain');
+      if (normalizedText.includes('stomach') || normalizedText.includes('पेट')) symptoms.add('stomach_pain');
+      if (normalizedText.includes('joint') || normalizedText.includes('जोड़')) symptoms.add('joint_pain');
+    }
+
+    if (normalizedText.includes('cold') || normalizedText.includes('जुकाम')) {
+      symptoms.add('runny_nose');
+      symptoms.add('sneezing');
+      symptoms.add('sore_throat');
     }
 
     return Array.from(symptoms);
@@ -395,60 +416,134 @@ Always emphasize consulting healthcare professionals for serious conditions.`;
     }
   }
 
-  // Generate medical prescription
-  private generatePrescription(
+  // Generate comprehensive medical prescription
+  generatePrescription(
     disease: string,
     medicines: Medicine[],
     patientDetails: any,
-    severity: 'mild' | 'moderate' | 'severe'
+    severity: 'mild' | 'moderate' | 'severe' = 'mild'
   ): any {
     
     const medications = medicines.map((med, index) => ({
+      id: index + 1,
       name: med.name,
       composition: med.composition,
+      manufacturer: med.manufacturer,
+      type: med.type,
       dosage: this.calculateDosage(med.type, patientDetails.age, severity),
       frequency: this.getFrequency(med.type, severity),
       duration: this.getDuration(disease, severity),
       instructions: this.getInstructions(med.type),
-      price: `₹${med.price}`
+      price: `₹${med.price}`,
+      totalCost: (parseFloat(med.price.toString()) * this.getDurationInDays(disease, severity) / 
+                 (this.getFrequency(med.type, severity).includes('Three') ? 3 : 
+                  this.getFrequency(med.type, severity).includes('Twice') ? 2 : 1)).toFixed(2)
     }));
+
+    const totalCost = medications.reduce((sum, med) => sum + parseFloat(med.totalCost), 0);
 
     return {
       id: `RX${Date.now()}`,
-      patientName: patientDetails.name,
-      age: patientDetails.age,
-      gender: patientDetails.gender,
-      bloodGroup: patientDetails.bloodGroup,
+      patientName: patientDetails.name || 'Patient',
+      age: patientDetails.age || '30',
+      gender: patientDetails.gender || 'Not specified',
+      bloodGroup: patientDetails.bloodGroup || 'Not specified',
       date: new Date().toLocaleDateString('en-IN'),
+      time: new Date().toLocaleTimeString('en-IN'),
       diagnosis: disease,
-      symptoms: medicines.map(m => m.description).join(', ').substring(0, 150) + "...",
+      symptoms: this.getFormattedSymptoms(disease),
       medications,
       instructions: this.getGeneralInstructions(disease, severity),
+      precautions: this.getPrecautions(disease, severity),
+      followUp: this.getFollowUpInstructions(disease, severity),
+      dietRecommendations: this.getDietRecommendations(disease),
       doctorName: patientDetails.gender === 'Male' ? 'Dr. Priya Sharma' : 'Dr. Arjun Patel',
+      doctorSpecialization: this.getDoctorSpecialization(disease),
       clinicName: 'JeevanCare AI Medical Center',
-      signature: 'AI Generated - Verified Digital Prescription'
+      clinicAddress: 'Sector 12, Noida, Uttar Pradesh - 201301',
+      signature: 'AI Generated - Verified Digital Prescription',
+      totalCost: `₹${totalCost.toFixed(2)}`,
+      validityDays: 30,
+      emergencyContact: '+91-9876543210'
     };
   }
 
   private calculateDosage(medicineType: string, age: string, severity: 'mild' | 'moderate' | 'severe'): string {
-    const ageNum = parseInt(age);
-    const severityMultiplier = severity === 'severe' ? 1.2 : severity === 'moderate' ? 1.0 : 0.8;
+    const ageNum = parseInt(age) || 30;
     
-    if (medicineType.includes('Tablet') || medicineType.includes('Capsule')) {
-      const baseDose = ageNum < 12 ? 0.5 : 1;
-      return `${Math.round(baseDose * severityMultiplier)} tablet`;
-    } else if (medicineType.includes('Syrup')) {
-      const baseDose = ageNum < 12 ? 5 : 10;
-      return `${Math.round(baseDose * severityMultiplier)}ml`;
+    // Age-based dosage calculations following medical standards
+    if (medicineType.includes('Antibiotic')) {
+      if (ageNum < 12) return "250mg";
+      if (ageNum < 18) return "375mg";
+      return severity === 'severe' ? "625mg" : "500mg";
     }
-    return "As directed";
+    
+    if (medicineType.includes('Analgesic') || medicineType.includes('Paracetamol')) {
+      if (ageNum < 12) return "250mg";
+      if (ageNum < 18) return "500mg";
+      return severity === 'severe' ? "650mg" : "500mg";
+    }
+    
+    if (medicineType.includes('Antihistamine')) {
+      if (ageNum < 12) return "2.5mg";
+      if (ageNum < 18) return "5mg";
+      return "10mg";
+    }
+    
+    if (medicineType.includes('Expectorant') || medicineType.includes('Syrup')) {
+      if (ageNum < 12) return "5ml";
+      if (ageNum < 18) return "7.5ml";
+      return "10ml";
+    }
+    
+    if (medicineType.includes('Antacid')) {
+      if (ageNum < 12) return "5ml";
+      return "10ml or 1 tablet";
+    }
+    
+    if (medicineType.includes('Anxiolytic')) {
+      if (ageNum < 18) return "Not recommended";
+      return severity === 'severe' ? "0.5mg" : "0.25mg";
+    }
+    
+    // Default tablet dosage
+    if (ageNum < 12) return "1/2 tablet";
+    if (ageNum < 18) return "1 tablet";
+    return severity === 'severe' ? "2 tablets" : "1 tablet";
   }
 
   private getFrequency(medicineType: string, severity: 'mild' | 'moderate' | 'severe'): string {
-    if (severity === 'severe') {
-      return medicineType.includes('Antibiotic') ? "Three times daily" : "Twice daily";
+    // Medical frequency standards based on medicine type and severity
+    if (medicineType.includes('Antibiotic')) {
+      return severity === 'severe' ? "Three times daily (8 hours apart)" : "Twice daily (12 hours apart)";
     }
-    return medicineType.includes('Antibiotic') ? "Twice daily" : "Once daily";
+    
+    if (medicineType.includes('Analgesic') || medicineType.includes('Paracetamol')) {
+      if (severity === 'severe') return "Four times daily (every 6 hours)";
+      if (severity === 'moderate') return "Three times daily (every 8 hours)";
+      return "Twice daily (every 12 hours)";
+    }
+    
+    if (medicineType.includes('Antihistamine')) {
+      return severity === 'severe' ? "Twice daily" : "Once daily at bedtime";
+    }
+    
+    if (medicineType.includes('Expectorant') || medicineType.includes('Syrup')) {
+      return severity === 'severe' ? "Four times daily" : "Three times daily";
+    }
+    
+    if (medicineType.includes('Antacid')) {
+      return "After meals and at bedtime";
+    }
+    
+    if (medicineType.includes('Anxiolytic')) {
+      return "Once daily at bedtime";
+    }
+    
+    // Default frequency based on severity
+    if (severity === 'severe') return "Three times daily";
+    if (severity === 'moderate') return "Twice daily";
+    return "Once daily";
   }
 
   private getDuration(disease: string, severity: 'mild' | 'moderate' | 'severe'): string {
@@ -480,30 +575,156 @@ Always emphasize consulting healthcare professionals for serious conditions.`;
 
   private getGeneralInstructions(disease: string, severity: 'mild' | 'moderate' | 'severe'): string[] {
     const baseInstructions = [
-      "Take all medicines as prescribed",
-      "Complete the full course of treatment",
+      "Take all medicines as prescribed at the correct time",
+      "Complete the full course of treatment even if feeling better",
       "Stay well hydrated - drink 8-10 glasses of water daily",
-      "Get adequate rest and sleep",
-      "Follow up if symptoms worsen or persist"
+      "Get adequate rest and sleep (7-8 hours)",
+      "Follow up if symptoms worsen or persist beyond expected duration"
     ];
 
     if (severity === 'severe') {
       baseInstructions.push("Seek immediate medical attention if symptoms worsen");
       baseInstructions.push("Monitor vital signs regularly");
+      baseInstructions.push("Keep emergency contact numbers handy");
     }
 
-    if (disease.includes('Respiratory') || ['Common Cold', 'Flu', 'Pneumonia', 'Bronchitis'].includes(disease)) {
+    if (disease.includes('Respiratory') || ['Common Cold', 'Flu', 'Pneumonia', 'Bronchitis', 'Asthma'].includes(disease)) {
       baseInstructions.push("Use steam inhalation 2-3 times daily");
       baseInstructions.push("Avoid cold foods and drinks");
       baseInstructions.push("Maintain good respiratory hygiene");
+      baseInstructions.push("Avoid smoking and polluted environments");
     }
 
     if (['UTI', 'Typhoid', 'Tuberculosis'].includes(disease)) {
       baseInstructions.push("Maintain strict personal hygiene");
       baseInstructions.push("Wash hands frequently with soap");
+      baseInstructions.push("Avoid sharing personal items");
     }
 
     return baseInstructions;
+  }
+
+  private getDurationInDays(disease: string, severity: 'mild' | 'moderate' | 'severe'): number {
+    const baseDays = severity === 'severe' ? 10 : severity === 'moderate' ? 7 : 5;
+    
+    if (['Pneumonia', 'Tuberculosis', 'Typhoid'].includes(disease)) {
+      return baseDays + 7;
+    }
+    if (['UTI', 'Bronchitis'].includes(disease)) {
+      return baseDays + 3;
+    }
+    return baseDays;
+  }
+
+  private getFormattedSymptoms(disease: string): string {
+    const diseaseSymptoms = DISEASE_SYMPTOM_MAPPING[disease as keyof typeof DISEASE_SYMPTOM_MAPPING];
+    if (diseaseSymptoms) {
+      return diseaseSymptoms.slice(0, 5).join(', ').replace(/_/g, ' ');
+    }
+    return 'Various symptoms reported by patient';
+  }
+
+  private getPrecautions(disease: string, severity: 'mild' | 'moderate' | 'severe'): string[] {
+    const precautions = [
+      "Avoid contact with others if infectious",
+      "Wear mask when going out",
+      "Maintain proper hygiene"
+    ];
+
+    if (['Common Cold', 'Flu'].includes(disease)) {
+      precautions.push("Cover mouth while coughing or sneezing");
+      precautions.push("Dispose tissues properly");
+    }
+
+    if (['UTI'].includes(disease)) {
+      precautions.push("Urinate after sexual activity");
+      precautions.push("Wipe from front to back");
+    }
+
+    if (['Diabetes', 'Hypertension'].includes(disease)) {
+      precautions.push("Monitor blood sugar/pressure regularly");
+      precautions.push("Follow prescribed diet strictly");
+    }
+
+    return precautions;
+  }
+
+  private getFollowUpInstructions(disease: string, severity: 'mild' | 'moderate' | 'severe'): string[] {
+    const followUp = [];
+    
+    if (severity === 'severe') {
+      followUp.push("Follow up within 2-3 days");
+      followUp.push("Emergency consultation if symptoms worsen");
+    } else if (severity === 'moderate') {
+      followUp.push("Follow up within 5-7 days");
+      followUp.push("Contact doctor if no improvement in 3 days");
+    } else {
+      followUp.push("Follow up within 7-10 days");
+      followUp.push("Contact if symptoms persist beyond expected duration");
+    }
+
+    if (['Diabetes', 'Hypertension'].includes(disease)) {
+      followUp.push("Regular monitoring appointments every 3 months");
+    }
+
+    return followUp;
+  }
+
+  private getDietRecommendations(disease: string): string[] {
+    const diet = [];
+
+    if (['Common Cold', 'Flu', 'Fever'].some(d => disease.includes(d))) {
+      diet.push("Consume warm liquids like soups and herbal teas");
+      diet.push("Eat fresh fruits rich in Vitamin C");
+      diet.push("Avoid dairy products temporarily");
+    }
+
+    if (['Gastritis', 'GERD'].includes(disease)) {
+      diet.push("Eat small, frequent meals");
+      diet.push("Avoid spicy, oily, and acidic foods");
+      diet.push("Include probiotics like yogurt");
+    }
+
+    if (['UTI'].includes(disease)) {
+      diet.push("Drink plenty of water and cranberry juice");
+      diet.push("Avoid caffeine and alcohol");
+    }
+
+    if (['Diabetes'].includes(disease)) {
+      diet.push("Low sugar, high fiber diet");
+      diet.push("Regular meal timings");
+      diet.push("Avoid processed foods");
+    }
+
+    if (diet.length === 0) {
+      diet.push("Maintain balanced, nutritious diet");
+      diet.push("Avoid junk and processed foods");
+      diet.push("Include fresh fruits and vegetables");
+    }
+
+    return diet;
+  }
+
+  private getDoctorSpecialization(disease: string): string {
+    if (['Common Cold', 'Flu', 'Pneumonia', 'Bronchitis', 'Asthma'].includes(disease)) {
+      return 'Pulmonologist';
+    }
+    if (['Gastritis', 'GERD', 'Food Poisoning'].includes(disease)) {
+      return 'Gastroenterologist';
+    }
+    if (['UTI'].includes(disease)) {
+      return 'Urologist';
+    }
+    if (['Diabetes'].includes(disease)) {
+      return 'Endocrinologist';
+    }
+    if (['Hypertension'].includes(disease)) {
+      return 'Cardiologist';
+    }
+    if (['Skin Allergy'].includes(disease)) {
+      return 'Dermatologist';
+    }
+    return 'General Physician';
   }
 }
 

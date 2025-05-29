@@ -26,7 +26,6 @@ interface PatientDetails {
   gender: string;
   age: string;
   bloodGroup: string;
-  language: string;
 }
 
 interface ChatMessage {
@@ -48,9 +47,10 @@ export default function EnhancedAIConsultation() {
     name: '',
     gender: '',
     age: '',
-    bloodGroup: '',
-    language: 'english'
+    bloodGroup: ''
   });
+  
+  const [detectedLanguage, setDetectedLanguage] = useState<string>('english');
 
   // Auto-populate form with user profile data when available
   useEffect(() => {

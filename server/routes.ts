@@ -14,6 +14,7 @@ import { medicalAI } from "./medical-ai-engine";
 import { diseasePredictionEngine } from "./disease-prediction-engine";
 import { enhancedLocalMedicalEngine } from "./enhanced-local-medical-engine";
 import { groqMedicalService } from "./groq-medical-service";
+import { geminiGrokMedicalEngine } from "./gemini-grok-medical-engine";
 
 if (!process.env.STRIPE_SECRET_KEY) {
   throw new Error('Missing required Stripe secret: STRIPE_SECRET_KEY');
@@ -833,6 +834,51 @@ export async function registerRoutes(app: Express): Promise<Server> {
           ? "वॉयस चिकित्सा सेवा अस्थायी रूप से अनुपलब्ध है। कृपया पुनः प्रयास करें।"
           : "Voice medical service temporarily unavailable. Please try again.",
         error: "Failed to process voice consultation"
+      });
+    }
+  });
+
+  // Enhanced AI Medical Consultation with Gemini + Grok + Authentic Medicine Database
+  app.post("/api/ai-doctor/enhanced-consultation", isAuthenticated, async (req, res) => {
+    try {
+      const { message, patientDetails } = req.body;
+      
+      console.log("=== ENHANCED MEDICAL CONSULTATION ===");
+      console.log("Patient message:", message);
+      console.log("Patient details:", patientDetails);
+      
+      // Use the comprehensive Gemini+Grok medical engine
+      const result = await geminiGrokMedicalEngine.generateComprehensiveResponse(
+        message,
+        patientDetails
+      );
+      
+      console.log("Language detected:", result.detectedLanguage);
+      console.log("Diagnosis confidence:", result.confidence);
+      console.log("Found medicines:", result.medicines.length);
+      
+      // Format response for frontend
+      const response = {
+        response: result.finalResponse,
+        detectedLanguage: result.detectedLanguage,
+        diagnosis: result.geminiAnalysis?.primaryDiagnosis || result.grokAnalysis?.diagnosis,
+        confidence: result.confidence,
+        severity: result.severity,
+        medicines: result.medicines,
+        geminiAnalysis: result.geminiAnalysis,
+        grokAnalysis: result.grokAnalysis,
+        urgency: result.geminiAnalysis?.urgency || result.grokAnalysis?.emergencyAlert ? 'high' : 'low',
+        followUp: result.geminiAnalysis?.followUp || result.grokAnalysis?.whenToSeeDoctor,
+        type: result.severity === 'severe' ? 'emergency' : result.medicines?.length > 0 ? 'prescription' : 'analysis'
+      };
+      
+      res.json(response);
+      
+    } catch (error) {
+      console.error("Enhanced consultation error:", error);
+      res.status(500).json({
+        response: "चिकित्सा सेवा अस्थायी रूप से अनुपलब्ध है। कृपया पुनः प्रयास करें। | Medical service temporarily unavailable. Please try again.",
+        error: "Failed to process medical consultation"
       });
     }
   });

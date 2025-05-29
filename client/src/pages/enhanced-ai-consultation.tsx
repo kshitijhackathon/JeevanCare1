@@ -581,27 +581,49 @@ export default function EnhancedAIConsultation() {
     });
   };
 
-  // Enhanced multilingual text-to-speech with adaptive voice tones
-  const speakText = async (text: string, context: 'diagnosis' | 'prescription' | 'general' | 'emergency' = 'general') => {
+  // Simplified and reliable text-to-speech implementation
+  const speakText = (text: string, context: 'diagnosis' | 'prescription' | 'general' | 'emergency' = 'general') => {
     if (!text.trim()) return;
     
     try {
-      await voiceToneAdapter.speakText(
-        text,
-        detectedLanguage || 'english',
-        patientDetails.gender?.toLowerCase(),
-        context
-      );
-    } catch (error) {
-      console.warn('Advanced voice synthesis failed, using basic fallback:', error);
-      // Fallback to basic speech synthesis
       if ('speechSynthesis' in window) {
+        // Stop any ongoing speech
         window.speechSynthesis.cancel();
-        const utterance = new SpeechSynthesisUtterance(text);
-        utterance.lang = detectedLanguage === 'hindi' ? 'hi-IN' : 'en-US';
-        utterance.rate = 0.85;
-        window.speechSynthesis.speak(utterance);
+        
+        // Clean text for speech
+        const cleanText = text
+          .replace(/\*\*/g, '')
+          .replace(/[🌡️💊⚠️🩺•🫁❤️🤢🧠🦴🟡]/g, '')
+          .replace(/\n\n/g, '. ')
+          .replace(/\n/g, ' ')
+          .trim();
+
+        if (!cleanText) return;
+        
+        setTimeout(() => {
+          try {
+            const utterance = new SpeechSynthesisUtterance(cleanText);
+            utterance.lang = detectedLanguage === 'hindi' ? 'hi-IN' : 'en-US';
+            utterance.rate = context === 'emergency' ? 0.9 : 0.8;
+            utterance.volume = 0.8;
+            
+            // Add error handling
+            utterance.onerror = (event) => {
+              console.log('Speech synthesis error:', event);
+            };
+            
+            utterance.onend = () => {
+              console.log('Speech completed');
+            };
+            
+            window.speechSynthesis.speak(utterance);
+          } catch (error) {
+            console.log('Error creating speech utterance:', error);
+          }
+        }, 100);
       }
+    } catch (error) {
+      console.log('Speech synthesis not available or failed:', error);
     }
   };
 

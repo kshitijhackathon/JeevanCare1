@@ -913,15 +913,7 @@ export default function EnhancedAIConsultation() {
             <div ref={messagesEndRef} />
           </div>
 
-          {/* Smart Symptom Analysis Display */}
-          {smartAnalysisResult && (
-            <div className="p-3 md:p-4 border-t bg-gradient-to-r from-blue-50 to-cyan-50">
-              <SmartSymptomDisplay 
-                analysis={smartAnalysisResult}
-                patientDetails={patientDetails}
-              />
-            </div>
-          )}
+
 
           {/* Advanced Voice Recognition Section - Mobile Optimized */}
           <div className="p-3 md:p-4 border-t bg-gray-50">

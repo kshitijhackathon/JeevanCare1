@@ -59,32 +59,32 @@ export default function PrescriptionTemplate({ prescription, onDownload }: Presc
       <div className="p-6 space-y-4">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
-            <label className="text-sm font-semibold text-gray-700">Patient Name</label>
-            <div className="mt-1 p-2 border-b border-gray-300 bg-gray-50">
+            <label className="text-sm font-bold text-gray-900">Patient Name</label>
+            <div className="mt-1 p-2 border-b-2 border-gray-400 bg-gray-50 font-semibold text-gray-900">
               {prescription.patientName}
             </div>
           </div>
           <div>
-            <label className="text-sm font-semibold text-gray-700">Age</label>
-            <div className="mt-1 p-2 border-b border-gray-300 bg-gray-50">
+            <label className="text-sm font-bold text-gray-900">Age</label>
+            <div className="mt-1 p-2 border-b-2 border-gray-400 bg-gray-50 font-semibold text-gray-900">
               {prescription.age}
             </div>
           </div>
           <div>
-            <label className="text-sm font-semibold text-gray-700">Date</label>
-            <div className="mt-1 p-2 border-b border-gray-300 bg-gray-50">
+            <label className="text-sm font-bold text-gray-900">Date</label>
+            <div className="mt-1 p-2 border-b-2 border-gray-400 bg-gray-50 font-semibold text-gray-900">
               {prescription.date}
             </div>
           </div>
           <div>
-            <label className="text-sm font-semibold text-gray-700">Blood Group</label>
-            <div className="mt-1 p-2 border-b border-gray-300 bg-gray-50">
+            <label className="text-sm font-bold text-gray-900">Blood Group</label>
+            <div className="mt-1 p-2 border-b-2 border-gray-400 bg-gray-50 font-semibold text-gray-900">
               {prescription.bloodGroup}
             </div>
           </div>
           <div>
-            <label className="text-sm font-semibold text-gray-700">Gender</label>
-            <div className="mt-1 p-2 border-b border-gray-300 bg-gray-50">
+            <label className="text-sm font-bold text-gray-900">Gender</label>
+            <div className="mt-1 p-2 border-b-2 border-gray-400 bg-gray-50 font-semibold text-gray-900">
               {prescription.gender}
             </div>
           </div>
@@ -92,39 +92,39 @@ export default function PrescriptionTemplate({ prescription, onDownload }: Presc
 
         {/* Symptoms Section */}
         <div className="mt-6">
-          <h3 className="text-lg font-semibold text-gray-800 mb-3">Chief Complaints</h3>
-          <div className="p-3 bg-gray-50 rounded border">
+          <h3 className="text-xl font-bold text-gray-900 mb-3">Chief Complaints</h3>
+          <div className="p-3 bg-gray-50 rounded border-2 border-gray-300 font-semibold text-gray-900">
             {prescription.symptoms}
           </div>
         </div>
 
         {/* Medications Section */}
         <div className="mt-6">
-          <h3 className="text-lg font-semibold text-gray-800 mb-3">Prescribed Medications</h3>
+          <h3 className="text-xl font-bold text-gray-900 mb-3">Prescribed Medications</h3>
           <div className="space-y-3">
             {prescription.medications.map((med, index) => (
-              <div key={index} className="border rounded-lg p-4 bg-gray-50">
+              <div key={index} className="border-2 border-gray-300 rounded-lg p-4 bg-gray-50">
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
                   <div>
-                    <label className="text-xs font-medium text-gray-600">Medicine</label>
-                    <div className="font-semibold text-gray-800">{med.name}</div>
+                    <label className="text-sm font-bold text-gray-900">Medicine</label>
+                    <div className="font-bold text-gray-900 text-lg">{med.name}</div>
                   </div>
                   <div>
-                    <label className="text-xs font-medium text-gray-600">Dosage</label>
-                    <div className="text-gray-800">{med.dosage}</div>
+                    <label className="text-sm font-bold text-gray-900">Dosage</label>
+                    <div className="font-semibold text-gray-900">{med.dosage}</div>
                   </div>
                   <div>
-                    <label className="text-xs font-medium text-gray-600">Frequency</label>
-                    <div className="text-gray-800">{med.frequency}</div>
+                    <label className="text-sm font-bold text-gray-900">Frequency</label>
+                    <div className="font-semibold text-gray-900">{med.frequency}</div>
                   </div>
                   <div>
-                    <label className="text-xs font-medium text-gray-600">Duration</label>
-                    <div className="text-gray-800">{med.duration}</div>
+                    <label className="text-sm font-bold text-gray-900">Duration</label>
+                    <div className="font-semibold text-gray-900">{med.duration}</div>
                   </div>
                 </div>
                 <div className="mt-2">
-                  <label className="text-xs font-medium text-gray-600">Instructions</label>
-                  <div className="text-sm text-gray-700">{med.instructions}</div>
+                  <label className="text-sm font-bold text-gray-900">Instructions</label>
+                  <div className="text-base font-semibold text-gray-900">{med.instructions}</div>
                 </div>
               </div>
             ))}
@@ -133,28 +133,28 @@ export default function PrescriptionTemplate({ prescription, onDownload }: Presc
 
         {/* General Instructions */}
         <div className="mt-6">
-          <h3 className="text-lg font-semibold text-gray-800 mb-3">General Instructions</h3>
+          <h3 className="text-xl font-bold text-gray-900 mb-3">General Instructions</h3>
           <ul className="space-y-2">
             {prescription.instructions.map((instruction, index) => (
               <li key={index} className="flex items-start space-x-2">
-                <span className="text-blue-500 font-bold">•</span>
-                <span className="text-gray-700">{instruction}</span>
+                <span className="text-blue-600 font-bold text-lg">•</span>
+                <span className="font-semibold text-gray-900">{instruction}</span>
               </li>
             ))}
           </ul>
         </div>
 
         {/* Doctor Section */}
-        <div className="mt-8 pt-6 border-t border-gray-200">
+        <div className="mt-8 pt-6 border-t-2 border-gray-400">
           <div className="flex justify-between items-end">
             <div>
-              <div className="text-sm text-gray-600">Prescribed by</div>
-              <div className="font-semibold text-gray-800">{prescription.doctorName}</div>
-              <div className="text-sm text-gray-600">{prescription.clinicName}</div>
+              <div className="text-base font-bold text-gray-900">Prescribed by</div>
+              <div className="font-bold text-gray-900 text-lg">{prescription.doctorName}</div>
+              <div className="text-base font-semibold text-gray-900">{prescription.clinicName}</div>
             </div>
             <div className="text-right">
-              <div className="text-sm text-gray-600">Digital Signature</div>
-              <div className="font-semibold text-gray-800">{prescription.signature}</div>
+              <div className="text-base font-bold text-gray-900">Digital Signature</div>
+              <div className="font-bold text-gray-900 text-lg">{prescription.signature}</div>
             </div>
           </div>
         </div>

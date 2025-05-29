@@ -5,29 +5,35 @@ export class SmartSymptomDetector {
     this.symptomCategories = {
       respiratory: {
         emoji: '🫁',
-        keywords: ['cough', 'breathing', 'shortness of breath', 'chest tightness', 'wheezing', 'sputum', 'khansi', 'sans lene mein takleef', 'seene mein bharipan'],
+        keywords: ['cough', 'coughing', 'breathing', 'shortness of breath', 'chest tightness', 'wheezing', 'sputum', 'phlegm', 'breathlessness', 
+                  'khansi', 'khasi', 'sans lene mein takleef', 'seene mein bharipan', 'dam ghutna', 'saans ki kami', 'breathing problem',
+                  'asthma', 'bronchitis', 'chest congestion', 'dry cough', 'wet cough', 'mucus', 'throat irritation'],
         severity: {
-          mild: ['occasional cough', 'light cough', 'halki khansi'],
-          moderate: ['persistent cough', 'productive cough', 'lagatar khansi'],
-          severe: ['blood in cough', 'severe breathing difficulty', 'khoon ke saath khansi']
+          mild: ['occasional cough', 'light cough', 'halki khansi', 'dry throat', 'slight breathlessness'],
+          moderate: ['persistent cough', 'productive cough', 'lagatar khansi', 'regular breathing issues', 'chest discomfort'],
+          severe: ['blood in cough', 'severe breathing difficulty', 'khoon ke saath khansi', 'can\'t breathe', 'gasping for air']
         }
       },
       cardiovascular: {
         emoji: '❤️',
-        keywords: ['chest pain', 'heart palpitations', 'irregular heartbeat', 'dizziness', 'seene mein dard', 'dil ki dharakne mein gadbadi'],
+        keywords: ['chest pain', 'heart palpitations', 'irregular heartbeat', 'dizziness', 'heart racing', 'heart attack', 'cardiac',
+                  'seene mein dard', 'dil ki dharakne mein gadbadi', 'dil ki tez dharakan', 'chakkar aana', 'heart burn',
+                  'angina', 'hypertension', 'blood pressure', 'bp high', 'bp low', 'heart disease', 'cardiac arrest'],
         severity: {
-          mild: ['mild chest discomfort', 'halka seene mein dard'],
-          moderate: ['chest tightness', 'palpitations', 'seene mein bharipan'],
-          severe: ['severe chest pain', 'crushing pain', 'tez seene mein dard']
+          mild: ['mild chest discomfort', 'halka seene mein dard', 'slight dizziness', 'minor palpitations'],
+          moderate: ['chest tightness', 'palpitations', 'seene mein bharipan', 'moderate chest pain', 'heart racing'],
+          severe: ['severe chest pain', 'crushing pain', 'tez seene mein dard', 'heart attack symptoms', 'cardiac emergency']
         }
       },
       gastrointestinal: {
         emoji: '🤢',
-        keywords: ['nausea', 'vomiting', 'diarrhea', 'stomach pain', 'indigestion', 'ulti', 'pet mein dard', 'loose motion', 'acidity'],
+        keywords: ['nausea', 'vomiting', 'diarrhea', 'stomach pain', 'indigestion', 'constipation', 'bloating', 'gas',
+                  'ulti', 'pet mein dard', 'loose motion', 'acidity', 'heartburn', 'stomach upset', 'food poisoning',
+                  'abdominal pain', 'cramps', 'gastritis', 'ibs', 'stomach ache', 'pet ki gas', 'kabz', 'dast'],
         severity: {
-          mild: ['mild nausea', 'halki ulti'],
-          moderate: ['frequent vomiting', 'bar bar ulti'],
-          severe: ['blood in vomit', 'severe dehydration', 'khoon ki ulti']
+          mild: ['mild nausea', 'halki ulti', 'slight stomach discomfort', 'minor indigestion'],
+          moderate: ['frequent vomiting', 'bar bar ulti', 'persistent stomach pain', 'regular diarrhea'],
+          severe: ['blood in vomit', 'severe dehydration', 'khoon ki ulti', 'severe abdominal pain', 'bloody stool']
         }
       },
       neurological: {

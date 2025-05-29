@@ -59,9 +59,9 @@ export default function ContinuousVoiceRecognition({
       let finalTranscript = '';
       let interimTranscript = '';
 
-      for (let i = 0; i < event.results.length; i++) {
+      for (let i = event.resultIndex; i < event.results.length; i++) {
         const transcript = event.results[i][0].transcript;
-        const confidence = event.results[i][0].confidence;
+        const confidence = event.results[i][0].confidence || 0.8;
 
         if (event.results[i].isFinal) {
           finalTranscript += transcript;
@@ -71,29 +71,25 @@ export default function ContinuousVoiceRecognition({
         }
       }
 
-      setTranscript(interimTranscript || finalTranscript);
+      // Show live transcript for user feedback
+      setTranscript(finalTranscript + interimTranscript);
 
-      // Process final transcript immediately
-      if (finalTranscript.trim()) {
+      // Process final transcript if it's substantial
+      if (finalTranscript.trim() && finalTranscript.trim().length > 3) {
+        console.log('Processing voice input:', finalTranscript.trim());
+        
         // Clear any existing timeout
         if (timeoutRef.current) {
           clearTimeout(timeoutRef.current);
         }
         
-        // Process transcript immediately for better responsiveness
+        // Send to parent for processing
         onTranscript(finalTranscript.trim());
-        setTranscript('');
         
-        // Continue listening after processing
-        restartTimeoutRef.current = setTimeout(() => {
-          if (isEnabled && recognitionRef.current) {
-            try {
-              recognitionRef.current.start();
-            } catch (error) {
-              console.log('Recognition restart error:', error);
-            }
-          }
-        }, 100);
+        // Clear transcript after sending
+        timeoutRef.current = setTimeout(() => {
+          setTranscript('');
+        }, 2000);
       }
     };
 
@@ -184,14 +180,37 @@ export default function ContinuousVoiceRecognition({
     };
   }, [isEnabled, language, startListening, stopListening, isSupported]);
 
-  // Cleanup on unmount
-  useEffect(() => {
-    return () => {
-      if (timeoutRef.current) clearTimeout(timeoutRef.current);
-      if (restartTimeoutRef.current) clearTimeout(restartTimeoutRef.current);
-      if (recognitionRef.current) recognitionRef.current.stop();
-    };
+  // Enhanced cleanup function
+  const cleanup = useCallback(() => {
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current);
+      timeoutRef.current = null;
+    }
+    if (restartTimeoutRef.current) {
+      clearTimeout(restartTimeoutRef.current);
+      restartTimeoutRef.current = null;
+    }
+    if (recognitionRef.current) {
+      try {
+        recognitionRef.current.stop();
+        recognitionRef.current.abort();
+      } catch (e) {
+        console.log('Voice recognition cleanup:', e);
+      }
+      recognitionRef.current = null;
+    }
+    setIsEnabled(false);
+    setState('paused');
+    setTranscript('');
   }, []);
+
+  // Cleanup on unmount and expose for navigation cleanup
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      (window as any).voiceRecognitionCleanup = cleanup;
+    }
+    return cleanup;
+  }, [cleanup]);
 
   if (!isSupported) {
     return (

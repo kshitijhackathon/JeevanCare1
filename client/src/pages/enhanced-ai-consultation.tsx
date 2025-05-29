@@ -276,47 +276,44 @@ export default function EnhancedAIConsultation() {
         };
       }
       
-      // Fallback to API if needed
+      // Use enhanced consultation with Gemini + Grok + Medicine Database
       try {
-        const response = await apiRequest("POST", "/api/ai-doctor/groq-medical-chat", {
+        const response = await apiRequest("POST", "/api/ai-doctor/enhanced-consultation", {
           message,
-          language: patientDetails.language,
-          patientDetails,
-          conversationHistory: messages.slice(-5)
+          patientDetails
         });
-        if (!response.ok) throw new Error("API failed, using local detection");
+        if (!response.ok) throw new Error("Enhanced consultation failed");
         return await response.json();
       } catch (error) {
-        // Use local processing as fallback
-        const basicResponse = patientDetails.language === 'hindi' 
-          ? "Main aapke symptoms samjhne ki koshish kar raha hun. Kripaya aur detail mein bataaiye."
-          : "I'm analyzing your symptoms. Please provide more details about your condition.";
-        return { response: basicResponse, local: true };
+        console.error("Enhanced consultation error:", error);
+        throw error;
       }
     },
     onSuccess: (data) => {
+      // Update detected language if provided
+      if (data.detectedLanguage) {
+        setDetectedLanguage(data.detectedLanguage);
+      }
+      
       const doctorMessage: ChatMessage = {
         role: 'doctor',
         content: data.response,
         timestamp: new Date(),
-        type: 'text'
+        type: data.type || 'text'
       };
       
       setMessages(prev => [...prev, doctorMessage]);
       
-      // Extract symptoms from the response and update detected symptoms
-      if (data.symptoms && data.symptoms.length > 0) {
-        const newSymptoms = data.symptoms.map((s: any) => s.normalized || s.original || s);
-        setDetectedSymptoms(prev => Array.from(new Set([...prev, ...newSymptoms])));
+      // Update detected symptoms from medicines or diagnosis
+      if (data.medicines && data.medicines.length > 0) {
+        const diseaseSymptoms = data.diagnosis ? [data.diagnosis] : [];
+        setDetectedSymptoms(prev => Array.from(new Set([...prev, ...diseaseSymptoms])));
       }
       
-      // If disease detected, add it to symptoms
-      if (data.detectedDisease) {
-        setDetectedSymptoms(prev => Array.from(new Set([...prev, data.detectedDisease.disease])));
-      }
-      
-      // Enhanced multilingual text-to-speech
-      const messageContext = data.diagnosis ? 'diagnosis' : data.medications ? 'prescription' : 'general';
+      // Enhanced multilingual text-to-speech with proper context
+      const messageContext = data.severity === 'severe' ? 'emergency' : 
+                           data.medicines?.length > 0 ? 'prescription' : 
+                           data.diagnosis ? 'diagnosis' : 'general';
       speakText(data.response, messageContext);
       
       setIsProcessing(false);
@@ -593,7 +590,7 @@ export default function EnhancedAIConsultation() {
     try {
       await voiceToneAdapter.speakText(
         text,
-        patientDetails.language || 'english',
+        detectedLanguage || 'english',
         patientDetails.gender?.toLowerCase(),
         context
       );
@@ -603,7 +600,7 @@ export default function EnhancedAIConsultation() {
       if ('speechSynthesis' in window) {
         window.speechSynthesis.cancel();
         const utterance = new SpeechSynthesisUtterance(text);
-        utterance.lang = patientDetails.language === 'hindi' ? 'hi-IN' : 'en-US';
+        utterance.lang = detectedLanguage === 'hindi' ? 'hi-IN' : 'en-US';
         utterance.rate = 0.85;
         window.speechSynthesis.speak(utterance);
       }
@@ -881,7 +878,7 @@ export default function EnhancedAIConsultation() {
             <div className="mb-3 md:mb-4">
               <ContinuousVoiceRecognition
                 onTranscript={handleVoiceTranscript}
-                language={patientDetails.language}
+                language={detectedLanguage}
                 onLanguageChange={handleLanguageChange}
                 isProcessing={isProcessing}
               />

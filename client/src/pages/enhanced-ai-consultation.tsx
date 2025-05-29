@@ -50,6 +50,19 @@ export default function EnhancedAIConsultation() {
     bloodGroup: '',
     language: 'english'
   });
+
+  // Auto-populate form with user profile data when available
+  useEffect(() => {
+    if (user) {
+      setPatientDetails(prev => ({
+        ...prev,
+        name: user.firstName && user.lastName ? `${user.firstName} ${user.lastName}` : prev.name,
+        gender: user.gender || prev.gender,
+        age: user.age?.toString() || prev.age,
+        bloodGroup: user.bloodGroup || prev.bloodGroup,
+      }));
+    }
+  }, [user]);
   
   // Video call state
   const [isCameraOn, setIsCameraOn] = useState(false);
@@ -132,6 +145,11 @@ export default function EnhancedAIConsultation() {
       };
       
       setMessages([welcomeMessage]);
+      
+      // Speak the welcome message immediately when call starts
+      setTimeout(() => {
+        speakText(welcomeMessage.content);
+      }, 1000);
       
       console.log('Video consultation started successfully');
     } catch (error) {
@@ -608,34 +626,50 @@ export default function EnhancedAIConsultation() {
         utterance.rate = 0.9;
       }
       
-      // Configure gender-appropriate voice (opposite gender for doctor)
+      // Use consistent voice selection based on patient gender
       const voices = window.speechSynthesis.getVoices();
       if (voices.length > 0) {
         const patientGender = patientDetails.gender?.toLowerCase();
-        let preferredVoice;
         
-        if (patientGender === 'male') {
-          // Male patient gets female doctor voice
-          preferredVoice = voices.find(voice => 
-            voice.name.toLowerCase().includes('female') || 
-            voice.name.toLowerCase().includes('samantha') ||
-            voice.name.toLowerCase().includes('karen') ||
-            voice.name.toLowerCase().includes('moira') ||
-            voice.name.toLowerCase().includes('zira')
-          );
+        // Store the selected voice in sessionStorage for consistency
+        const voiceKey = `doctorVoice_${patientGender}`;
+        let selectedVoiceName = sessionStorage.getItem(voiceKey);
+        
+        if (!selectedVoiceName) {
+          // First time selection - find appropriate voice
+          let preferredVoice;
+          
+          if (patientGender === 'male') {
+            // Male patient gets female doctor voice
+            preferredVoice = voices.find(voice => 
+              voice.name.toLowerCase().includes('female') || 
+              voice.name.toLowerCase().includes('samantha') ||
+              voice.name.toLowerCase().includes('karen') ||
+              voice.name.toLowerCase().includes('moira') ||
+              voice.name.toLowerCase().includes('zira') ||
+              voice.name.toLowerCase().includes('susan')
+            );
+          } else {
+            // Female patient gets male doctor voice
+            preferredVoice = voices.find(voice => 
+              voice.name.toLowerCase().includes('male') || 
+              voice.name.toLowerCase().includes('alex') ||
+              voice.name.toLowerCase().includes('daniel') ||
+              voice.name.toLowerCase().includes('thomas') ||
+              voice.name.toLowerCase().includes('david')
+            );
+          }
+          
+          if (preferredVoice) {
+            sessionStorage.setItem(voiceKey, preferredVoice.name);
+            utterance.voice = preferredVoice;
+          }
         } else {
-          // Female patient gets male doctor voice
-          preferredVoice = voices.find(voice => 
-            voice.name.toLowerCase().includes('male') || 
-            voice.name.toLowerCase().includes('alex') ||
-            voice.name.toLowerCase().includes('daniel') ||
-            voice.name.toLowerCase().includes('thomas') ||
-            voice.name.toLowerCase().includes('david')
-          );
-        }
-        
-        if (preferredVoice) {
-          utterance.voice = preferredVoice;
+          // Use the previously selected voice for consistency
+          const voice = voices.find(v => v.name === selectedVoiceName);
+          if (voice) {
+            utterance.voice = voice;
+          }
         }
       }
       

@@ -78,17 +78,38 @@ export default function EnhancedAIConsultation() {
   const streamRef = useRef<MediaStream | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
+  // Doctor info for consistent display
+  const doctorInfo = {
+    name: patientDetails.gender === 'Male' ? 'Priya Sharma' : 'Arjun Patel',
+    specialty: patientDetails.gender === 'Male' ? 'Female AI Doctor • General Physician' : 'Male AI Doctor • General Physician'
+  };
+
   // Auto-scroll messages
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
-  // Cleanup on unmount including voice recognition
+  // Stop speech function
+  const stopAllSpeech = () => {
+    if ('speechSynthesis' in window) {
+      window.speechSynthesis.cancel();
+    }
+  };
+
+  // Function to go back and stop speech
+  const handleGoBack = () => {
+    stopAllSpeech();
+    if (step === 'video-call') {
+      setStep('details');
+      setMessages([]);
+      setHasStartedCall(false);
+    }
+  };
+
+  // Cleanup on unmount including voice recognition and speech
   useEffect(() => {
     return () => {
-      if (streamRef.current) {
-        streamRef.current.getTracks().forEach(track => track.stop());
-      }
+      stopAllSpeech();
       // Clean up voice recognition when leaving page
       if (typeof window !== 'undefined' && (window as any).voiceRecognitionCleanup) {
         (window as any).voiceRecognitionCleanup();
@@ -109,62 +130,28 @@ export default function EnhancedAIConsultation() {
       return;
     }
 
-    try {
-      // Request camera permission with graceful fallback
-      if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
-        const stream = await navigator.mediaDevices.getUserMedia({ 
-          video: { 
-            width: { ideal: 1280 },
-            height: { ideal: 720 },
-            facingMode: 'user'
-          }, 
-          audio: true 
-        });
-        
-        if (videoRef.current) {
-          videoRef.current.srcObject = stream;
-          videoRef.current.play();
-        }
-        
-        streamRef.current = stream;
-        setIsCameraOn(true);
-      }
-      
-      // Transition to video call
-      setStep('video-call');
-      setHasStartedCall(true);
-      
-      // Add welcome message with enhanced medical context
-      const welcomeMessage: ChatMessage = {
-        role: 'doctor',
-        content: patientDetails.language === 'hindi' 
-          ? `Namaste ${patientDetails.name}! Main aapka AI doctor hun. Aap apne symptoms detail mein bata sakte hain - voice ya text dono se. Main accurate diagnosis aur treatment provide karunga.`
-          : `Hello ${patientDetails.name}! I'm your AI doctor. You can describe your symptoms in detail - either by voice or text. I'll provide accurate diagnosis and treatment.`,
-        timestamp: new Date(),
-        type: 'text'
-      };
-      
-      setMessages([welcomeMessage]);
-      
-      // Speak the welcome message immediately when call starts
-      setTimeout(() => {
-        speakText(welcomeMessage.content);
-      }, 1000);
-      
-      console.log('Video consultation started successfully');
-    } catch (error) {
-      console.error('Camera access error:', error);
-      toast({
-        title: "Camera Access Issue",
-        description: "Camera permission denied. You can still continue with voice and text consultation.",
-        variant: "destructive",
-      });
-      
-      // Continue without camera
-      setStep('video-call');
-      setHasStartedCall(true);
-      setIsCameraOn(false);
-    }
+    // Start consultation without camera
+    setStep('video-call');
+    setHasStartedCall(true);
+    
+    // Add welcome message to chat area
+    const welcomeMessage: ChatMessage = {
+      role: 'doctor',
+      content: patientDetails.language === 'hindi' 
+        ? `नमस्ते ${patientDetails.name}! मैं डॉ. ${doctorInfo.name} हूं। कृपया चिंता न करें, मैं आपकी मदद के लिए यहां हूं। अपनी समस्याओं के बारे में विस्तार से बताएं।`
+        : `Good evening ${patientDetails.name}! I'm Dr. ${doctorInfo.name}. Please don't worry, I'm here to help you. Tell me about your concerns in detail.`,
+      timestamp: new Date(),
+      type: 'text'
+    };
+    
+    setMessages([welcomeMessage]);
+    
+    // Speak the welcome message immediately when consultation starts
+    setTimeout(() => {
+      speakText(welcomeMessage.content);
+    }, 1000);
+    
+    console.log('Consultation started successfully');
   };
 
   // Initialize context when consultation starts
@@ -834,45 +821,32 @@ export default function EnhancedAIConsultation() {
       </div>
 
       <div className="flex flex-col lg:flex-row h-[calc(100vh-80px)]">
-        {/* Video Section */}
-        <div className="flex-1 relative bg-gray-800 flex items-center justify-center">
-          {isCameraOn ? (
-            <video
-              ref={videoRef}
-              className="w-full h-full object-cover rounded-lg shadow-2xl max-w-2xl max-h-96 lg:max-h-full"
-              autoPlay
-              muted
-              playsInline
+        {/* Doctor Avatar Section - Clean Design */}
+        <div className="flex-1 relative bg-gradient-to-br from-blue-50 to-cyan-50 flex items-center justify-center">
+          <div className="bg-white rounded-3xl p-8 text-center max-w-md shadow-xl border">
+            <PersonalizedAIAvatar 
+              patientDetails={patientDetails}
+              isActive={hasStartedCall}
+              doctorTone="friendly"
             />
-          ) : (
-            <div className="bg-gray-700 rounded-lg p-8 text-center max-w-md">
-              <PersonalizedAIAvatar 
-                patientDetails={patientDetails}
-                isActive={hasStartedCall}
-                doctorTone="friendly"
-              />
-              <h3 className="text-xl font-semibold mb-2 mt-4">Your AI Doctor</h3>
-              <p className="text-gray-300 mb-4">Personalized consultation based on your profile</p>
-              <Button onClick={startVideoCall} className="bg-blue-600 hover:bg-blue-700">
-                <Camera className="h-4 w-4 mr-2" />
-                Enable Camera
-              </Button>
+            <h3 className="text-2xl font-bold text-gray-800 mb-2 mt-6">Dr. {doctorInfo.name}</h3>
+            <p className="text-gray-600 mb-2">{doctorInfo.specialty}</p>
+            <div className="flex items-center justify-center space-x-2 mb-6">
+              <div className="w-3 h-3 bg-green-500 rounded-full animate-pulse"></div>
+              <span className="text-green-600 font-semibold">Available Now</span>
             </div>
-          )}
+            <div className="bg-blue-50 rounded-2xl p-4 mb-6">
+              <p className="text-blue-800 font-medium">Personalized consultation based on your profile</p>
+            </div>
+          </div>
 
-          {/* Video Controls - Mobile Optimized */}
-          <div className="absolute bottom-4 md:bottom-6 left-1/2 transform -translate-x-1/2 flex space-x-3 md:space-x-4">
+          {/* Clean Controls */}
+          <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 flex space-x-4">
             <Button
-              onClick={() => setIsCameraOn(!isCameraOn)}
-              className={`rounded-full min-w-[48px] min-h-[48px] md:w-14 md:h-14 p-3 shadow-lg ${isCameraOn ? 'bg-gray-600 hover:bg-gray-700' : 'bg-red-600 hover:bg-red-700'}`}
+              onClick={handleGoBack}
+              className="rounded-full w-16 h-16 bg-red-500 hover:bg-red-600 shadow-xl"
             >
-              {isCameraOn ? <Video className="h-5 w-5 md:h-6 md:w-6" /> : <VideoOff className="h-5 w-5 md:h-6 md:w-6" />}
-            </Button>
-            <Button
-              onClick={endConsultation}
-              className="rounded-full min-w-[48px] min-h-[48px] md:w-14 md:h-14 p-3 bg-red-600 hover:bg-red-700 shadow-lg"
-            >
-              <Phone className="h-5 w-5 md:h-6 md:w-6" />
+              <PhoneOff className="h-6 w-6" />
             </Button>
           </div>
         </div>

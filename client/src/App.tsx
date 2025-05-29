@@ -99,6 +99,7 @@ function Router() {
           <Route path="/notifications" component={Notifications} />
           <Route path="/prescription" component={Prescription} />
           <Route path="/symptom-checker" component={SymptomChecker} />
+          <Route path="/voice-companion" component={VoiceCompanion} />
         </>
       )}
       <Route component={NotFound} />

@@ -18,7 +18,8 @@ import {
   ScanFace, 
   UserRound, 
   Bell,
-  PillBottle 
+  PillBottle,
+  Mic 
 } from "lucide-react";
 import { useState } from "react";
 import type { HealthReport } from "@shared/schema";

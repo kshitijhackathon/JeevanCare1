@@ -13,6 +13,7 @@ import Cart from "@/pages/cart";
 import Checkout from "@/pages/checkout";
 import Profile from "@/pages/profile-simple";
 import AIDoctorConsultation from "@/pages/ai-doctor-consultation";
+import EnhancedAIConsultation from "@/pages/enhanced-ai-consultation";
 import BookTest from "@/pages/book-test";
 import MedicineDelivery from "@/pages/medicine-delivery";
 import Reports from "@/pages/reports";
@@ -81,7 +82,8 @@ function Router() {
           <Route path="/cart" component={Cart} />
           <Route path="/checkout" component={Checkout} />
           <Route path="/profile" component={Profile} />
-          <Route path="/consultation" component={AIDoctorConsultation} />
+          <Route path="/consultation" component={EnhancedAIConsultation} />
+          <Route path="/ai-doctor" component={AIDoctorConsultation} />
           <Route path="/book-test" component={BookTest} />
           <Route path="/medicine-delivery" component={MedicineDelivery} />
           <Route path="/delivery/:orderId" component={MedicineDelivery} />

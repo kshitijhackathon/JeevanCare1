@@ -203,7 +203,7 @@ export class EnhancedLocalMedicalEngine {
       'nausea': /\b(nausea|feeling sick|queasy|ulti|जी मिचलाना|मिचली)\b/gi,
       'vomiting': /\b(vomiting|throwing up|ulti|उल्टी)\b/gi,
       'diarrhea': /\b(diarrhea|loose stools|dast|दस्त|loose motion)\b/gi,
-      'burning_urination': /\b(burning.*urinat|painful.*urinat|burn.*pee|pain.*pee|पेशाब में जलन|peshab mein jalan|urinating.*burn|urinating.*pain)\b/gi,
+      'burning_urination': /(burning.*urinat|painful.*urinat|burn.*pee|pain.*pee|burning.*while.*urinat|pain.*while.*urinat|पेशाब में जलन|peshab mein jalan)/gi,
       'frequent_urination': /\b(frequent.*urinat|bar bar peshab|बार बार पेशाब|urinat.*frequent|often.*urinat)\b/gi,
       'fatigue': /\b(tired|weakness|fatigue|exhausted|kamzori|कमजोरी|थकान)\b/gi,
       'body_aches': /\b(body aches|body pain|muscle pain|badan dard|शरीर दर्द)\b/gi,

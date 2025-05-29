@@ -822,21 +822,18 @@ export default function EnhancedAIConsultation() {
 
       <div className="flex flex-col lg:flex-row h-[calc(100vh-80px)]">
         {/* Doctor Avatar Section - Clean Design */}
-        <div className="flex-1 relative bg-gradient-to-br from-blue-50 to-cyan-50 flex items-center justify-center">
-          <div className="bg-white rounded-3xl p-8 text-center max-w-md shadow-xl border">
+        <div className="flex-1 relative bg-gradient-to-br from-blue-50 to-cyan-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-3xl p-6 text-center w-full max-w-sm shadow-xl border">
             <PersonalizedAIAvatar 
               patientDetails={patientDetails}
               isActive={hasStartedCall}
               doctorTone="friendly"
             />
-            <h3 className="text-2xl font-bold text-gray-800 mb-2 mt-6">Dr. {doctorInfo.name}</h3>
-            <p className="text-gray-600 mb-2">{doctorInfo.specialty}</p>
-            <div className="flex items-center justify-center space-x-2 mb-6">
+            <h3 className="text-xl font-bold text-gray-800 mb-2 mt-4">AI Medical Assistant</h3>
+            <p className="text-gray-600 mb-4">General Physician</p>
+            <div className="flex items-center justify-center space-x-2">
               <div className="w-3 h-3 bg-green-500 rounded-full animate-pulse"></div>
               <span className="text-green-600 font-semibold">Available Now</span>
-            </div>
-            <div className="bg-blue-50 rounded-2xl p-4 mb-6">
-              <p className="text-blue-800 font-medium">Personalized consultation based on your profile</p>
             </div>
           </div>
 

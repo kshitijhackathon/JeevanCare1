@@ -223,61 +223,70 @@ export function generateContextualResponse(symptoms, context, patientDetails) {
       : "Please describe your symptoms in detail. What seems to be the problem?";
   }
   
-  // Generate specific response based on symptoms
-  const symptomList = symptoms.map(s => s.normalized).join(', ');
-  
   let response = '';
   
-  if (language === 'hindi') {
-    response = `Main samajh gaya ki aapko ${symptomList} ki problem hai`;
+  // If specific disease detected, provide targeted response
+  if (context.detectedDisease) {
+    const disease = context.detectedDisease;
     
-    if (context.duration) {
-      response += ` jo ${context.duration} se ho rahi hai`;
+    if (language === 'hindi') {
+      response = `Aapke symptoms ke basis par lagta hai ki aapko **${disease.disease}** ki problem hai. `;
+      response += `\n\n**Recommended Treatment:**\n${disease.medication}\n\n`;
+      response += `**Important Warning:**\n${disease.warning}\n\n`;
+      response += `Kya aur koi symptoms hain? Duration kitni hai?`;
+    } else {
+      response = `Based on your symptoms, it appears you may have **${disease.disease}**. `;
+      response += `\n\n**Recommended Treatment:**\n${disease.medication}\n\n`;
+      response += `**Important Warning:**\n${disease.warning}\n\n`;
+      response += `Do you have any other symptoms? How long have you been experiencing this?`;
     }
-    
-    if (context.severity) {
-      response += ` aur yeh ${context.severity} level ki hai`;
-    }
-    
-    response += '. ';
-    
-    // Add specific follow-up questions
-    if (symptoms.some(s => s.normalized.includes('pain'))) {
-      response += 'Dard kahan exact hai aur kab zyada hota hai? ';
-    }
-    
-    if (symptoms.some(s => s.normalized.includes('fever'))) {
-      response += 'Temperature kitna hai? Thand lag rahi hai? ';
-    }
-    
-    if (context.possibleCondition) {
-      response += `Yeh ${context.possibleCondition} ke symptoms lag rahe hain. `;
-    }
-    
   } else {
-    response = `I understand you have ${symptomList}`;
+    // General symptom response
+    const symptomList = symptoms.map(s => s.normalized).join(', ');
     
-    if (context.duration) {
-      response += ` for ${context.duration}`;
-    }
-    
-    if (context.severity) {
-      response += ` with ${context.severity} intensity`;
-    }
-    
-    response += '. ';
-    
-    // Add specific follow-up questions
-    if (symptoms.some(s => s.normalized.includes('pain'))) {
-      response += 'Where exactly is the pain and when does it worsen? ';
-    }
-    
-    if (symptoms.some(s => s.normalized.includes('fever'))) {
-      response += 'What is your temperature? Are you experiencing chills? ';
-    }
-    
-    if (context.possibleCondition) {
-      response += `These symptoms suggest ${context.possibleCondition}. `;
+    if (language === 'hindi') {
+      response = `Main samajh gaya ki aapko ${symptomList} ki problem hai`;
+      
+      if (context.duration) {
+        response += ` jo ${context.duration} se ho rahi hai`;
+      }
+      
+      if (context.severity) {
+        response += ` aur yeh ${context.severity} level ki hai`;
+      }
+      
+      response += '. ';
+      
+      // Add specific follow-up questions
+      if (symptoms.some(s => s.normalized.includes('pain'))) {
+        response += 'Dard kahan exact hai aur kab zyada hota hai? ';
+      }
+      
+      if (symptoms.some(s => s.normalized.includes('fever'))) {
+        response += 'Temperature kitna hai? Thand lag rahi hai? ';
+      }
+      
+    } else {
+      response = `I understand you have ${symptomList}`;
+      
+      if (context.duration) {
+        response += ` for ${context.duration}`;
+      }
+      
+      if (context.severity) {
+        response += ` with ${context.severity} intensity`;
+      }
+      
+      response += '. ';
+      
+      // Add specific follow-up questions
+      if (symptoms.some(s => s.normalized.includes('pain'))) {
+        response += 'Where exactly is the pain and when does it worsen? ';
+      }
+      
+      if (symptoms.some(s => s.normalized.includes('fever'))) {
+        response += 'What is your temperature? Are you experiencing chills? ';
+      }
     }
   }
   

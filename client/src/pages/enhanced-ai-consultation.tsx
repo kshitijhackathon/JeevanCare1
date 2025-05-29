@@ -70,11 +70,15 @@ export default function EnhancedAIConsultation() {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
-  // Cleanup on unmount
+  // Cleanup on unmount including voice recognition
   useEffect(() => {
     return () => {
       if (streamRef.current) {
         streamRef.current.getTracks().forEach(track => track.stop());
+      }
+      // Clean up voice recognition when leaving page
+      if (typeof window !== 'undefined' && (window as any).voiceRecognitionCleanup) {
+        (window as any).voiceRecognitionCleanup();
       }
     };
   }, []);

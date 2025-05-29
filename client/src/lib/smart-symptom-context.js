@@ -38,20 +38,24 @@ export class SmartSymptomDetector {
       },
       neurological: {
         emoji: '🧠',
-        keywords: ['headache', 'migraine', 'dizziness', 'confusion', 'sir dard', 'chakkar', 'bhram'],
+        keywords: ['headache', 'migraine', 'dizziness', 'confusion', 'seizure', 'stroke', 'numbness', 'tingling',
+                  'sir dard', 'chakkar', 'bhram', 'dimag ki kamzori', 'memory loss', 'forgetfulness',
+                  'vertigo', 'fainting', 'unconscious', 'neurological', 'brain fog', 'concentration issues'],
         severity: {
-          mild: ['mild headache', 'halka sir dard'],
-          moderate: ['throbbing headache', 'tez sir dard'],
-          severe: ['severe migraine', 'unbearable headache', 'asahaniya sir dard']
+          mild: ['mild headache', 'halka sir dard', 'slight dizziness', 'minor confusion'],
+          moderate: ['throbbing headache', 'tez sir dard', 'persistent dizziness', 'memory issues'],
+          severe: ['severe migraine', 'unbearable headache', 'asahaniya sir dard', 'seizure symptoms', 'stroke symptoms']
         }
       },
       musculoskeletal: {
         emoji: '🦴',
-        keywords: ['joint pain', 'muscle pain', 'back pain', 'stiffness', 'jodon mein dard', 'muscles mein dard', 'kamar dard'],
+        keywords: ['joint pain', 'muscle pain', 'back pain', 'stiffness', 'arthritis', 'fracture', 'sprain', 'strain',
+                  'jodon mein dard', 'muscles mein dard', 'kamar dard', 'neck pain', 'shoulder pain', 'knee pain',
+                  'hip pain', 'ankle pain', 'wrist pain', 'muscle cramps', 'muscle spasm', 'bone pain'],
         severity: {
-          mild: ['mild joint stiffness', 'halka jodon ka dard'],
-          moderate: ['joint swelling', 'jodon mein sujan'],
-          severe: ['severe joint pain', 'inability to move', 'tez jodon ka dard']
+          mild: ['mild joint stiffness', 'halka jodon ka dard', 'minor muscle ache', 'slight stiffness'],
+          moderate: ['joint swelling', 'jodon mein sujan', 'persistent pain', 'moderate stiffness'],
+          severe: ['severe joint pain', 'inability to move', 'tez jodon ka dard', 'excruciating pain', 'complete immobility']
         }
       },
       dermatological: {

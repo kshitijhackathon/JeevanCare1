@@ -61,7 +61,7 @@ export default function Home() {
     <div className="mobile-container">
       <Header />
       
-      <main className="pb-20">
+      <main className="pb-20 pt-20">
         {/* Welcome Section - Matching Your Design */}
         <div className="bg-gradient-to-r from-blue-50 to-green-50 p-6 rounded-2xl mb-6 mx-4 mt-4">
           <div className="flex items-center justify-between">

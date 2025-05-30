@@ -22,6 +22,7 @@ import { mistralMedicalEngine } from "./mistral-medical-engine";
 import { enhancedTTSEngine } from "./enhanced-tts-engine";
 import { indicMedicalEngine } from "./indic-medical-engine";
 import { humanVoiceEngine } from "./human-voice-engine";
+import multer from 'multer';
 
 if (!process.env.STRIPE_SECRET_KEY) {
   throw new Error('Missing required Stripe secret: STRIPE_SECRET_KEY');
@@ -2478,150 +2479,149 @@ Patient Context: ${patientContext}`
   }
 
   // Medical Image Analysis API
-  app.post('/api/medical-scan/predict', async (req, res) => {
+  const upload = multer({ 
+    storage: multer.memoryStorage(),
+    limits: {
+      fileSize: 10 * 1024 * 1024, // 10MB limit
+    }
+  });
+
+  app.post('/api/medical-scan/predict', upload.single('file'), async (req, res) => {
     try {
-      const multer = require('multer');
-      const upload = multer({ storage: multer.memoryStorage() });
-      
-      // Handle file upload
-      upload.single('file')(req, res, async (err) => {
-        if (err) {
-          return res.status(400).json({ error: 'File upload failed' });
-        }
+      const file = req.file;
+      const scanType = req.body.scan_type || 'xray';
 
-        const file = req.file;
-        const scanType = req.body.scan_type || 'xray';
+      console.log('File upload received:', file ? file.originalname : 'No file');
+      console.log('Scan type:', scanType);
 
-        if (!file) {
-          return res.status(400).json({ error: 'No file uploaded' });
-        }
+      if (!file) {
+        return res.status(400).json({ error: 'No file uploaded' });
+      }
 
-        // Validate file type
-        const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'application/gzip'];
-        if (!allowedTypes.includes(file.mimetype) && !file.originalname.endsWith('.nii.gz')) {
-          return res.status(400).json({ error: 'Invalid file type. Only JPG, PNG, and NII.GZ files are supported.' });
-        }
+      // Validate file type
+      const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'application/gzip'];
+      if (!allowedTypes.includes(file.mimetype) && !file.originalname.toLowerCase().endsWith('.nii.gz')) {
+        return res.status(400).json({ error: 'Invalid file type. Only JPG, PNG, and NII.GZ files are supported.' });
+      }
 
-        try {
-          // Use Google Gemini for medical image analysis
-          if (!process.env.GEMINI_API_KEY) {
-            return res.status(500).json({ error: 'Medical analysis service not configured. Please provide GEMINI_API_KEY.' });
-          }
+      // Use Google Gemini for medical image analysis
+      if (!process.env.GEMINI_API_KEY) {
+        return res.status(500).json({ error: 'Medical analysis service not configured. Please provide GEMINI_API_KEY.' });
+      }
 
-          const base64Image = file.buffer.toString('base64');
-          const mimeType = file.mimetype;
+      const base64Image = file.buffer.toString('base64');
+      const mimeType = file.mimetype;
 
-          const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${process.env.GEMINI_API_KEY}`, {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-              contents: [{
-                parts: [
-                  {
-                    text: `Analyze this ${scanType} medical image and provide detailed medical insights. 
-                    
-                    Please respond in JSON format with the following structure:
+      console.log('Sending request to Gemini API...');
+
+      const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${process.env.GEMINI_API_KEY}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          contents: [{
+            parts: [
+              {
+                text: `Analyze this ${scanType} medical image and provide detailed medical insights. 
+                
+                Please respond in JSON format with the following structure:
+                {
+                  "predictions": [
                     {
-                      "predictions": [
-                        {
-                          "condition": "condition name",
-                          "confidence": 0.85,
-                          "severity": "low|medium|high",
-                          "description": "detailed description",
-                          "recommendations": ["recommendation 1", "recommendation 2"],
-                          "treatment": ["treatment option 1", "treatment option 2"]
-                        }
-                      ]
+                      "condition": "condition name",
+                      "confidence": 0.85,
+                      "severity": "low|medium|high",
+                      "description": "detailed description",
+                      "recommendations": ["recommendation 1", "recommendation 2"],
+                      "treatment": ["treatment option 1", "treatment option 2"]
                     }
-                    
-                    Focus on:
-                    1. Identifying any abnormalities or pathological findings
-                    2. Assessing the severity level
-                    3. Providing confidence scores based on image quality and clarity
-                    4. Suggesting appropriate medical recommendations
-                    5. Recommending treatment options if applicable
-                    
-                    Be thorough but conservative in your analysis. Always recommend consulting with a medical professional for definitive diagnosis.`
-                  },
-                  {
-                    inline_data: {
-                      mime_type: mimeType,
-                      data: base64Image
-                    }
-                  }
-                ]
-              }],
-              generationConfig: {
-                temperature: 0.1,
-                topK: 1,
-                topP: 1,
-                maxOutputTokens: 2048,
+                  ]
+                }
+                
+                Focus on:
+                1. Identifying any abnormalities or pathological findings
+                2. Assessing the severity level
+                3. Providing confidence scores based on image quality and clarity
+                4. Suggesting appropriate medical recommendations
+                5. Recommending treatment options if applicable
+                
+                Be thorough but conservative in your analysis. Always recommend consulting with a medical professional for definitive diagnosis.`
+              },
+              {
+                inline_data: {
+                  mime_type: mimeType,
+                  data: base64Image
+                }
               }
-            })
-          });
-
-          if (!response.ok) {
-            throw new Error(`Gemini API error: ${response.statusText}`);
+            ]
+          }],
+          generationConfig: {
+            temperature: 0.1,
+            topK: 1,
+            topP: 1,
+            maxOutputTokens: 2048,
           }
-
-          const result = await response.json();
-          const analysisText = result.candidates[0]?.content?.parts[0]?.text;
-
-          if (!analysisText) {
-            throw new Error('No analysis generated');
-          }
-
-          // Parse JSON response from Gemini
-          let predictions;
-          try {
-            const jsonMatch = analysisText.match(/\{[\s\S]*\}/);
-            if (jsonMatch) {
-              predictions = JSON.parse(jsonMatch[0]);
-            } else {
-              // Fallback parsing if JSON is not properly formatted
-              predictions = {
-                predictions: [{
-                  condition: "Analysis Generated",
-                  confidence: 0.75,
-                  severity: "medium",
-                  description: analysisText.substring(0, 200) + "...",
-                  recommendations: ["Consult with a medical professional for detailed evaluation"],
-                  treatment: ["Follow medical professional's advice"]
-                }]
-              };
-            }
-          } catch (parseError) {
-            // Create a structured response from the text
-            predictions = {
-              predictions: [{
-                condition: "Medical Image Analysis",
-                confidence: 0.75,
-                severity: "medium",
-                description: analysisText,
-                recommendations: ["Consult with a radiologist or relevant specialist", "Compare with previous scans if available"],
-                treatment: ["Follow medical professional's recommendations based on this analysis"]
-              }]
-            };
-          }
-
-          res.json(predictions);
-
-        } catch (analysisError) {
-          console.error('Medical analysis error:', analysisError);
-          res.status(500).json({ 
-            error: 'Medical analysis failed',
-            message: analysisError.message
-          });
-        }
+        })
       });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('Gemini API error:', response.status, errorText);
+        throw new Error(`Gemini API error: ${response.status} ${errorText}`);
+      }
+
+      const result = await response.json();
+      console.log('Gemini API response received');
+
+      const analysisText = result.candidates?.[0]?.content?.parts?.[0]?.text;
+
+      if (!analysisText) {
+        throw new Error('No analysis generated from Gemini API');
+      }
+
+      // Parse JSON response from Gemini
+      let predictions;
+      try {
+        const jsonMatch = analysisText.match(/\{[\s\S]*\}/);
+        if (jsonMatch) {
+          predictions = JSON.parse(jsonMatch[0]);
+        } else {
+          // Fallback parsing if JSON is not properly formatted
+          predictions = {
+            predictions: [{
+              condition: "Analysis Generated",
+              confidence: 0.75,
+              severity: "medium",
+              description: analysisText.substring(0, 200) + "...",
+              recommendations: ["Consult with a medical professional for detailed evaluation"],
+              treatment: ["Follow medical professional's advice"]
+            }]
+          };
+        }
+      } catch (parseError) {
+        console.error('JSON parsing error:', parseError);
+        // Create a structured response from the text
+        predictions = {
+          predictions: [{
+            condition: "Medical Image Analysis",
+            confidence: 0.75,
+            severity: "medium",
+            description: analysisText,
+            recommendations: ["Consult with a radiologist or relevant specialist", "Compare with previous scans if available"],
+            treatment: ["Follow medical professional's recommendations based on this analysis"]
+          }]
+        };
+      }
+
+      console.log('Analysis completed successfully');
+      res.json(predictions);
 
     } catch (error) {
       console.error('Medical scan prediction error:', error);
       res.status(500).json({ 
         error: 'Medical scan analysis failed',
-        message: error.message
+        message: error instanceof Error ? error.message : 'Unknown error occurred'
       });
     }
   });

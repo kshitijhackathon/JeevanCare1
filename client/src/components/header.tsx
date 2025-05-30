@@ -4,7 +4,7 @@ import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Link } from "wouter";
-import { HeartHandshake, Bell, User, X, Calendar, Heart, Pill, FileText } from "lucide-react";
+import { HeartHandshake, Bell, User, X, Calendar, Heart, Pill, FileText, ShoppingCart } from "lucide-react";
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 
@@ -18,7 +18,13 @@ export default function Header() {
     enabled: showNotifications,
   });
 
+  // Fetch cart items count
+  const { data: cartItems } = useQuery({
+    queryKey: ["/api/cart"],
+  });
+
   const unreadCount = notifications?.filter((n: any) => !n.isRead).length || 0;
+  const cartItemsCount = cartItems?.length || 0;
 
   const getNotificationIcon = (type: string) => {
     switch (type) {
@@ -43,6 +49,22 @@ export default function Header() {
           </div>
         </div>
         <div className="flex items-center space-x-3 relative">
+          {/* Cart Button */}
+          <Link href="/cart">
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              className="rounded-full relative"
+            >
+              <ShoppingCart className="w-5 h-5 text-gray-600" />
+              {cartItemsCount > 0 && (
+                <Badge className="absolute -top-1 -right-1 bg-blue-500 text-white text-xs min-w-[18px] h-[18px] rounded-full flex items-center justify-center p-0">
+                  {cartItemsCount > 9 ? '9+' : cartItemsCount}
+                </Badge>
+              )}
+            </Button>
+          </Link>
+
           {/* Notification Bell */}
           <div className="relative">
             <Button 

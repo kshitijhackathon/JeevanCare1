@@ -625,6 +625,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.post('/api/cart/add', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const { productId, quantity } = req.body;
+      
+      const cartItemData = {
+        userId,
+        productId,
+        quantity: quantity || 1
+      };
+      
+      const cartItem = await storage.addToCart(cartItemData);
+      res.json(cartItem);
+    } catch (error) {
+      console.error("Error adding to cart:", error);
+      res.status(500).json({ message: "Failed to add to cart" });
+    }
+  });
+
   app.put('/api/cart/:id', isAuthenticated, async (req, res) => {
     try {
       const itemId = parseInt(req.params.id);

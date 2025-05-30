@@ -57,7 +57,10 @@ export default function MultilingualConsultation() {
   const [currentMessage, setCurrentMessage] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
   const [detectedLanguage, setDetectedLanguage] = useState('en');
+  const [isVideoCallActive, setIsVideoCallActive] = useState(false);
+  const [selectedLanguage, setSelectedLanguage] = useState('hindi');
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const videoRef = useRef<HTMLVideoElement>(null);
 
   // Language detection function
   const detectLanguage = (text: string): string => {

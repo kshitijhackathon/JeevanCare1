@@ -17,6 +17,7 @@ import { groqMedicalService } from "./groq-medical-service";
 import { geminiGrokMedicalEngine } from "./gemini-grok-medical-engine";
 import { enhancedPrescriptionEngine } from "./enhanced-prescription-engine";
 import { multilingualMedicalEngine } from "./multilingual-medical-engine";
+import { localMultilingualEngine } from "./local-multilingual-engine";
 
 if (!process.env.STRIPE_SECRET_KEY) {
   throw new Error('Missing required Stripe secret: STRIPE_SECRET_KEY');
@@ -851,13 +852,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log("Patient message:", message);
       console.log("Patient details:", patientDetails);
       
-      // Detect language from patient input
-      const detectedLang = multilingualMedicalEngine.detectLanguage(message);
+      // Use local multilingual engine for consultation
+      const detectedLang = localMultilingualEngine.detectLanguage(message);
       console.log("Detected language:", detectedLang);
-      
-      // Translate symptoms to English for processing
-      const englishSymptoms = await multilingualMedicalEngine.translateToEnglish(message, detectedLang);
-      console.log("Translated symptoms:", englishSymptoms);
       
       // Prepare patient data in standardized format
       const patientData = {
@@ -865,12 +862,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
         age: parseInt(patientDetails.age) || 25,
         gender: patientDetails.gender || "male",
         bloodGrp: patientDetails.bloodGroup || "O+",
-        symptoms: englishSymptoms,
+        symptoms: message,
         lang: detectedLang
       };
       
-      // Generate medical advice in structured JSON format
-      const medicalResponse = await multilingualMedicalEngine.generateMedicalAdvice(patientData);
+      // Generate medical advice using local engine
+      const medicalResponse = await localMultilingualEngine.generateMedicalAdvice(patientData);
       
       console.log("Medical response generated:", {
         language: detectedLang,
@@ -888,7 +885,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         medicalAdvice: medicalResponse,
         // Legacy format for compatibility
         response: medicalResponse.responseText,
-        symptoms: multilingualMedicalEngine.extractSymptoms(englishSymptoms),
+        symptoms: localMultilingualEngine.extractSymptoms(message, detectedLang),
         type: medicalResponse.medicines.length > 0 ? 'prescription' : 'analysis'
       });
 

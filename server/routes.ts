@@ -1698,8 +1698,104 @@ export async function registerRoutes(app: Express): Promise<Server> {
     return { hindi: hindiAdvice, english: englishAdvice };
   }
 
+  // AI Consultation with Groq API - Remove authentication for immediate access
+  app.post("/api/ai-consultation", async (req, res) => {
+    try {
+      const { message, patientDetails, history } = req.body;
+      
+      if (!message) {
+        return res.status(400).json({ error: "Message is required" });
+      }
+
+      console.log('AI Consultation Request:', { message, patientDetails });
+
+      // Create patient context for better medical consultation
+      const patientContext = patientDetails ? 
+        `Patient: ${patientDetails.name}, Age: ${patientDetails.age}, Gender: ${patientDetails.gender}, Blood Group: ${patientDetails.bloodGroup}` : 
+        'Patient details not provided';
+
+      // Use Groq API for fast medical consultation
+      const groqResponse = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${process.env.GROQ_API_KEY}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          model: "llama-3.1-70b-versatile",
+          messages: [
+            {
+              role: "system",
+              content: `You are Dr. Saarthi AI, an experienced Indian doctor. Provide professional medical consultation in clean language without special characters. 
+
+Guidelines:
+- Use only standard medical terminology
+- Suggest Indian medicines like Crocin, Combiflam, Cetrizine, Digene
+- Provide dosage according to Indian medical standards
+- Address patient respectfully
+- Give practical medical advice
+- If symptoms are serious, recommend immediate doctor consultation
+
+Patient Context: ${patientContext}`
+            },
+            {
+              role: "user", 
+              content: message
+            }
+          ],
+          temperature: 0.3,
+          max_tokens: 800
+        })
+      });
+
+      if (!groqResponse.ok) {
+        throw new Error(`Groq API error: ${groqResponse.statusText}`);
+      }
+
+      const groqData = await groqResponse.json();
+      const aiResponse = groqData.choices[0].message.content;
+
+      // Clean response to remove any special characters
+      const cleanResponse = aiResponse
+        .replace(/[^\w\s\u0900-\u097F\u0A00-\u0A7F\u0A80-\u0AFF\u0B00-\u0B7F\u0B80-\u0BFF\u0C00-\u0C7F\u0C80-\u0CFF\u0D00-\u0D7F.,।?()-]/g, '')
+        .replace(/\s+/g, ' ')
+        .trim();
+
+      res.json({
+        success: true,
+        response: cleanResponse,
+        type: 'medical_advice',
+        timestamp: new Date().toISOString()
+      });
+
+    } catch (error) {
+      console.error('AI Consultation Error:', error);
+      
+      // Fallback response using existing medical engine
+      try {
+        const fallbackResult = await diseasePredictionEngine.generateMedicalConsultation(
+          req.body.message,
+          req.body.patientDetails || { name: 'Patient', age: 30, gender: 'Unknown' }
+        );
+        
+        res.json({
+          success: true,
+          response: fallbackResult.advice,
+          type: 'medical_advice',
+          fallback: true
+        });
+      } catch (fallbackError) {
+        res.status(500).json({
+          success: false,
+          error: 'Medical consultation temporarily unavailable',
+          response: 'I apologize, but I am experiencing technical difficulties. Please try again or consult a healthcare professional.'
+        });
+      }
+    }
+  });
+
   // AI Consultation with Perplexity API
-  app.post("/api/consultations/ai-chat", isAuthenticated, async (req, res) => {
+  app.post("/api/consultations/ai-chat", async (req, res) => {
     try {
       const { action, message, language, patientDetails } = req.body;
 

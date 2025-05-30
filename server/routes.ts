@@ -16,6 +16,7 @@ import { enhancedLocalMedicalEngine } from "./enhanced-local-medical-engine";
 import { groqMedicalService } from "./groq-medical-service";
 import { geminiGrokMedicalEngine } from "./gemini-grok-medical-engine";
 import { enhancedPrescriptionEngine } from "./enhanced-prescription-engine";
+import { multilingualMedicalEngine } from "./multilingual-medical-engine";
 
 if (!process.env.STRIPE_SECRET_KEY) {
   throw new Error('Missing required Stripe secret: STRIPE_SECRET_KEY');
@@ -841,6 +842,66 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Multilingual Medical Consultation with JSON Response Format
+  app.post("/api/ai-doctor/multilingual-consultation", async (req, res) => {
+    try {
+      const { message, patientDetails } = req.body;
+      
+      console.log("=== MULTILINGUAL MEDICAL CONSULTATION ===");
+      console.log("Patient message:", message);
+      console.log("Patient details:", patientDetails);
+      
+      // Detect language from patient input
+      const detectedLang = multilingualMedicalEngine.detectLanguage(message);
+      console.log("Detected language:", detectedLang);
+      
+      // Translate symptoms to English for processing
+      const englishSymptoms = await multilingualMedicalEngine.translateToEnglish(message, detectedLang);
+      console.log("Translated symptoms:", englishSymptoms);
+      
+      // Prepare patient data in standardized format
+      const patientData = {
+        name: patientDetails.name || "Patient",
+        age: parseInt(patientDetails.age) || 25,
+        gender: patientDetails.gender || "male",
+        bloodGrp: patientDetails.bloodGroup || "O+",
+        symptoms: englishSymptoms,
+        lang: detectedLang
+      };
+      
+      // Generate medical advice in structured JSON format
+      const medicalResponse = await multilingualMedicalEngine.generateMedicalAdvice(patientData);
+      
+      console.log("Medical response generated:", {
+        language: detectedLang,
+        severity: medicalResponse.severity,
+        medicineCount: medicalResponse.medicines.length,
+        testCount: medicalResponse.tests.length,
+        followUpCount: medicalResponse.followUp.length
+      });
+      
+      // Return structured response
+      res.json({
+        success: true,
+        detectedLanguage: detectedLang,
+        patientData,
+        medicalAdvice: medicalResponse,
+        // Legacy format for compatibility
+        response: medicalResponse.responseText,
+        symptoms: multilingualMedicalEngine.extractSymptoms(englishSymptoms),
+        type: medicalResponse.medicines.length > 0 ? 'prescription' : 'analysis'
+      });
+
+    } catch (error) {
+      console.error("Multilingual consultation error:", error);
+      res.status(500).json({ 
+        success: false,
+        error: "Failed to process multilingual medical consultation",
+        response: "I apologize, but I'm having trouble processing your request right now. Please try again."
+      });
+    }
+  });
+
   // Enhanced AI Medical Consultation with Gemini + Grok + Authentic Medicine Database
   app.post("/api/ai-doctor/enhanced-consultation", async (req, res) => {
     try {
@@ -897,10 +958,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Format response for frontend
       const response = {
         response: result.finalResponse,
-        detectedLanguage: result.detectedLanguage,
-        diagnosis: finalDiagnosis,
-        confidence: result.confidence,
-        severity: result.severity,
         medicines: finalMedicines,
         geminiAnalysis: result.geminiAnalysis,
         grokAnalysis: result.grokAnalysis,

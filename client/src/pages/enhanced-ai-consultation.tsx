@@ -15,17 +15,14 @@ import PrescriptionTemplate from "@/components/prescription-template";
 import ImprovedVoiceRecognition from "@/components/improved-voice-recognition";
 import PersonalizedAIAvatar from "@/components/personalized-ai-avatar";
 import SmartSymptomDisplay from "@/components/smart-symptom-display";
-import { voiceToneAdapter } from "@/lib/voice-tone-adapter";
-import { extractEntities, mergeWithContext } from "@/lib/symptomNLP";
-import { getCtx, setCtx, addConversationTurn, resetCtx } from "@/lib/contextStore";
-import { buildDoctorPrompt, generateFollowUpQuestions } from "@/lib/doctorPrompt";
-import { smartSymptomDetector } from "@/lib/smart-symptom-context";
+// Removed problematic imports causing infinite loops
 
 interface PatientDetails {
   name: string;
   gender: string;
   age: string;
   bloodGroup: string;
+  language?: string;
 }
 
 interface ChatMessage {
@@ -163,12 +160,11 @@ export default function EnhancedAIConsultation() {
           name: patientDetails.name,
           age: patientDetails.age,
           gender: patientDetails.gender,
-          bloodGroup: patientDetails.bloodGroup,
-          language: patientDetails.language
+          bloodGroup: patientDetails.bloodGroup
         }
       });
     }
-  }, [step, patientDetails]);
+  }, [step]); // Remove patientDetails dependency to prevent infinite loops
 
   // Handle voice transcript with immediate symptom detection
   const handleVoiceTranscript = async (transcript: string) => {

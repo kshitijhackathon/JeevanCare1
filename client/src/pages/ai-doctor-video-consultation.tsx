@@ -179,6 +179,15 @@ export default function AIDoctorVideoConsultation() {
       setIsInConsultation(true);
       console.log('Video call started successfully');
       
+      // Auto-start Dr. Saarthi AI greeting
+      setTimeout(() => {
+        const greeting = patientDetails.language === 'hindi' 
+          ? `नमस्ते ${patientDetails.name} जी, मैं Dr. Saarthi AI हूं। आपकी क्या तकलीफ है? कृपया अपने लक्षण बताइए।`
+          : `Hello ${patientDetails.name}, I am Dr. Saarthi AI. What seems to be bothering you today? Please describe your symptoms.`;
+        
+        handleSubmitSymptoms(greeting);
+      }, 2000);
+      
     } catch (error) {
       console.error('Video call failed:', error);
       
@@ -372,6 +381,7 @@ export default function AIDoctorVideoConsultation() {
                     <option value="AB-">AB-</option>
                     <option value="O+">O+</option>
                     <option value="O-">O-</option>
+                    <option value="unknown">पता नहीं / Not Known</option>
                   </select>
                 </div>
 
@@ -391,11 +401,13 @@ export default function AIDoctorVideoConsultation() {
               <Button
                 onClick={startVideoCall}
                 size="lg"
-                className="w-full bg-gradient-to-r from-green-600 to-blue-600 hover:from-green-700 hover:to-blue-700"
+                className="w-full bg-gradient-to-r from-green-600 to-blue-600 hover:from-green-700 hover:to-blue-700 text-white font-semibold py-4 px-6 rounded-lg shadow-lg"
                 disabled={!patientDetails.name || !patientDetails.age || !patientDetails.gender}
               >
-                <Video className="w-5 h-5 mr-2" />
-                वीडियो परामर्श शुरू करें / Start Video Consultation
+                <PhoneCall className="w-6 h-6 mr-3" />
+                <span className="text-lg">
+                  Dr. Saarthi AI से मिलें / Connect with Dr. Saarthi AI
+                </span>
               </Button>
             </CardContent>
           </Card>
@@ -418,28 +430,37 @@ export default function AIDoctorVideoConsultation() {
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
-                {/* Video Display */}
-                <div className="relative bg-gray-900 rounded-lg overflow-hidden aspect-video">
-                  {isVideoEnabled ? (
-                    <video
-                      ref={videoRef}
-                      autoPlay
-                      muted
-                      className="w-full h-full object-cover"
-                    />
-                  ) : (
-                    <div className="w-full h-full flex items-center justify-center text-white">
-                      <VideoOff className="w-16 h-16 opacity-50" />
+                {/* Video Display - Zoom-like interface */}
+                <div className="relative bg-gray-900 rounded-lg overflow-hidden aspect-video border-2 border-blue-500">
+                  {/* Patient Video (Self) */}
+                  <video
+                    ref={videoRef}
+                    autoPlay
+                    muted
+                    playsInline
+                    className="w-full h-full object-cover"
+                  />
+                  
+                  {/* Doctor AI Avatar Overlay */}
+                  <div className="absolute top-4 right-4 w-24 h-24 bg-blue-600 rounded-full flex items-center justify-center border-2 border-white">
+                    <div className="text-white text-center">
+                      <Stethoscope className="w-8 h-8 mx-auto mb-1" />
+                      <div className="text-xs font-semibold">Dr. Saarthi</div>
                     </div>
-                  )}
+                  </div>
+                  
+                  {/* Status Indicator */}
+                  <div className="absolute top-4 left-4 bg-green-500 text-white px-2 py-1 rounded text-xs">
+                    🔴 LIVE - AI Doctor Consultation
+                  </div>
                   
                   {/* Call Controls */}
-                  <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex space-x-2">
+                  <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex space-x-3 bg-black bg-opacity-50 rounded-full px-4 py-2">
                     <Button
                       onClick={toggleVideo}
                       size="sm"
                       variant={isVideoEnabled ? "secondary" : "destructive"}
-                      className="rounded-full"
+                      className="rounded-full w-10 h-10"
                     >
                       {isVideoEnabled ? <Video className="w-4 h-4" /> : <VideoOff className="w-4 h-4" />}
                     </Button>
@@ -448,7 +469,7 @@ export default function AIDoctorVideoConsultation() {
                       onClick={toggleAudio}
                       size="sm"
                       variant={isAudioEnabled ? "secondary" : "destructive"}
-                      className="rounded-full"
+                      className="rounded-full w-10 h-10"
                     >
                       {isAudioEnabled ? <Mic className="w-4 h-4" /> : <MicOff className="w-4 h-4" />}
                     </Button>
@@ -457,7 +478,7 @@ export default function AIDoctorVideoConsultation() {
                       onClick={stopVideoCall}
                       size="sm"
                       variant="destructive"
-                      className="rounded-full"
+                      className="rounded-full w-10 h-10"
                     >
                       <X className="w-4 h-4" />
                     </Button>

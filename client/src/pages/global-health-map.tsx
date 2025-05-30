@@ -2,19 +2,8 @@ import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { 
-  ArrowLeft,
-  Globe,
-  TrendingUp,
-  TrendingDown,
-  AlertTriangle,
-  MapPin,
-  Activity,
-  BarChart3,
-  Filter,
-  Search,
-  Info
-} from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { ArrowLeft, Globe, Filter, Search, Info, TrendingUp } from "lucide-react";
 import { Link } from "wouter";
 import { useQuery } from "@tanstack/react-query";
 
@@ -54,193 +43,229 @@ export default function GlobalHealthMap() {
     }
   });
 
-  // Interactive 3D Globe with Disease Hotspots
+  const diseaseOptions = [
+    { value: 'all', label: 'All Diseases' },
+    { value: 'respiratory', label: 'Respiratory Infections' },
+    { value: 'diarrheal', label: 'Diarrheal Diseases' },
+    { value: 'dengue', label: 'Dengue Fever' },
+    { value: 'malaria', label: 'Malaria' },
+    { value: 'chikungunya', label: 'Chikungunya' },
+    { value: 'cholera', label: 'Cholera' },
+    { value: 'tuberculosis', label: 'Tuberculosis' }
+  ];
+
+  // Enhanced Interactive 3D Globe with Realistic Earth
   const Interactive3DGlobe = () => {
     const [rotation, setRotation] = useState(0);
+    const [isHovering, setIsHovering] = useState(false);
     
     useEffect(() => {
       const interval = setInterval(() => {
-        setRotation(prev => (prev + 0.5) % 360);
-      }, 100);
+        setRotation(prev => (prev + (isHovering ? 0.2 : 0.8)) % 360);
+      }, 50);
       return () => clearInterval(interval);
-    }, []);
+    }, [isHovering]);
+
+    // Continent shapes as SVG paths (simplified for performance)
+    const continents = [
+      { name: "Asia", path: "M180,120 Q200,100 220,120 Q240,140 220,160 Q200,180 180,160 Q160,140 180,120", color: "#22c55e" },
+      { name: "Europe", path: "M140,110 Q150,100 160,110 Q170,120 160,130 Q150,140 140,130 Q130,120 140,110", color: "#3b82f6" },
+      { name: "Africa", path: "M150,130 Q170,120 180,140 Q190,160 180,180 Q170,200 150,190 Q130,180 140,160 Q150,140 150,130", color: "#f59e0b" },
+      { name: "North America", path: "M80,100 Q100,90 120,100 Q140,110 130,130 Q120,150 100,140 Q80,130 70,110 Q80,100 80,100", color: "#ef4444" },
+      { name: "South America", path: "M90,150 Q110,140 120,160 Q130,180 120,200 Q110,220 90,210 Q70,200 80,180 Q90,160 90,150", color: "#8b5cf6" },
+      { name: "Australia", path: "M220,180 Q240,170 250,180 Q260,190 250,200 Q240,210 220,200 Q200,190 210,180 Q220,180 220,180", color: "#06b6d4" }
+    ];
 
     return (
-      <div className="relative bg-gradient-to-br from-blue-900 via-blue-800 to-black rounded-lg h-80 overflow-hidden">
-        {/* 3D Globe Container */}
-        <div className="absolute inset-0 flex items-center justify-center">
-          <div 
-            className="relative w-64 h-64 rounded-full bg-gradient-to-br from-blue-500 via-green-500 to-blue-600 shadow-2xl transform-gpu"
-            style={{
-              backgroundImage: `radial-gradient(circle at 30% 30%, rgba(255,255,255,0.3) 0%, rgba(255,255,255,0.1) 30%, transparent 70%),
-                               linear-gradient(45deg, #4ade80 0%, #3b82f6 25%, #10b981 50%, #1e40af 75%, #059669 100%)`,
-              transform: `rotateY(${rotation}deg) rotateX(-10deg)`,
-              boxShadow: `
-                inset -20px -20px 50px rgba(0,0,0,0.3),
-                inset 20px 20px 50px rgba(255,255,255,0.1),
-                0 0 50px rgba(59, 130, 246, 0.4)
-              `
-            }}
-          >
-            {/* Disease Hotspots */}
-            {healthData?.map((region, index) => {
-              const angle = (index * 90 + rotation) % 360;
-              const x = 50 + 35 * Math.cos(angle * Math.PI / 180);
-              const y = 50 + 35 * Math.sin(angle * Math.PI / 180);
-              const opacity = Math.cos(angle * Math.PI / 180) > 0 ? 1 : 0.3;
-              
-              const getHotspotColor = (riskLevel: string) => {
-                switch (riskLevel) {
-                  case 'critical': return 'bg-red-500';
-                  case 'high': return 'bg-orange-500';
-                  case 'medium': return 'bg-yellow-500';
-                  case 'low': return 'bg-green-500';
-                  default: return 'bg-blue-500';
-                }
-              };
-
-              return (
-                <div
-                  key={region.id}
-                  className={`absolute w-4 h-4 rounded-full ${getHotspotColor(region.riskLevel)} 
-                            cursor-pointer transform -translate-x-1/2 -translate-y-1/2 
-                            hover:scale-150 transition-all duration-300 animate-pulse`}
-                  style={{
-                    left: `${x}%`,
-                    top: `${y}%`,
-                    opacity: opacity,
-                    boxShadow: `0 0 10px ${
-                      region.riskLevel === 'critical' ? '#ef4444' :
-                      region.riskLevel === 'high' ? '#f97316' :
-                      region.riskLevel === 'medium' ? '#eab308' : '#22c55e'
-                    }`
-                  }}
-                  onClick={() => setSelectedRegion(region)}
-                  title={`${region.name} - ${region.totalCases.toLocaleString()} cases`}
-                >
-                  <div className="absolute inset-0 rounded-full animate-ping opacity-75"></div>
-                </div>
-              );
-            })}
-
-            {/* Globe Grid Lines */}
-            <div className="absolute inset-0 rounded-full"
-                 style={{
-                   background: `
-                     repeating-linear-gradient(0deg, transparent 0px, transparent 20px, rgba(255,255,255,0.1) 20px, rgba(255,255,255,0.1) 22px),
-                     repeating-linear-gradient(90deg, transparent 0px, transparent 20px, rgba(255,255,255,0.1) 20px, rgba(255,255,255,0.1) 22px)
-                   `,
-                   clipPath: 'circle(50%)'
-                 }}
-            />
-          </div>
-        </div>
-
-        {/* Floating Particles */}
-        <div className="absolute inset-0 overflow-hidden">
-          {[...Array(20)].map((_, i) => (
+      <div className="relative bg-gradient-to-br from-slate-900 via-blue-900 to-black rounded-lg h-96 overflow-hidden">
+        {/* Stars Background */}
+        <div className="absolute inset-0">
+          {[...Array(50)].map((_, i) => (
             <div
               key={i}
-              className="absolute w-1 h-1 bg-white rounded-full opacity-60 animate-pulse"
+              className="absolute w-1 h-1 bg-white rounded-full animate-pulse"
               style={{
                 left: `${Math.random() * 100}%`,
                 top: `${Math.random() * 100}%`,
-                animationDelay: `${Math.random() * 2}s`,
-                animationDuration: `${2 + Math.random() * 3}s`
+                animationDelay: `${Math.random() * 3}s`,
+                opacity: Math.random() * 0.8 + 0.2
               }}
             />
           ))}
         </div>
 
-        {/* Controls */}
-        <div className="absolute top-4 left-4 flex space-x-2">
-          <div className="bg-white bg-opacity-90 px-3 py-1 rounded-full text-xs font-medium">
-            3D Globe View
-          </div>
-        </div>
+        {/* 3D Earth Globe */}
+        <div 
+          className="absolute inset-0 flex items-center justify-center cursor-pointer"
+          onMouseEnter={() => setIsHovering(true)}
+          onMouseLeave={() => setIsHovering(false)}
+        >
+          <div 
+            className="relative w-80 h-80 rounded-full transform-gpu transition-transform duration-300 hover:scale-105"
+            style={{
+              background: `
+                radial-gradient(circle at 25% 25%, rgba(255,255,255,0.4) 0%, transparent 50%),
+                conic-gradient(from ${rotation}deg, #1e40af 0deg, #059669 60deg, #0891b2 120deg, #7c3aed 180deg, #dc2626 240deg, #ea580c 300deg, #1e40af 360deg)
+              `,
+              transform: `rotateY(${rotation}deg) rotateX(-15deg)`,
+              boxShadow: `
+                inset -30px -30px 60px rgba(0,0,0,0.4),
+                inset 20px 20px 60px rgba(255,255,255,0.1),
+                0 0 80px rgba(59, 130, 246, 0.6),
+                0 0 120px rgba(34, 197, 94, 0.3)
+              `,
+              border: '2px solid rgba(255,255,255,0.1)'
+            }}
+          >
+            {/* Ocean texture overlay */}
+            <div 
+              className="absolute inset-0 rounded-full opacity-60"
+              style={{
+                background: `
+                  radial-gradient(ellipse at 30% 30%, rgba(6, 182, 212, 0.8) 0%, transparent 70%),
+                  radial-gradient(ellipse at 70% 70%, rgba(34, 197, 94, 0.6) 0%, transparent 60%),
+                  linear-gradient(45deg, transparent 40%, rgba(255,255,255,0.1) 50%, transparent 60%)
+                `,
+                transform: `rotate(${rotation * 0.5}deg)`
+              }}
+            />
 
-        {/* Legend */}
-        <div className="absolute bottom-4 left-4 bg-white bg-opacity-90 p-3 rounded-lg text-xs">
-          <div className="mb-2 font-medium text-gray-800">Disease Risk Levels</div>
-          <div className="grid grid-cols-2 gap-2">
-            <div className="flex items-center space-x-2">
-              <div className="w-3 h-3 bg-green-500 rounded-full"></div>
-              <span>Low Risk</span>
-            </div>
-            <div className="flex items-center space-x-2">
-              <div className="w-3 h-3 bg-yellow-500 rounded-full"></div>
-              <span>Medium</span>
-            </div>
-            <div className="flex items-center space-x-2">
-              <div className="w-3 h-3 bg-orange-500 rounded-full"></div>
-              <span>High Risk</span>
-            </div>
-            <div className="flex items-center space-x-2">
-              <div className="w-3 h-3 bg-red-500 rounded-full animate-pulse"></div>
-              <span>Critical</span>
-            </div>
-          </div>
-          <div className="mt-2 text-gray-600">
-            <div>• Click hotspots for details</div>
-            <div>• Auto-rotating view</div>
-          </div>
-        </div>
+            {/* Continent overlays */}
+            <svg 
+              className="absolute inset-0 w-full h-full" 
+              viewBox="0 0 320 320"
+              style={{ transform: `rotate(${rotation * 0.3}deg)` }}
+            >
+              {continents.map((continent, index) => (
+                <g key={continent.name}>
+                  <path
+                    d={continent.path}
+                    fill={continent.color}
+                    opacity="0.7"
+                    stroke="rgba(255,255,255,0.3)"
+                    strokeWidth="1"
+                    className="animate-pulse"
+                    style={{ animationDelay: `${index * 0.5}s` }}
+                  />
+                </g>
+              ))}
+            </svg>
 
-        {/* Active Region Info */}
-        {selectedRegion && (
-          <div className="absolute top-4 right-4 bg-white bg-opacity-95 p-3 rounded-lg text-xs max-w-48">
-            <div className="font-medium text-gray-800 mb-1">{selectedRegion.name}</div>
-            <div className="text-gray-600 mb-2">{selectedRegion.country}</div>
+            {/* Disease Hotspots */}
+            {healthData?.map((region, index) => {
+              const angle = (index * 60 + rotation) % 360;
+              const radius = 35;
+              const x = 50 + radius * Math.cos(angle * Math.PI / 180);
+              const y = 50 + radius * Math.sin(angle * Math.PI / 180);
+              const depth = Math.cos(angle * Math.PI / 180);
+              const isVisible = depth > -0.5;
+              const scale = Math.max(0.3, (depth + 1) / 2);
+              
+              const getHotspotColor = (riskLevel: string) => {
+                switch (riskLevel) {
+                  case 'critical': return 'bg-red-500 shadow-red-500/50';
+                  case 'high': return 'bg-orange-500 shadow-orange-500/50';
+                  case 'medium': return 'bg-yellow-500 shadow-yellow-500/50';
+                  case 'low': return 'bg-green-500 shadow-green-500/50';
+                  default: return 'bg-blue-500 shadow-blue-500/50';
+                }
+              };
+              
+              if (!isVisible) return null;
+              
+              return (
+                <div
+                  key={region.id}
+                  className={`absolute w-3 h-3 rounded-full ${getHotspotColor(region.riskLevel)} animate-ping cursor-pointer transform-gpu`}
+                  style={{
+                    left: `${x}%`,
+                    top: `${y}%`,
+                    transform: `translate(-50%, -50%) scale(${scale})`,
+                    opacity: scale * 0.9,
+                    zIndex: Math.floor(scale * 10),
+                    boxShadow: `0 0 20px ${getHotspotColor(region.riskLevel).includes('red') ? '#ef4444' : 
+                                            getHotspotColor(region.riskLevel).includes('orange') ? '#f97316' :
+                                            getHotspotColor(region.riskLevel).includes('yellow') ? '#eab308' :
+                                            getHotspotColor(region.riskLevel).includes('green') ? '#22c55e' : '#3b82f6'}`
+                  }}
+                  onClick={() => setSelectedRegion(region)}
+                  title={`${region.name} - ${region.riskLevel.toUpperCase()} risk`}
+                />
+              );
+            })}
+
+            {/* Globe Grid Lines */}
+            <svg className="absolute inset-0 w-full h-full opacity-20" viewBox="0 0 320 320">
+              {/* Longitude lines */}
+              {[0, 30, 60, 90, 120, 150].map(angle => (
+                <ellipse
+                  key={angle}
+                  cx="160"
+                  cy="160"
+                  rx={Math.cos(angle * Math.PI / 180) * 140}
+                  ry="140"
+                  fill="none"
+                  stroke="rgba(255,255,255,0.3)"
+                  strokeWidth="1"
+                  transform={`rotate(${angle} 160 160)`}
+                />
+              ))}
+              {/* Latitude lines */}
+              {[-60, -30, 0, 30, 60].map(lat => (
+                <ellipse
+                  key={lat}
+                  cx="160"
+                  cy="160"
+                  rx="140"
+                  ry={Math.cos(lat * Math.PI / 180) * 140}
+                  fill="none"
+                  stroke="rgba(255,255,255,0.2)"
+                  strokeWidth="1"
+                />
+              ))}
+            </svg>
+
+            {/* Atmospheric glow */}
+            <div
+              className="absolute inset-0 rounded-full"
+              style={{
+                background: `radial-gradient(circle, transparent 70%, rgba(59, 130, 246, 0.3) 85%, rgba(34, 197, 94, 0.2) 100%)`,
+                filter: 'blur(2px)'
+              }}
+            />
+          </div>
+
+          {/* Globe Info Display */}
+          <div className="absolute top-4 left-4 bg-black/50 backdrop-blur text-white p-3 rounded-lg">
+            <h3 className="font-bold text-sm">🌍 Global Health Monitor</h3>
+            <p className="text-xs opacity-80">Live Disease Tracking</p>
+            <div className="flex items-center space-x-2 mt-2">
+              <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
+              <span className="text-xs">Active Monitoring</span>
+            </div>
+          </div>
+
+          {/* Risk Level Legend */}
+          <div className="absolute bottom-4 right-4 bg-black/50 backdrop-blur text-white p-3 rounded-lg">
+            <h4 className="text-xs font-semibold mb-2">Risk Levels</h4>
             <div className="space-y-1">
-              <div className="flex justify-between">
-                <span>Total Cases:</span>
-                <span className="font-medium">{selectedRegion.totalCases.toLocaleString()}</span>
-              </div>
-              <div className="flex justify-between">
-                <span>Population:</span>
-                <span className="font-medium">{(selectedRegion.population / 1000000).toFixed(1)}M</span>
-              </div>
-              <div className="flex justify-between">
-                <span>Risk Level:</span>
-                <Badge className={getRiskColor(selectedRegion.riskLevel)}>
-                  {selectedRegion.riskLevel}
-                </Badge>
-              </div>
+              {[
+                { level: 'Critical', color: 'bg-red-500', count: healthData?.filter(r => r.riskLevel === 'critical').length || 0 },
+                { level: 'High', color: 'bg-orange-500', count: healthData?.filter(r => r.riskLevel === 'high').length || 0 },
+                { level: 'Medium', color: 'bg-yellow-500', count: healthData?.filter(r => r.riskLevel === 'medium').length || 0 },
+                { level: 'Low', color: 'bg-green-500', count: healthData?.filter(r => r.riskLevel === 'low').length || 0 }
+              ].map(item => (
+                <div key={item.level} className="flex items-center space-x-2 text-xs">
+                  <div className={`w-2 h-2 rounded-full ${item.color} animate-pulse`}></div>
+                  <span>{item.level} ({item.count})</span>
+                </div>
+              ))}
             </div>
           </div>
-        )}
+        </div>
       </div>
     );
   };
-
-  const getRiskColor = (level: string) => {
-    switch (level) {
-      case 'critical': return 'bg-red-100 text-red-800 border-red-200';
-      case 'high': return 'bg-orange-100 text-orange-800 border-orange-200';
-      case 'medium': return 'bg-yellow-100 text-yellow-800 border-yellow-200';
-      case 'low': return 'bg-green-100 text-green-800 border-green-200';
-      default: return 'bg-gray-100 text-gray-800 border-gray-200';
-    }
-  };
-
-  const getTrendIcon = (trend: string) => {
-    switch (trend) {
-      case 'up': return <TrendingUp className="w-4 h-4 text-red-500" />;
-      case 'down': return <TrendingDown className="w-4 h-4 text-green-500" />;
-      default: return <Activity className="w-4 h-4 text-blue-500" />;
-    }
-  };
-
-  const diseaseOptions = [
-    { value: 'all', label: 'All Diseases' },
-    { value: 'covid-19', label: 'COVID-19' },
-    { value: 'influenza', label: 'Influenza' },
-    { value: 'dengue', label: 'Dengue' },
-    { value: 'malaria', label: 'Malaria' },
-    { value: 'tuberculosis', label: 'Tuberculosis' },
-    { value: 'diabetes', label: 'Diabetes' },
-    { value: 'hypertension', label: 'Hypertension' }
-  ];
 
   return (
     <div className="mobile-container bg-gray-50 min-h-screen">
@@ -278,33 +303,38 @@ export default function GlobalHealthMap() {
               </div>
 
               {/* Search */}
-              <div className="relative">
-                <Search className="w-4 h-4 absolute left-3 top-3 text-gray-400" />
-                <input
-                  type="text"
-                  placeholder="Search regions or countries..."
-                  className="w-full pl-10 pr-4 py-2 border rounded-lg text-sm"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                />
+              <div>
+                <label className="text-sm font-medium mb-2 block">Search Regions</label>
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+                  <Input
+                    type="text"
+                    placeholder="Search by region or country..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="pl-10"
+                  />
+                </div>
               </div>
 
-              {/* View Toggle */}
+              {/* View Mode Toggle */}
               <div className="flex space-x-2">
-                <Button 
+                <Button
                   variant={viewMode === 'heatmap' ? 'default' : 'outline'}
                   size="sm"
                   onClick={() => setViewMode('heatmap')}
+                  className="flex-1"
                 >
-                  <Globe className="w-4 h-4 mr-1" />
-                  Map View
+                  <Globe className="w-4 h-4 mr-2" />
+                  3D Globe
                 </Button>
-                <Button 
+                <Button
                   variant={viewMode === 'list' ? 'default' : 'outline'}
                   size="sm"
                   onClick={() => setViewMode('list')}
+                  className="flex-1"
                 >
-                  <BarChart3 className="w-4 h-4 mr-1" />
+                  <Filter className="w-4 h-4 mr-2" />
                   List View
                 </Button>
               </div>
@@ -312,20 +342,32 @@ export default function GlobalHealthMap() {
           </CardContent>
         </Card>
 
-        {/* Heatmap */}
+        {/* 3D Globe View */}
         {viewMode === 'heatmap' && (
           <Card>
             <CardHeader>
-              <CardTitle className="flex items-center space-x-2">
-                <Globe className="w-5 h-5" />
-                <span>Disease Distribution Heatmap</span>
-              </CardTitle>
-              <p className="text-sm text-gray-600">
-                Click on regions to view detailed health data
-              </p>
+              <CardTitle>Interactive 3D Global Health Map</CardTitle>
             </CardHeader>
             <CardContent>
               <Interactive3DGlobe />
+              {selectedRegion && (
+                <div className="mt-4 p-4 bg-blue-50 rounded-lg">
+                  <h4 className="font-semibold text-blue-900">{selectedRegion.name}, {selectedRegion.country}</h4>
+                  <p className="text-sm text-blue-700 mt-1">
+                    Total Cases: {selectedRegion.totalCases.toLocaleString()} | 
+                    Population: {selectedRegion.population.toLocaleString()} | 
+                    Risk Level: <span className="font-medium">{selectedRegion.riskLevel.toUpperCase()}</span>
+                  </p>
+                  <div className="mt-2 space-y-1">
+                    {selectedRegion.diseases.slice(0, 3).map((disease, idx) => (
+                      <div key={idx} className="text-xs text-blue-600 flex justify-between">
+                        <span>{disease.disease}</span>
+                        <span>{disease.cases.toLocaleString()} cases</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
             </CardContent>
           </Card>
         )}
@@ -364,140 +406,6 @@ export default function GlobalHealthMap() {
             </div>
           </CardContent>
         </Card>
-
-        {/* Regional Data List */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Regional Health Data</CardTitle>
-          </CardHeader>
-          <CardContent>
-            {isLoading ? (
-              <div className="space-y-4">
-                {[1, 2, 3].map(i => (
-                  <div key={i} className="animate-pulse">
-                    <div className="flex space-x-3">
-                      <div className="w-12 h-12 bg-gray-200 rounded"></div>
-                      <div className="flex-1 space-y-2">
-                        <div className="h-4 bg-gray-200 rounded w-3/4"></div>
-                        <div className="h-3 bg-gray-200 rounded w-1/2"></div>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            ) : healthData && healthData.length > 0 ? (
-              <div className="space-y-4">
-                {healthData
-                  .filter(region => 
-                    !searchQuery || 
-                    region.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                    region.country.toLowerCase().includes(searchQuery.toLowerCase())
-                  )
-                  .map((region) => (
-                    <Card 
-                      key={region.id} 
-                      className={`border cursor-pointer transition-all ${
-                        selectedRegion?.id === region.id ? 'border-blue-500 bg-blue-50' : 'border-gray-200 hover:border-gray-300'
-                      }`}
-                      onClick={() => setSelectedRegion(region)}
-                    >
-                      <CardContent className="p-4">
-                        <div className="flex items-start justify-between mb-3">
-                          <div>
-                            <h3 className="font-medium">{region.name}</h3>
-                            <p className="text-sm text-gray-600">{region.country}</p>
-                          </div>
-                          <div className="text-right">
-                            <Badge className={getRiskColor(region.riskLevel)}>
-                              {region.riskLevel} risk
-                            </Badge>
-                            <p className="text-sm text-gray-500 mt-1">
-                              {region.totalCases.toLocaleString()} cases
-                            </p>
-                          </div>
-                        </div>
-
-                        {/* Top Diseases */}
-                        <div className="space-y-2">
-                          <h4 className="text-sm font-medium">Top Diseases:</h4>
-                          <div className="flex flex-wrap gap-2">
-                            {region.diseases.slice(0, 3).map((disease, idx) => (
-                              <div key={idx} className="flex items-center space-x-1 text-xs bg-gray-100 px-2 py-1 rounded">
-                                {getTrendIcon(disease.trend)}
-                                <span>{disease.disease}</span>
-                                <span className="text-gray-500">({disease.cases.toLocaleString()})</span>
-                              </div>
-                            ))}
-                          </div>
-                        </div>
-
-                        <p className="text-xs text-gray-500 mt-3">
-                          Last updated: {new Date(region.lastUpdated).toLocaleDateString()}
-                        </p>
-                      </CardContent>
-                    </Card>
-                  ))}
-              </div>
-            ) : (
-              <div className="text-center py-8">
-                <Globe className="w-12 h-12 text-gray-400 mx-auto mb-3" />
-                <p className="text-gray-500 mb-2">No health data available</p>
-                <p className="text-sm text-gray-400">Try adjusting your filters</p>
-              </div>
-            )}
-          </CardContent>
-        </Card>
-
-        {/* Selected Region Details */}
-        {selectedRegion && (
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center space-x-2">
-                <MapPin className="w-5 h-5" />
-                <span>{selectedRegion.name}, {selectedRegion.country}</span>
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div className="text-center p-3 bg-blue-50 rounded-lg">
-                  <p className="text-xl font-bold text-blue-600">
-                    {selectedRegion.totalCases.toLocaleString()}
-                  </p>
-                  <p className="text-sm text-blue-700">Total Cases</p>
-                </div>
-                <div className="text-center p-3 bg-gray-50 rounded-lg">
-                  <p className="text-xl font-bold text-gray-600">
-                    {selectedRegion.population.toLocaleString()}
-                  </p>
-                  <p className="text-sm text-gray-700">Population</p>
-                </div>
-              </div>
-
-              <div>
-                <h4 className="font-medium mb-3">Disease Breakdown:</h4>
-                <div className="space-y-3">
-                  {selectedRegion.diseases.map((disease, idx) => (
-                    <div key={idx} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                      <div className="flex items-center space-x-3">
-                        {getTrendIcon(disease.trend)}
-                        <div>
-                          <p className="font-medium text-sm">{disease.disease}</p>
-                          <p className="text-xs text-gray-600">{disease.description}</p>
-                        </div>
-                      </div>
-                      <div className="text-right">
-                        <p className="font-semibold">{disease.cases.toLocaleString()}</p>
-                        <Badge className={`text-xs ${getRiskColor(disease.severity)}`}>
-                          {disease.severity}
-                        </Badge>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        )}
 
         {/* Health Insights */}
         <Card>

@@ -161,31 +161,40 @@ export default function AIDoctorVideoConsultation() {
   // Initialize video stream
   const startVideoCall = async () => {
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({
-        video: isVideoEnabled,
-        audio: isAudioEnabled
-      });
-      
+      // Request permissions first
+      const constraints = {
+        video: true,
+        audio: true
+      };
+
+      const stream = await navigator.mediaDevices.getUserMedia(constraints);
       streamRef.current = stream;
       
-      if (videoRef.current && isVideoEnabled) {
+      // Set video source
+      if (videoRef.current) {
         videoRef.current.srcObject = stream;
+        await videoRef.current.play();
       }
       
       setIsInConsultation(true);
-      
-      // Auto-start with greeting
-      if (patientDetails.name) {
-        const greeting = detectedLanguage === 'hindi' 
-          ? `नमस्ते ${patientDetails.name} जी। मैं डॉक्टर हूं। आपकी समस्या बताइए।`
-          : `Hello ${patientDetails.name}. I am your AI doctor. Please describe your symptoms.`;
-        
-        // Don't auto-submit greeting, just show video interface
-      }
+      console.log('Video call started successfully');
       
     } catch (error) {
-      console.error('Failed to start video call:', error);
-      alert('Camera/microphone access required for video consultation');
+      console.error('Video call failed:', error);
+      
+      // Try audio-only fallback
+      try {
+        const audioStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        streamRef.current = audioStream;
+        setIsVideoEnabled(false);
+        setIsInConsultation(true);
+        console.log('Audio-only consultation started');
+      } catch (audioError) {
+        console.error('Audio access failed:', audioError);
+        // Still allow consultation without media
+        setIsInConsultation(true);
+        alert('Continue without camera/microphone - you can type your symptoms');
+      }
     }
   };
 
@@ -240,8 +249,8 @@ export default function AIDoctorVideoConsultation() {
     setDetectedLanguage(language);
     setSpeechConfidence(confidence);
     
-    // Auto-submit if confidence is high and symptoms are substantial
-    if (transcript.trim().length > 10 && confidence > 0.8) {
+    // Auto-submit for ANY user input - AI should respond to everything
+    if (transcript.trim().length > 3) {
       handleSubmitSymptoms(transcript);
     }
   };

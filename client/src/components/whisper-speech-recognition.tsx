@@ -60,24 +60,25 @@ export function WhisperSpeechRecognition({
       return;
     }
 
-    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-    const recognition = new SpeechRecognition();
+    try {
+      const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+      const recognition = new SpeechRecognition();
     
-    // Enhanced configuration for medical speech recognition
-    recognition.continuous = continuous;
-    recognition.interimResults = true;
-    recognition.maxAlternatives = 5; // Get multiple alternatives for better accuracy
-    
-    // Set language with fallbacks
-    const languageMap: Record<string, string[]> = {
-      hindi: ['hi-IN', 'en-IN'],
-      english: ['en-IN', 'en-US'],
-      bengali: ['bn-IN', 'en-IN'],
-      tamil: ['ta-IN', 'en-IN'],
-      telugu: ['te-IN', 'en-IN']
-    };
-    
-    recognition.lang = languageMap[detectedLanguage]?.[0] || 'hi-IN';
+      // Enhanced configuration for medical speech recognition
+      recognition.continuous = continuous;
+      recognition.interimResults = true;
+      recognition.maxAlternatives = 5; // Get multiple alternatives for better accuracy
+      
+      // Set language with fallbacks
+      const languageMap: Record<string, string[]> = {
+        hindi: ['hi-IN', 'en-IN'],
+        english: ['en-IN', 'en-US'],
+        bengali: ['bn-IN', 'en-IN'],
+        tamil: ['ta-IN', 'en-IN'],
+        telugu: ['te-IN', 'en-IN']
+      };
+      
+      recognition.lang = languageMap[detectedLanguage]?.[0] || 'hi-IN';
 
     recognition.onstart = () => {
       console.log('Enhanced speech recognition started');
@@ -188,14 +189,17 @@ export function WhisperSpeechRecognition({
 
     recognitionRef.current = recognition;
 
-    return () => {
-      if (recognitionRef.current) {
-        recognitionRef.current.stop();
-      }
-      if (silenceTimeoutRef.current) {
-        clearTimeout(silenceTimeoutRef.current);
-      }
-    };
+      return () => {
+        if (recognitionRef.current) {
+          recognitionRef.current.stop();
+        }
+        if (silenceTimeoutRef.current) {
+          clearTimeout(silenceTimeoutRef.current);
+        }
+      };
+    } catch (error) {
+      console.error('Speech recognition initialization failed:', error);
+    }
   }, [detectedLanguage, continuous, onTranscript]);
 
   // Enhanced medical term recognition

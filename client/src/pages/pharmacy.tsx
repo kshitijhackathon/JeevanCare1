@@ -110,6 +110,8 @@ export default function Pharmacy() {
       setCartItems(rest);
     } else {
       setCartItems(prev => ({ ...prev, [medicineId]: newQuantity }));
+      // Add to cart via API
+      addToCartMutation.mutate({ medicineId, quantity: newQuantity });
     }
   };
 

@@ -6,8 +6,11 @@ import { loadStripe } from '@stripe/stripe-js';
 import { queryClient, apiRequest } from "@/lib/queryClient";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
-import { ArrowLeft, CheckCircle, CreditCard } from "lucide-react";
+import { ArrowLeft, CheckCircle, CreditCard, MapPin, User, Phone } from "lucide-react";
 import type { CartItemWithProduct } from "@/lib/types";
 
 // Make sure to call `loadStripe` outside of a component's render to avoid
@@ -23,9 +26,37 @@ const CheckoutForm = ({ total }: { total: number }) => {
   const [, navigate] = useLocation();
   const { toast } = useToast();
   const [isProcessing, setIsProcessing] = useState(false);
+  const [deliveryAddress, setDeliveryAddress] = useState({
+    fullName: '',
+    phone: '',
+    address: '',
+    city: '',
+    state: '',
+    pincode: '',
+    landmark: ''
+  });
+
+  const handleAddressChange = (field: string, value: string) => {
+    setDeliveryAddress(prev => ({ ...prev, [field]: value }));
+  };
+
+  const isAddressComplete = () => {
+    return deliveryAddress.fullName && deliveryAddress.phone && 
+           deliveryAddress.address && deliveryAddress.city && 
+           deliveryAddress.state && deliveryAddress.pincode;
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    if (!isAddressComplete()) {
+      toast({
+        title: "Incomplete Address",
+        description: "Please fill in all required delivery address fields",
+        variant: "destructive",
+      });
+      return;
+    }
 
     if (!stripe || !elements) {
       return;
@@ -37,6 +68,17 @@ const CheckoutForm = ({ total }: { total: number }) => {
       elements,
       confirmParams: {
         return_url: `${window.location.origin}/payment-success`,
+        shipping: {
+          name: deliveryAddress.fullName,
+          phone: deliveryAddress.phone,
+          address: {
+            line1: deliveryAddress.address,
+            city: deliveryAddress.city,
+            state: deliveryAddress.state,
+            postal_code: deliveryAddress.pincode,
+            country: 'IN',
+          },
+        },
       },
       redirect: 'if_required',
     });
@@ -66,9 +108,119 @@ const CheckoutForm = ({ total }: { total: number }) => {
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
+      {/* Delivery Address Section */}
+      <Card>
+        <CardContent className="p-4">
+          <div className="flex items-center space-x-2 mb-4">
+            <MapPin className="w-5 h-5 text-blue-600" />
+            <h3 className="text-lg font-semibold text-gray-800">Delivery Address</h3>
+          </div>
+          
+          <div className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="fullName" className="text-sm font-medium text-gray-700">Full Name *</Label>
+                <Input
+                  id="fullName"
+                  type="text"
+                  value={deliveryAddress.fullName}
+                  onChange={(e) => handleAddressChange('fullName', e.target.value)}
+                  placeholder="Enter your full name"
+                  className="mt-1"
+                  required
+                />
+              </div>
+              
+              <div>
+                <Label htmlFor="phone" className="text-sm font-medium text-gray-700">Phone Number *</Label>
+                <Input
+                  id="phone"
+                  type="tel"
+                  value={deliveryAddress.phone}
+                  onChange={(e) => handleAddressChange('phone', e.target.value)}
+                  placeholder="Enter phone number"
+                  className="mt-1"
+                  required
+                />
+              </div>
+            </div>
+            
+            <div>
+              <Label htmlFor="address" className="text-sm font-medium text-gray-700">Address *</Label>
+              <Textarea
+                id="address"
+                value={deliveryAddress.address}
+                onChange={(e) => handleAddressChange('address', e.target.value)}
+                placeholder="Enter your complete address"
+                className="mt-1"
+                rows={3}
+                required
+              />
+            </div>
+            
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div>
+                <Label htmlFor="city" className="text-sm font-medium text-gray-700">City *</Label>
+                <Input
+                  id="city"
+                  type="text"
+                  value={deliveryAddress.city}
+                  onChange={(e) => handleAddressChange('city', e.target.value)}
+                  placeholder="Enter city"
+                  className="mt-1"
+                  required
+                />
+              </div>
+              
+              <div>
+                <Label htmlFor="state" className="text-sm font-medium text-gray-700">State *</Label>
+                <Input
+                  id="state"
+                  type="text"
+                  value={deliveryAddress.state}
+                  onChange={(e) => handleAddressChange('state', e.target.value)}
+                  placeholder="Enter state"
+                  className="mt-1"
+                  required
+                />
+              </div>
+              
+              <div>
+                <Label htmlFor="pincode" className="text-sm font-medium text-gray-700">Pincode *</Label>
+                <Input
+                  id="pincode"
+                  type="text"
+                  value={deliveryAddress.pincode}
+                  onChange={(e) => handleAddressChange('pincode', e.target.value)}
+                  placeholder="Enter pincode"
+                  className="mt-1"
+                  required
+                />
+              </div>
+            </div>
+            
+            <div>
+              <Label htmlFor="landmark" className="text-sm font-medium text-gray-700">Landmark (Optional)</Label>
+              <Input
+                id="landmark"
+                type="text"
+                value={deliveryAddress.landmark}
+                onChange={(e) => handleAddressChange('landmark', e.target.value)}
+                placeholder="Enter nearby landmark"
+                className="mt-1"
+              />
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Payment Section */}
       <Card>
         <CardContent className="p-6">
-          <h3 className="font-semibold text-lg text-gray-800 mb-4">Payment Details</h3>
+          <div className="flex items-center space-x-2 mb-4">
+            <CreditCard className="w-5 h-5 text-blue-600" />
+            <h3 className="font-semibold text-lg text-gray-800">Payment Details</h3>
+          </div>
           <PaymentElement 
             options={{
               layout: "tabs"
@@ -81,17 +233,17 @@ const CheckoutForm = ({ total }: { total: number }) => {
         <CardContent className="p-4">
           <div className="flex items-center justify-between">
             <span className="text-lg font-semibold text-gray-800">Total Amount</span>
-            <span className="text-2xl font-bold text-gray-800">${total.toFixed(2)}</span>
+            <span className="text-2xl font-bold text-gray-800">₹{total.toFixed(2)}</span>
           </div>
         </CardContent>
       </Card>
 
       <Button
         type="submit"
-        disabled={!stripe || isProcessing}
+        disabled={!stripe || isProcessing || !isAddressComplete()}
         className="btn-primary w-full text-lg py-4"
       >
-        {isProcessing ? "Processing..." : `Pay $${total.toFixed(2)}`}
+        {isProcessing ? "Processing..." : `Pay ₹${total.toFixed(2)}`}
       </Button>
     </form>
   );

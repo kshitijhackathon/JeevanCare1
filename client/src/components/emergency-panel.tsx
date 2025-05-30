@@ -17,7 +17,8 @@ import {
   CheckCircle,
   X,
   Clock,
-  Shield
+  Shield,
+  Ambulance
 } from "lucide-react";
 
 interface EmergencyPanelProps {
@@ -131,6 +132,66 @@ export default function EmergencyPanel({ isOpen, onClose }: EmergencyPanelProps)
     "Know blood group of family members"
   ];
 
+  const [userLocation, setUserLocation] = useState<{lat: number, lng: number} | null>(null);
+
+  const getUserLocation = () => {
+    return new Promise<{lat: number, lng: number}>((resolve, reject) => {
+      if (!navigator.geolocation) {
+        reject(new Error('Geolocation is not supported'));
+        return;
+      }
+      
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          const location = {
+            lat: position.coords.latitude,
+            lng: position.coords.longitude
+          };
+          setUserLocation(location);
+          resolve(location);
+        },
+        (error) => reject(error),
+        { enableHighAccuracy: true, timeout: 5000, maximumAge: 60000 }
+      );
+    });
+  };
+
+  const sendEmergencyAlert = async () => {
+    try {
+      const location = await getUserLocation();
+      const googleMapsLink = `https://maps.google.com/maps?q=${location.lat},${location.lng}`;
+      
+      // Create emergency message
+      const emergencyMessage = `🚨 MEDICAL EMERGENCY 🚨
+पैशेंट को तुरंत एम्बुलेंस की जरूरत है!
+
+Location: ${googleMapsLink}
+Time: ${new Date().toLocaleString('hi-IN')}
+
+कृपया तुरंत ambulance भेजें!`;
+
+      // Send WhatsApp message to ambulance service
+      const whatsappNumber = "918800000000"; // Ambulance service number
+      const whatsappUrl = `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(emergencyMessage)}`;
+      
+      // Also call ambulance
+      makeCall("108");
+      
+      // Open WhatsApp after a short delay
+      setTimeout(() => {
+        window.open(whatsappUrl, '_blank');
+      }, 1000);
+
+      alert("Emergency alert sent! Ambulance call initiated and WhatsApp message prepared.");
+      
+    } catch (error) {
+      console.error("Error getting location:", error);
+      // Fallback - just call ambulance
+      makeCall("108");
+      alert("Location access denied. Emergency call initiated to 108.");
+    }
+  };
+
   const makeCall = (number: string) => {
     window.location.href = `tel:${number}`;
   };
@@ -164,6 +225,22 @@ export default function EmergencyPanel({ isOpen, onClose }: EmergencyPanelProps)
         </div>
 
         <div className="p-6 space-y-8">
+          {/* Instant Ambulance Button */}
+          <section>
+            <Button
+              onClick={sendEmergencyAlert}
+              className="w-full bg-red-600 hover:bg-red-700 text-white py-4 text-lg font-bold flex items-center justify-center space-x-3 animate-pulse"
+              size="lg"
+            >
+              <Ambulance className="w-8 h-8" />
+              <span>🚨 INSTANT AMBULANCE CALL 🚨</span>
+              <Phone className="w-6 h-6" />
+            </Button>
+            <p className="text-center text-sm text-gray-600 mt-2">
+              तुरंत ambulance के लिए click करें - Location automatically share होगी
+            </p>
+          </section>
+
           {/* 1. Emergency Numbers */}
           <section>
             <h3 className="text-lg font-semibold mb-4 flex items-center">

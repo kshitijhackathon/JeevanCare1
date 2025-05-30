@@ -631,11 +631,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post('/api/cart/add', async (req: any, res) => {
     try {
       const { productId, quantity } = req.body;
+      console.log("Adding to cart - productId:", productId, "quantity:", quantity);
       
       // Get product details
       const product = await storage.getProduct(productId);
+      console.log("Found product:", product ? product.name : "Not found");
+      
       if (!product) {
-        return res.status(404).json({ message: "Product not found" });
+        return res.status(404).json({ message: "Product not found", productId });
       }
       
       // Add to in-memory cart
@@ -652,6 +655,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
       
+      console.log("Cart updated, total items:", demoCart.size);
       res.json({ success: true, message: "Added to cart" });
     } catch (error) {
       console.error("Error adding to cart:", error);

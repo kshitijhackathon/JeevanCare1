@@ -96,7 +96,11 @@ export default function BookTest() {
   const handlePayment = () => {
     // Simulate payment processing
     setTimeout(() => {
-      bookTest.mutate(booking);
+      setStep('success');
+      toast({
+        title: "Payment Successful!",
+        description: "Your lab test has been booked successfully.",
+      });
     }, 2000);
   };
 
@@ -391,15 +395,15 @@ export default function BookTest() {
             </div>
             <div className="space-y-3">
               <Link href="/">
-              <Button className="w-full">
-                Go to Home
-              </Button>
-            </Link>
-            <Link href="/reports">
-              <Button variant="outline" className="w-full">
-                View All Reports
-              </Button>
-            </Link>
+                <Button className="w-full">
+                  Back to Dashboard
+                </Button>
+              </Link>
+              <Link href="/reports">
+                <Button variant="outline" className="w-full">
+                  View All Reports
+                </Button>
+              </Link>
             </div>
           </CardContent>
         </Card>

@@ -107,10 +107,14 @@ export default function MultilingualConsultation() {
   // Multilingual consultation mutation
   const consultationMutation = useMutation({
     mutationFn: async ({ message, patientDetails }: { message: string; patientDetails: PatientDetails }) => {
-      return await apiRequest('/api/ai-doctor/multilingual-consultation', {
+      const response = await fetch('/api/ai-doctor/multilingual-consultation', {
         method: 'POST',
-        body: { message, patientDetails }
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ message, patientDetails })
       });
+      return await response.json();
     },
     onSuccess: (data) => {
       setIsProcessing(false);

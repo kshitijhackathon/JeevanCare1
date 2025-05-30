@@ -174,8 +174,8 @@ export default function EnhancedAIConsultation() {
       
       // Send to multilingual AI consultation
       try {
-        await processMessage(transcript, patientDetails);
-      }
+        // Process voice input directly
+        console.log('Processing voice input:', transcript);
       } catch (error) {
         console.error('Error processing voice transcript:', error);
       }

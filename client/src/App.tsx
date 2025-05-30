@@ -13,7 +13,7 @@ import Cart from "@/pages/cart";
 import Checkout from "@/pages/checkout";
 import Profile from "@/pages/profile-simple";
 import AIDoctorConsultation from "@/pages/ai-doctor-consultation";
-import EnhancedAIConsultation from "@/pages/enhanced-ai-consultation";
+// Removed problematic enhanced consultation
 import MultilingualConsultation from "@/pages/multilingual-consultation";
 import BookTest from "@/pages/book-test";
 import MedicineDelivery from "@/pages/medicine-delivery";
@@ -87,8 +87,8 @@ function Router() {
           <Route path="/cart" component={Cart} />
           <Route path="/checkout" component={Checkout} />
           <Route path="/profile" component={Profile} />
-          <Route path="/consultation" component={EnhancedAIConsultation} />
-          <Route path="/enhanced-ai-consultation" component={EnhancedAIConsultation} />
+          <Route path="/consultation" component={MultilingualConsultation} />
+          <Route path="/multilingual-consultation" component={MultilingualConsultation} />
           <Route path="/ai-doctor" component={AIDoctorConsultation} />
           <Route path="/book-test" component={BookTest} />
           <Route path="/medicine-delivery" component={MedicineDelivery} />

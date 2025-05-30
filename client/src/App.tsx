@@ -26,6 +26,7 @@ import DoctorEscalation from "@/pages/doctor-escalation";
 import AIConsultation from "@/pages/ai-consultation";
 import MedicalRecords from "@/pages/medical-records";
 import GlobalHealthMap from "@/pages/global-health-map";
+import FraudHeatmap from "@/pages/fraud-heatmap";
 import HealthAssistant from "@/pages/health-assistant";
 import Notifications from "@/pages/notifications";
 import Prescription from "@/pages/prescription";
@@ -111,6 +112,7 @@ function Router() {
           <Route path="/ai-consultation" component={AIConsultation} />
           <Route path="/medical-records" component={MedicalRecords} />
           <Route path="/global-health-map" component={GlobalHealthMap} />
+          <Route path="/fraud-heatmap" component={FraudHeatmap} />
           <Route path="/health-assistant" component={HealthAssistant} />
           <Route path="/notifications" component={Notifications} />
           <Route path="/prescription" component={Prescription} />

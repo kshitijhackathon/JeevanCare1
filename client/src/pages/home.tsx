@@ -85,8 +85,12 @@ export default function Home() {
         {/* AI Consultation Button */}
         <div className="px-4 mb-6">
           <Link href="/consultation">
-            <div className="w-full bg-white rounded-2xl p-4 shadow-sm border border-gray-100 text-center cursor-pointer hover:shadow-md transition-shadow">
-              <h3 className="font-medium text-gray-800 text-lg">Consult your AI Doctor</h3>
+            <div className="w-full bg-gradient-to-r from-blue-600 to-purple-600 rounded-2xl p-6 shadow-lg border-2 border-transparent text-center cursor-pointer hover:shadow-xl hover:scale-105 transition-all duration-300 transform">
+              <div className="flex items-center justify-center space-x-3">
+                <Bot className="w-8 h-8 text-white" />
+                <h3 className="font-bold text-white text-xl">Consult your AI Doctor</h3>
+              </div>
+              <p className="text-blue-100 text-sm mt-2">Get instant medical consultation</p>
             </div>
           </Link>
         </div>

@@ -11,8 +11,9 @@ import { JeevancarePrescription } from '@/components/jeevancare-prescription';
 import { 
   Stethoscope, User, Calendar, Phone, Mail, MapPin, Loader2, 
   Pill, FileText, AlertTriangle, Video, VideoOff, Mic, MicOff,
-  PhoneCall, X, Volume2, Clock, Eye, Smile
+  PhoneCall, X, Volume2, Clock, Eye, Smile, ArrowLeft, Home
 } from 'lucide-react';
+import { useLocation } from 'wouter';
 
 interface PatientDetails {
   name: string;
@@ -70,6 +71,8 @@ interface ConsultationResponse {
 }
 
 export default function AIDoctorVideoConsultation() {
+  const [, setLocation] = useLocation();
+  
   const [patientDetails, setPatientDetails] = useState<PatientDetails>({
     name: '',
     age: '',
@@ -235,6 +238,15 @@ export default function AIDoctorVideoConsultation() {
     }
     setIsInConsultation(false);
     setConsultation(null);
+    setShowPrescription(false);
+    setIsReviewing(false);
+    setDoctorAction(null);
+    setSelectedBodyParts([]);
+  };
+
+  const goToHome = () => {
+    stopVideoCall();
+    setLocation('/dashboard');
   };
 
   const toggleVideo = () => {
@@ -332,7 +344,18 @@ export default function AIDoctorVideoConsultation() {
       <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50 dark:from-gray-900 dark:via-gray-800 dark:to-blue-900 p-4">
         <div className="max-w-4xl mx-auto">
           <Card className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm border-0 shadow-xl">
-            <CardHeader className="text-center">
+            <CardHeader className="text-center relative">
+              {/* Back/Home Button */}
+              <Button
+                onClick={goToHome}
+                variant="outline"
+                size="sm"
+                className="absolute left-4 top-4 flex items-center"
+              >
+                <ArrowLeft className="w-4 h-4 mr-2" />
+                Back to Home
+              </Button>
+              
               <CardTitle className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
                 AI डॉक्टर वीडियो परामर्श / AI Doctor Video Consultation
               </CardTitle>
@@ -460,6 +483,33 @@ export default function AIDoctorVideoConsultation() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50 dark:from-gray-900 dark:via-gray-800 dark:to-blue-900 p-4">
       <div className="max-w-7xl mx-auto">
+        {/* Header with Back Button */}
+        <div className="flex items-center justify-between mb-6">
+          <Button
+            onClick={goToHome}
+            variant="outline"
+            size="sm"
+            className="flex items-center bg-white/80 hover:bg-white"
+          >
+            <Home className="w-4 h-4 mr-2" />
+            Home / होम
+          </Button>
+          
+          <h1 className="text-2xl font-bold text-center flex-1">
+            Dr. Saarthi AI - Live Consultation
+          </h1>
+          
+          <Button
+            onClick={stopVideoCall}
+            variant="destructive"
+            size="sm"
+            className="flex items-center"
+          >
+            <X className="w-4 h-4 mr-2" />
+            End Call
+          </Button>
+        </div>
+        
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           
           {/* Video Call Interface */}

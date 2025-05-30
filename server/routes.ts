@@ -2477,6 +2477,353 @@ Patient Context: ${patientContext}`
     return recommendations;
   }
 
+  // Medical Image Analysis API
+  app.post('/api/medical-scan/predict', async (req, res) => {
+    try {
+      const multer = require('multer');
+      const upload = multer({ storage: multer.memoryStorage() });
+      
+      // Handle file upload
+      upload.single('file')(req, res, async (err) => {
+        if (err) {
+          return res.status(400).json({ error: 'File upload failed' });
+        }
+
+        const file = req.file;
+        const scanType = req.body.scan_type || 'xray';
+
+        if (!file) {
+          return res.status(400).json({ error: 'No file uploaded' });
+        }
+
+        // Validate file type
+        const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'application/gzip'];
+        if (!allowedTypes.includes(file.mimetype) && !file.originalname.endsWith('.nii.gz')) {
+          return res.status(400).json({ error: 'Invalid file type. Only JPG, PNG, and NII.GZ files are supported.' });
+        }
+
+        try {
+          // Use Google Gemini for medical image analysis
+          if (!process.env.GEMINI_API_KEY) {
+            return res.status(500).json({ error: 'Medical analysis service not configured. Please provide GEMINI_API_KEY.' });
+          }
+
+          const base64Image = file.buffer.toString('base64');
+          const mimeType = file.mimetype;
+
+          const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${process.env.GEMINI_API_KEY}`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              contents: [{
+                parts: [
+                  {
+                    text: `Analyze this ${scanType} medical image and provide detailed medical insights. 
+                    
+                    Please respond in JSON format with the following structure:
+                    {
+                      "predictions": [
+                        {
+                          "condition": "condition name",
+                          "confidence": 0.85,
+                          "severity": "low|medium|high",
+                          "description": "detailed description",
+                          "recommendations": ["recommendation 1", "recommendation 2"],
+                          "treatment": ["treatment option 1", "treatment option 2"]
+                        }
+                      ]
+                    }
+                    
+                    Focus on:
+                    1. Identifying any abnormalities or pathological findings
+                    2. Assessing the severity level
+                    3. Providing confidence scores based on image quality and clarity
+                    4. Suggesting appropriate medical recommendations
+                    5. Recommending treatment options if applicable
+                    
+                    Be thorough but conservative in your analysis. Always recommend consulting with a medical professional for definitive diagnosis.`
+                  },
+                  {
+                    inline_data: {
+                      mime_type: mimeType,
+                      data: base64Image
+                    }
+                  }
+                ]
+              }],
+              generationConfig: {
+                temperature: 0.1,
+                topK: 1,
+                topP: 1,
+                maxOutputTokens: 2048,
+              }
+            })
+          });
+
+          if (!response.ok) {
+            throw new Error(`Gemini API error: ${response.statusText}`);
+          }
+
+          const result = await response.json();
+          const analysisText = result.candidates[0]?.content?.parts[0]?.text;
+
+          if (!analysisText) {
+            throw new Error('No analysis generated');
+          }
+
+          // Parse JSON response from Gemini
+          let predictions;
+          try {
+            const jsonMatch = analysisText.match(/\{[\s\S]*\}/);
+            if (jsonMatch) {
+              predictions = JSON.parse(jsonMatch[0]);
+            } else {
+              // Fallback parsing if JSON is not properly formatted
+              predictions = {
+                predictions: [{
+                  condition: "Analysis Generated",
+                  confidence: 0.75,
+                  severity: "medium",
+                  description: analysisText.substring(0, 200) + "...",
+                  recommendations: ["Consult with a medical professional for detailed evaluation"],
+                  treatment: ["Follow medical professional's advice"]
+                }]
+              };
+            }
+          } catch (parseError) {
+            // Create a structured response from the text
+            predictions = {
+              predictions: [{
+                condition: "Medical Image Analysis",
+                confidence: 0.75,
+                severity: "medium",
+                description: analysisText,
+                recommendations: ["Consult with a radiologist or relevant specialist", "Compare with previous scans if available"],
+                treatment: ["Follow medical professional's recommendations based on this analysis"]
+              }]
+            };
+          }
+
+          res.json(predictions);
+
+        } catch (analysisError) {
+          console.error('Medical analysis error:', analysisError);
+          res.status(500).json({ 
+            error: 'Medical analysis failed',
+            message: analysisError.message
+          });
+        }
+      });
+
+    } catch (error) {
+      console.error('Medical scan prediction error:', error);
+      res.status(500).json({ 
+        error: 'Medical scan analysis failed',
+        message: error.message
+      });
+    }
+  });
+
+  // Generate Medical Report API
+  app.post('/api/medical-scan/generate-report', async (req, res) => {
+    try {
+      const { patient_name, scan_type, predictions } = req.body;
+
+      if (!patient_name || !predictions || predictions.length === 0) {
+        return res.status(400).json({ error: 'Missing required data for report generation' });
+      }
+
+      // Use Gemini to generate comprehensive medical report
+      if (!process.env.GEMINI_API_KEY) {
+        return res.status(500).json({ error: 'Report generation service not configured. Please provide GEMINI_API_KEY.' });
+      }
+
+      const reportPrompt = `Generate a comprehensive medical report based on the following analysis:
+
+Patient Name: ${patient_name}
+Scan Type: ${scan_type}
+Analysis Results: ${JSON.stringify(predictions, null, 2)}
+
+Please create a professional medical report with:
+1. Executive summary of findings
+2. Detailed analysis of each condition
+3. Clinical recommendations
+4. Follow-up instructions
+5. Professional medical language
+
+Format the response as JSON:
+{
+  "patient_name": "${patient_name}",
+  "scan_type": "${scan_type}",
+  "predictions": [...],
+  "summary": "comprehensive summary",
+  "recommendations": ["recommendation 1", "recommendation 2"],
+  "generated_at": "${new Date().toISOString()}"
+}`;
+
+      const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${process.env.GEMINI_API_KEY}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          contents: [{
+            parts: [{ text: reportPrompt }]
+          }],
+          generationConfig: {
+            temperature: 0.1,
+            topK: 1,
+            topP: 1,
+            maxOutputTokens: 2048,
+          }
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error(`Report generation failed: ${response.statusText}`);
+      }
+
+      const result = await response.json();
+      const reportText = result.candidates[0]?.content?.parts[0]?.text;
+
+      let report;
+      try {
+        const jsonMatch = reportText.match(/\{[\s\S]*\}/);
+        if (jsonMatch) {
+          report = JSON.parse(jsonMatch[0]);
+        } else {
+          throw new Error('Invalid JSON format');
+        }
+      } catch (parseError) {
+        // Create structured report if parsing fails
+        report = {
+          patient_name,
+          scan_type,
+          predictions,
+          summary: reportText || "Medical analysis completed. Please consult with a healthcare professional for detailed interpretation.",
+          recommendations: [
+            "Consult with appropriate medical specialist",
+            "Consider follow-up imaging if recommended",
+            "Maintain regular health check-ups"
+          ],
+          generated_at: new Date().toISOString()
+        };
+      }
+
+      res.json(report);
+
+    } catch (error) {
+      console.error('Report generation error:', error);
+      res.status(500).json({ 
+        error: 'Report generation failed',
+        message: error.message
+      });
+    }
+  });
+
+  // Download Medical Report as PDF API
+  app.post('/api/medical-scan/download-report', async (req, res) => {
+    try {
+      const report = req.body;
+
+      if (!report || !report.patient_name) {
+        return res.status(400).json({ error: 'Invalid report data' });
+      }
+
+      // Create HTML content for PDF
+      const htmlContent = `
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <meta charset="utf-8">
+          <title>Medical Report - ${report.patient_name}</title>
+          <style>
+            body { font-family: Arial, sans-serif; margin: 20px; line-height: 1.6; }
+            .header { text-align: center; border-bottom: 2px solid #333; padding-bottom: 20px; margin-bottom: 30px; }
+            .patient-info { background: #f5f5f5; padding: 15px; margin-bottom: 20px; border-radius: 5px; }
+            .section { margin-bottom: 25px; }
+            .section h3 { color: #333; border-bottom: 1px solid #ccc; padding-bottom: 5px; }
+            .finding { margin-bottom: 15px; padding: 10px; border-left: 4px solid #007bff; background: #f8f9fa; }
+            .severity-high { border-left-color: #dc3545; }
+            .severity-medium { border-left-color: #ffc107; }
+            .severity-low { border-left-color: #28a745; }
+            .recommendations { background: #e7f3ff; padding: 15px; border-radius: 5px; }
+            .footer { text-align: center; margin-top: 40px; font-size: 12px; color: #666; }
+          </style>
+        </head>
+        <body>
+          <div class="header">
+            <h1>Medical Imaging Report</h1>
+            <p>Generated on ${new Date(report.generated_at).toLocaleDateString()}</p>
+          </div>
+
+          <div class="patient-info">
+            <h3>Patient Information</h3>
+            <p><strong>Name:</strong> ${report.patient_name}</p>
+            <p><strong>Scan Type:</strong> ${report.scan_type.toUpperCase()}</p>
+            <p><strong>Report Date:</strong> ${new Date(report.generated_at).toLocaleDateString()}</p>
+          </div>
+
+          <div class="section">
+            <h3>Executive Summary</h3>
+            <p>${report.summary}</p>
+          </div>
+
+          <div class="section">
+            <h3>Detailed Findings</h3>
+            ${report.predictions.map(pred => `
+              <div class="finding severity-${pred.severity}">
+                <h4>${pred.condition}</h4>
+                <p><strong>Confidence:</strong> ${(pred.confidence * 100).toFixed(1)}%</p>
+                <p><strong>Severity:</strong> ${pred.severity.toUpperCase()}</p>
+                <p><strong>Description:</strong> ${pred.description}</p>
+                ${pred.recommendations.length > 0 ? `
+                  <div>
+                    <strong>Recommendations:</strong>
+                    <ul>
+                      ${pred.recommendations.map(rec => `<li>${rec}</li>`).join('')}
+                    </ul>
+                  </div>
+                ` : ''}
+              </div>
+            `).join('')}
+          </div>
+
+          <div class="recommendations">
+            <h3>General Recommendations</h3>
+            <ul>
+              ${report.recommendations.map(rec => `<li>${rec}</li>`).join('')}
+            </ul>
+          </div>
+
+          <div class="footer">
+            <p><strong>Disclaimer:</strong> This report is generated by AI analysis and should be reviewed by a qualified medical professional. 
+            It is not a substitute for professional medical advice, diagnosis, or treatment.</p>
+          </div>
+        </body>
+        </html>
+      `;
+
+      // Set PDF headers
+      res.setHeader('Content-Type', 'application/pdf');
+      res.setHeader('Content-Disposition', `attachment; filename="medical_report_${report.patient_name}_${new Date().toISOString().split('T')[0]}.pdf"`);
+
+      // For now, return HTML content as PDF would require additional libraries
+      // In production, you would use libraries like puppeteer or jsPDF
+      res.setHeader('Content-Type', 'text/html');
+      res.send(htmlContent);
+
+    } catch (error) {
+      console.error('Report download error:', error);
+      res.status(500).json({ 
+        error: 'Report download failed',
+        message: error.message
+      });
+    }
+  });
+
   // Enhanced Doctor Search API
   app.post('/api/indian-medical-registry/search', async (req, res) => {
     try {

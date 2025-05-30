@@ -21,7 +21,7 @@ import AIDoctorVideoConsultation from "@/pages/ai-doctor-video-consultation";
 import BookTest from "@/pages/book-test";
 import MedicineDelivery from "@/pages/medicine-delivery";
 import Reports from "@/pages/reports";
-import FaceScan from "@/pages/face-scan";
+import MedicalScan from "@/pages/medical-scan";
 import DoctorEscalation from "@/pages/doctor-escalation";
 import AIConsultation from "@/pages/ai-consultation";
 import MedicalRecords from "@/pages/medical-records";
@@ -107,7 +107,7 @@ function Router() {
           <Route path="/medicine-delivery" component={MedicineDelivery} />
           <Route path="/delivery/:orderId" component={MedicineDelivery} />
           <Route path="/reports" component={Reports} />
-          <Route path="/face-scan" component={FaceScan} />
+          <Route path="/face-scan" component={MedicalScan} />
           <Route path="/doctor-escalation" component={DoctorEscalation} />
           <Route path="/ai-consultation" component={AIConsultation} />
           <Route path="/medical-records" component={MedicalRecords} />

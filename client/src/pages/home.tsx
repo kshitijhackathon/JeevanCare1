@@ -167,7 +167,7 @@ export default function Home() {
                 <div className="w-10 h-10 bg-pink-100 rounded-full flex items-center justify-center mx-auto mb-1">
                   <ScanFace className="w-5 h-5 text-pink-600" />
                 </div>
-                <p className="text-xs font-medium text-gray-700 leading-tight">Face Scan</p>
+                <p className="text-xs font-medium text-gray-700 leading-tight">Medical Scan</p>
               </div>
             </Link>
             

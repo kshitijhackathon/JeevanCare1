@@ -85,25 +85,15 @@ export default function Home() {
         {/* AI Consultation Button - Professional */}
         <div className="px-4 mb-6">
           <Link href="/consultation">
-            <div className="w-full bg-gradient-to-r from-blue-500 via-cyan-500 to-teal-600 rounded-xl p-5 shadow-lg border border-gray-200 text-center cursor-pointer hover:shadow-xl hover:from-blue-600 hover:via-cyan-600 hover:to-teal-700 transition-all duration-500 group">
-              <div className="flex items-center justify-center space-x-3 mb-2">
-                <div className="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center group-hover:bg-white/30 transition-colors">
-                  <Bot className="w-7 h-7 text-white" />
+            <div className="w-full bg-gradient-to-r from-blue-500 via-cyan-500 to-teal-600 rounded-xl p-4 shadow-lg border border-gray-200 text-center cursor-pointer hover:shadow-xl hover:from-blue-600 hover:via-cyan-600 hover:to-teal-700 transition-all duration-500 group">
+              <div className="flex items-center justify-center space-x-3">
+                <div className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center group-hover:bg-white/30 transition-colors">
+                  <Bot className="w-6 h-6 text-white" />
                 </div>
                 <div className="text-left">
-                  <h3 className="font-semibold text-white text-lg leading-tight">AI Doctor Consultation</h3>
+                  <h3 className="font-semibold text-white text-base leading-tight">AI Doctor Consultation</h3>
                   <p className="text-white/80 text-xs">Dr. Saarthi AI • Available 24/7</p>
                 </div>
-              </div>
-              <div className="flex items-center justify-center space-x-4 text-white/90 text-xs">
-                <span className="flex items-center space-x-1">
-                  <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
-                  <span>Live</span>
-                </span>
-                <span>•</span>
-                <span>Instant Response</span>
-                <span>•</span>
-                <span>Multilingual Support</span>
               </div>
             </div>
           </Link>

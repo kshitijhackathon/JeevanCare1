@@ -85,7 +85,7 @@ export default function Home() {
         {/* AI Consultation Button - Professional */}
         <div className="px-4 mb-6">
           <Link href="/consultation">
-            <div className="w-full bg-gradient-to-r from-emerald-600 via-blue-600 to-indigo-700 rounded-xl p-5 shadow-lg border border-gray-200 text-center cursor-pointer hover:shadow-xl hover:from-emerald-700 hover:via-blue-700 hover:to-indigo-800 transition-all duration-500 group">
+            <div className="w-full bg-gradient-to-r from-orange-500 via-red-500 to-pink-600 rounded-xl p-5 shadow-lg border border-gray-200 text-center cursor-pointer hover:shadow-xl hover:from-orange-600 hover:via-red-600 hover:to-pink-700 transition-all duration-500 group">
               <div className="flex items-center justify-center space-x-3 mb-2">
                 <div className="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center group-hover:bg-white/30 transition-colors">
                   <Bot className="w-7 h-7 text-white" />

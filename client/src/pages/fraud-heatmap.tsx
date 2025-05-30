@@ -142,48 +142,115 @@ export default function FraudHeatmap() {
               filter: 'contrast(1.1) saturate(1.2)'
             }}
           >
-            {/* Realistic Ocean Layer */}
+            {/* Base Earth Surface - Realistic Blue Marble */}
             <div 
               className="absolute inset-0 rounded-full overflow-hidden"
               style={{
                 background: `
-                  radial-gradient(ellipse 60% 40% at 30% 25%, #0ea5e9 0%, #0284c7 25%, #0369a1 50%, #075985 75%, #0c4a6e 100%),
-                  radial-gradient(ellipse 40% 60% at 70% 75%, #0891b2 0%, #0e7490 30%, #155e75 60%, #164e63 100%),
-                  conic-gradient(from ${rotation}deg at 50% 50%, 
-                    #1e40af 0deg, #0ea5e9 60deg, #0284c7 120deg, #0369a1 180deg, #075985 240deg, #0c4a6e 300deg, #1e40af 360deg)
+                  radial-gradient(circle at 30% 25%, #1e3a8a 0%, #1e40af 20%, #2563eb 40%, #3b82f6 60%, #60a5fa 80%, #93c5fd 100%)
                 `,
-                transform: `rotate(${rotation * 0.2}deg)`,
-                opacity: 0.95
+                opacity: 1
               }}
             />
 
-            {/* Earth Continents - Photo-realistic */}
+            {/* Deep Ocean Layers */}
             <div 
               className="absolute inset-0 rounded-full overflow-hidden"
               style={{
                 background: `
-                  radial-gradient(ellipse 25% 15% at 35% 30%, #654321 0%, #8b7355 30%, transparent 70%),
-                  radial-gradient(ellipse 20% 12% at 55% 40%, #8b7355 0%, #a0875f 40%, transparent 80%),
-                  radial-gradient(ellipse 18% 25% at 25% 50%, #cd853f 0%, #d2b48c 50%, transparent 90%),
-                  radial-gradient(ellipse 30% 20% at 45% 25%, #556b2f 0%, #6b8e23 40%, transparent 85%),
-                  radial-gradient(ellipse 15% 10% at 65% 35%, #8fbc8f 0%, #9acd32 60%, transparent 95%)
+                  radial-gradient(ellipse 70% 50% at 20% 30%, #0c4a6e 0%, #075985 25%, #0369a1 50%, #0284c7 75%, #0ea5e9 100%),
+                  radial-gradient(ellipse 50% 70% at 80% 70%, #164e63 0%, #155e75 30%, #0e7490 60%, #0891b2 100%),
+                  radial-gradient(ellipse 60% 40% at 40% 60%, #1e40af 0%, #2563eb 50%, #3b82f6 100%)
                 `,
-                transform: `rotate(${rotation * 0.15}deg)`,
+                transform: `rotate(${rotation * 0.1}deg)`,
                 opacity: 0.8
               }}
             />
 
-            {/* India Subcontinent - Detailed */}
+            {/* Continental Landmasses - Earth-like */}
+            <svg 
+              className="absolute inset-0 w-full h-full opacity-90" 
+              viewBox="0 0 400 400"
+              style={{ transform: `rotate(${rotation * 0.05}deg)` }}
+            >
+              {/* Asia Major - More detailed */}
+              <path
+                d="M160,80 Q200,75 240,85 Q280,95 310,120 Q330,145 325,170 Q320,195 300,210 Q280,220 250,215 Q220,210 190,195 Q165,180 155,155 Q150,130 155,105 Q160,80 160,80 Z"
+                fill="#2d5016"
+                stroke="#1a2e0a"
+                strokeWidth="0.5"
+              />
+              
+              {/* India Subcontinent - Detailed shape */}
+              <path
+                d="M180,160 Q200,155 220,165 Q240,175 250,190 Q255,205 250,220 Q245,235 235,245 Q225,250 210,245 Q195,240 185,225 Q180,210 182,195 Q185,180 180,160 Z"
+                fill="#4a5d23"
+                stroke="#2d3516"
+                strokeWidth="0.5"
+              />
+              
+              {/* Africa */}
+              <path
+                d="M120,140 Q135,135 150,145 Q165,155 170,175 Q175,195 170,215 Q165,235 155,250 Q145,265 130,270 Q115,275 105,260 Q95,245 100,225 Q105,205 110,185 Q115,165 120,140 Z"
+                fill="#8b4513"
+                stroke="#654321"
+                strokeWidth="0.5"
+              />
+              
+              {/* Europe */}
+              <path
+                d="M130,100 Q145,95 160,105 Q175,115 170,130 Q165,140 150,135 Q135,130 125,120 Q120,110 130,100 Z"
+                fill="#228b22"
+                stroke="#006400"
+                strokeWidth="0.5"
+              />
+              
+              {/* Australia */}
+              <path
+                d="M260,240 Q280,235 295,245 Q305,255 300,270 Q295,280 280,275 Q265,270 255,260 Q250,250 260,240 Z"
+                fill="#daa520"
+                stroke="#b8860b"
+                strokeWidth="0.5"
+              />
+              
+              {/* Mountain Ranges */}
+              <path d="M180,150 Q220,145 260,155" stroke="#696969" strokeWidth="2" fill="none" opacity="0.6"/>
+              <path d="M140,180 Q170,175 200,185" stroke="#696969" strokeWidth="1.5" fill="none" opacity="0.5"/>
+            </svg>
+
+            {/* Realistic Cloud Cover */}
             <div 
               className="absolute inset-0 rounded-full overflow-hidden"
               style={{
                 background: `
-                  radial-gradient(ellipse 12% 18% at 52% 45%, #8b7355 0%, #cd853f 40%, #d2b48c 70%, transparent 100%),
-                  radial-gradient(ellipse 8% 6% at 48% 42%, #556b2f 0%, #6b8e23 50%, transparent 90%),
-                  radial-gradient(ellipse 6% 4% at 50% 40%, #daa520 0%, #f4a460 60%, transparent 100%)
+                  radial-gradient(ellipse 40% 20% at 25% 25%, rgba(255,255,255,0.8) 0%, rgba(255,255,255,0.4) 40%, transparent 70%),
+                  radial-gradient(ellipse 35% 18% at 65% 45%, rgba(255,255,255,0.7) 0%, rgba(255,255,255,0.3) 50%, transparent 80%),
+                  radial-gradient(ellipse 30% 15% at 45% 70%, rgba(255,255,255,0.6) 0%, rgba(255,255,255,0.2) 60%, transparent 90%),
+                  radial-gradient(ellipse 25% 12% at 75% 25%, rgba(255,255,255,0.5) 0%, rgba(255,255,255,0.1) 70%, transparent 100%)
                 `,
-                transform: `rotate(${rotation * 0.1}deg)`,
-                opacity: 0.9
+                transform: `rotate(${rotation * 0.3}deg)`,
+                opacity: 0.6
+              }}
+            />
+
+            {/* Ice Caps - Polar regions */}
+            <div 
+              className="absolute inset-0 rounded-full overflow-hidden"
+              style={{
+                background: `
+                  radial-gradient(ellipse 50% 12% at 50% 8%, rgba(255,255,255,0.9) 0%, rgba(240,248,255,0.7) 50%, transparent 80%),
+                  radial-gradient(ellipse 45% 10% at 50% 92%, rgba(255,255,255,0.85) 0%, rgba(240,248,255,0.6) 60%, transparent 85%)
+                `,
+                opacity: 0.8
+              }}
+            />
+
+            {/* Atmospheric glow effect */}
+            <div 
+              className="absolute inset-0 rounded-full"
+              style={{
+                background: `radial-gradient(circle, transparent 65%, rgba(135, 206, 235, 0.3) 80%, rgba(135, 206, 235, 0.6) 95%, rgba(135, 206, 235, 0.8) 100%)`,
+                filter: 'blur(3px)'
               }}
             />
 

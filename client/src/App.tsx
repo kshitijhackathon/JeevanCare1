@@ -15,6 +15,7 @@ import Profile from "@/pages/profile-simple";
 import AIDoctorConsultation from "@/pages/ai-doctor-consultation";
 // Removed problematic enhanced consultation
 import MultilingualConsultation from "@/pages/multilingual-consultation";
+import NaturalAIConsultation from "@/pages/natural-ai-consultation";
 import BookTest from "@/pages/book-test";
 import MedicineDelivery from "@/pages/medicine-delivery";
 import Reports from "@/pages/reports";
@@ -74,6 +75,7 @@ function Router() {
       {/* Allow direct access to consultation for testing */}
       <Route path="/consultation" component={MultilingualConsultation} />
       <Route path="/multilingual-consultation" component={MultilingualConsultation} />
+      <Route path="/natural-consultation" component={NaturalAIConsultation} />
       
       {!isAuthenticated ? (
         <>

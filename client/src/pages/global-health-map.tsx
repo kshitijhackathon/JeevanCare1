@@ -94,133 +94,110 @@ export default function GlobalHealthMap() {
           ))}
         </div>
 
-        {/* Realistic 3D Earth Globe */}
+        {/* Professional 3D Earth Globe */}
         <div 
           className="absolute inset-0 flex items-center justify-center cursor-pointer"
           onMouseEnter={() => setIsHovering(true)}
           onMouseLeave={() => setIsHovering(false)}
         >
           <div 
-            className="relative w-80 h-80 rounded-full transform-gpu transition-transform duration-500 hover:scale-110"
+            className="relative w-80 h-80 rounded-full transform-gpu transition-transform duration-700 hover:scale-105"
             style={{
               background: `
-                radial-gradient(circle at 30% 20%, rgba(255,255,255,0.6) 0%, rgba(255,255,255,0.2) 25%, transparent 50%),
-                radial-gradient(circle at 70% 80%, rgba(0,0,0,0.4) 0%, transparent 50%),
-                linear-gradient(135deg, 
-                  #1e3a8a 0%, 
-                  #1e40af 15%, 
-                  #2563eb 30%, 
-                  #3b82f6 45%, 
-                  #60a5fa 60%, 
-                  #93c5fd 75%, 
-                  #dbeafe 90%, 
-                  #eff6ff 100%
+                radial-gradient(circle at 25% 25%, rgba(255,255,255,0.8) 0%, rgba(255,255,255,0.3) 20%, transparent 40%),
+                radial-gradient(circle at 75% 75%, rgba(0,0,0,0.6) 0%, rgba(0,0,0,0.2) 30%, transparent 50%),
+                radial-gradient(ellipse at center, 
+                  #1e40af 0%, 
+                  #1e3a8a 20%, 
+                  #1d4ed8 40%, 
+                  #2563eb 60%, 
+                  #3b82f6 80%, 
+                  #60a5fa 100%
                 )
               `,
-              transform: `rotateY(${rotation * 0.5}deg) rotateX(-10deg)`,
+              transform: `rotateY(${rotation * 0.3}deg) rotateX(-15deg) rotateZ(${rotation * 0.1}deg)`,
               boxShadow: `
-                inset -40px -40px 80px rgba(0,0,0,0.6),
-                inset 30px 30px 80px rgba(255,255,255,0.2),
-                0 0 100px rgba(59, 130, 246, 0.8),
-                0 0 200px rgba(34, 197, 94, 0.4),
-                0 30px 60px rgba(0,0,0,0.3)
+                inset -60px -60px 120px rgba(0,0,0,0.7),
+                inset 40px 40px 120px rgba(255,255,255,0.1),
+                0 0 120px rgba(59, 130, 246, 0.6),
+                0 0 240px rgba(34, 197, 94, 0.3),
+                0 40px 80px rgba(0,0,0,0.4)
               `,
-              border: '1px solid rgba(255,255,255,0.2)'
+              border: '2px solid rgba(255,255,255,0.1)',
+              filter: 'contrast(1.1) saturate(1.2)'
             }}
           >
-            {/* Ocean Base Layer */}
+            {/* Realistic Ocean Layer */}
             <div 
-              className="absolute inset-0 rounded-full"
+              className="absolute inset-0 rounded-full overflow-hidden"
               style={{
                 background: `
-                  radial-gradient(ellipse at 40% 30%, #0ea5e9 0%, #0284c7 30%, #0369a1 60%, #075985 100%),
-                  radial-gradient(ellipse at 60% 70%, rgba(6, 182, 212, 0.8) 0%, transparent 40%)
+                  radial-gradient(ellipse 60% 40% at 30% 25%, #0ea5e9 0%, #0284c7 25%, #0369a1 50%, #075985 75%, #0c4a6e 100%),
+                  radial-gradient(ellipse 40% 60% at 70% 75%, #0891b2 0%, #0e7490 30%, #155e75 60%, #164e63 100%),
+                  conic-gradient(from ${rotation}deg at 50% 50%, 
+                    #1e40af 0deg, #0ea5e9 60deg, #0284c7 120deg, #0369a1 180deg, #075985 240deg, #0c4a6e 300deg, #1e40af 360deg)
                 `,
-                transform: `rotate(${rotation * 0.3}deg)`,
+                transform: `rotate(${rotation * 0.2}deg)`,
+                opacity: 0.95
+              }}
+            />
+
+            {/* Earth Continents - Photo-realistic */}
+            <div 
+              className="absolute inset-0 rounded-full overflow-hidden"
+              style={{
+                background: `
+                  radial-gradient(ellipse 25% 15% at 35% 30%, #654321 0%, #8b7355 30%, transparent 70%),
+                  radial-gradient(ellipse 20% 12% at 55% 40%, #8b7355 0%, #a0875f 40%, transparent 80%),
+                  radial-gradient(ellipse 18% 25% at 25% 50%, #cd853f 0%, #d2b48c 50%, transparent 90%),
+                  radial-gradient(ellipse 30% 20% at 45% 25%, #556b2f 0%, #6b8e23 40%, transparent 85%),
+                  radial-gradient(ellipse 15% 10% at 65% 35%, #8fbc8f 0%, #9acd32 60%, transparent 95%)
+                `,
+                transform: `rotate(${rotation * 0.15}deg)`,
+                opacity: 0.8
+              }}
+            />
+
+            {/* India Subcontinent - Detailed */}
+            <div 
+              className="absolute inset-0 rounded-full overflow-hidden"
+              style={{
+                background: `
+                  radial-gradient(ellipse 12% 18% at 52% 45%, #8b7355 0%, #cd853f 40%, #d2b48c 70%, transparent 100%),
+                  radial-gradient(ellipse 8% 6% at 48% 42%, #556b2f 0%, #6b8e23 50%, transparent 90%),
+                  radial-gradient(ellipse 6% 4% at 50% 40%, #daa520 0%, #f4a460 60%, transparent 100%)
+                `,
+                transform: `rotate(${rotation * 0.1}deg)`,
                 opacity: 0.9
               }}
             />
 
-            {/* Realistic Continent Shapes */}
-            <svg 
-              className="absolute inset-0 w-full h-full" 
-              viewBox="0 0 400 400"
-              style={{ transform: `rotate(${rotation * 0.2}deg)` }}
-            >
-              {/* India and South Asia - More Realistic */}
-              <g>
-                <path
-                  d="M220,180 Q235,175 250,185 Q265,195 270,210 Q275,225 270,240 Q265,255 250,265 Q235,270 220,265 Q205,260 195,245 Q190,230 195,215 Q200,200 210,190 Q215,185 220,180 Z"
-                  fill="#8b7355"
-                  opacity="0.9"
-                  stroke="#654321"
-                  strokeWidth="1"
-                />
-                {/* Himalayas */}
-                <path
-                  d="M195,175 Q220,170 245,175 Q270,180 275,185"
-                  fill="none"
-                  stroke="#a0a0a0"
-                  strokeWidth="2"
-                  opacity="0.8"
-                />
-              </g>
+            {/* Atmospheric Cloud Cover */}
+            <div 
+              className="absolute inset-0 rounded-full overflow-hidden"
+              style={{
+                background: `
+                  radial-gradient(ellipse 30% 15% at 25% 30%, rgba(255,255,255,0.6) 0%, rgba(255,255,255,0.3) 50%, transparent 80%),
+                  radial-gradient(ellipse 25% 12% at 65% 50%, rgba(255,255,255,0.5) 0%, rgba(255,255,255,0.2) 60%, transparent 90%),
+                  radial-gradient(ellipse 20% 8% at 40% 70%, rgba(255,255,255,0.4) 0%, rgba(255,255,255,0.1) 70%, transparent 100%),
+                  linear-gradient(45deg, transparent 40%, rgba(255,255,255,0.1) 50%, transparent 60%)
+                `,
+                transform: `rotate(${rotation * 0.4}deg)`,
+                opacity: 0.7
+              }}
+            />
 
-              {/* Africa */}
-              <g>
-                <path
-                  d="M170,160 Q180,150 190,160 Q200,170 205,185 Q210,200 205,220 Q200,240 195,255 Q190,270 180,280 Q170,285 160,280 Q150,275 145,260 Q140,245 145,230 Q150,215 155,200 Q160,185 165,170 Q170,160 170,160 Z"
-                  fill="#d4a574"
-                  opacity="0.9"
-                  stroke="#b8956a"
-                  strokeWidth="1"
-                />
-                {/* Sahara Desert */}
-                <ellipse cx="175" cy="185" rx="15" ry="8" fill="#e6d3a3" opacity="0.7"/>
-              </g>
-
-              {/* Europe */}
-              <g>
-                <path
-                  d="M160,140 Q170,135 180,140 Q190,145 185,155 Q180,160 170,155 Q160,150 155,145 Q160,140 160,140 Z"
-                  fill="#7fad6b"
-                  opacity="0.9"
-                  stroke="#6b9558"
-                  strokeWidth="1"
-                />
-              </g>
-
-              {/* Asia */}
-              <g>
-                <path
-                  d="M190,120 Q220,115 250,125 Q280,135 290,150 Q300,165 295,180 Q290,195 275,200 Q260,205 245,200 Q230,195 215,185 Q200,175 190,160 Q185,145 190,130 Q190,120 190,120 Z"
-                  fill="#9db87a"
-                  opacity="0.9"
-                  stroke="#8aa567"
-                  strokeWidth="1"
-                />
-                {/* Siberia */}
-                <ellipse cx="240" cy="130" rx="25" ry="10" fill="#b5c49a" opacity="0.6"/>
-              </g>
-
-              {/* Middle East */}
-              <g>
-                <path
-                  d="M180,165 Q195,160 210,165 Q225,170 220,180 Q215,185 200,180 Q185,175 180,170 Q180,165 180,165 Z"
-                  fill="#d4b896"
-                  opacity="0.8"
-                  stroke="#c2a684"
-                  strokeWidth="1"
-                />
-              </g>
-
-              {/* Cloud patterns */}
-              <g opacity="0.3">
-                <ellipse cx="180" cy="150" rx="20" ry="8" fill="white" opacity="0.4"/>
-                <ellipse cx="240" cy="190" rx="15" ry="6" fill="white" opacity="0.3"/>
-                <ellipse cx="200" cy="220" rx="18" ry="7" fill="white" opacity="0.35"/>
-              </g>
-            </svg>
+            {/* Polar Ice Caps */}
+            <div 
+              className="absolute inset-0 rounded-full overflow-hidden"
+              style={{
+                background: `
+                  radial-gradient(ellipse 40% 8% at 50% 10%, rgba(255,255,255,0.9) 0%, rgba(240,248,255,0.6) 60%, transparent 100%),
+                  radial-gradient(ellipse 35% 6% at 50% 90%, rgba(255,255,255,0.8) 0%, rgba(240,248,255,0.5) 70%, transparent 100%)
+                `,
+                opacity: 0.8
+              }}
+            />
 
             {/* Disease Hotspots */}
             {healthData?.map((region, index) => {

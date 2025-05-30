@@ -668,6 +668,45 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Prescription extraction route
+  app.post('/api/extract-prescription', isAuthenticated, async (req: any, res) => {
+    try {
+      // In a real implementation, this would use OpenAI Vision API or similar
+      // For now, returning mock data for demo
+      const mockMedicines = [
+        {
+          name: "Paracetamol 500mg",
+          dosage: "500mg",
+          frequency: "Twice daily",
+          duration: "5 days",
+          confidence: 0.95,
+          matchedProduct: {
+            id: 1,
+            name: "Crocin Advance",
+            price: "45.00"
+          }
+        },
+        {
+          name: "Vitamin D3",
+          dosage: "60,000 IU",
+          frequency: "Once weekly",
+          duration: "4 weeks",
+          confidence: 0.88,
+          matchedProduct: {
+            id: 2,
+            name: "D3 Must",
+            price: "280.00"
+          }
+        }
+      ];
+      
+      res.json({ medicines: mockMedicines });
+    } catch (error) {
+      console.error("Error extracting prescription:", error);
+      res.status(500).json({ message: "Failed to extract prescription" });
+    }
+  });
+
   // Health reports routes
   app.get('/api/health-reports', isAuthenticated, async (req: any, res) => {
     try {

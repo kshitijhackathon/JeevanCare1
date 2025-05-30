@@ -101,8 +101,8 @@ const CheckoutForm = ({ total }: { total: number }) => {
         description: "Your order has been placed successfully!",
       });
       
-      // Navigate to success page
-      navigate("/payment-success");
+      // Navigate to delivery tracking
+      navigate("/delivery-tracking");
     }
   };
 

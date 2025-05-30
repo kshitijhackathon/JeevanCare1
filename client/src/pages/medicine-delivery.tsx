@@ -179,9 +179,11 @@ export default function MedicineDelivery() {
                 <h3 className="font-semibold text-green-800">Upload Prescription</h3>
                 <p className="text-sm text-green-600">Get medicines delivered to your doorstep</p>
               </div>
-              <Button className="bg-green-500 hover:bg-green-600 text-white">
-                Upload
-              </Button>
+              <Link href="/prescription-upload">
+                <Button className="bg-green-500 hover:bg-green-600 text-white">
+                  Upload
+                </Button>
+              </Link>
             </div>
           </CardContent>
         </Card>

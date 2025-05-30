@@ -100,29 +100,29 @@ export default function Home() {
           <h3 className="text-lg font-semibold text-gray-800 mb-4">Health Services</h3>
           
           {/* Row 1 */}
-          <div className="grid grid-cols-3 gap-3 mb-4">
+          <div className="grid grid-cols-3 gap-2 mb-3">
             <Link href="/ai-consultation">
-              <div className="bg-white rounded-2xl p-3 text-center shadow-sm hover:shadow-md transition-shadow">
-                <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-2">
-                  <Bot className="w-6 h-6 text-blue-600" />
+              <div className="bg-white rounded-xl p-2 text-center shadow-sm hover:shadow-md transition-shadow">
+                <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-1">
+                  <Bot className="w-5 h-5 text-blue-600" />
                 </div>
-                <p className="text-xs font-medium text-gray-700 leading-tight">AI Doctor Consultation</p>
+                <p className="text-xs font-medium text-gray-700 leading-tight">AI Doctor</p>
               </div>
             </Link>
             
             <Link href="/medicine-delivery">
-              <div className="bg-white rounded-2xl p-3 text-center shadow-sm hover:shadow-md transition-shadow">
-                <div className="w-12 h-12 bg-teal-100 rounded-full flex items-center justify-center mx-auto mb-2">
-                  <Truck className="w-6 h-6 text-teal-600" />
+              <div className="bg-white rounded-xl p-2 text-center shadow-sm hover:shadow-md transition-shadow">
+                <div className="w-10 h-10 bg-teal-100 rounded-full flex items-center justify-center mx-auto mb-1">
+                  <Truck className="w-5 h-5 text-teal-600" />
                 </div>
-                <p className="text-xs font-medium text-gray-700 leading-tight">Medicine Delivery</p>
+                <p className="text-xs font-medium text-gray-700 leading-tight">Medicine</p>
               </div>
             </Link>
             
             <Link href="/prescription">
-              <div className="bg-white rounded-2xl p-3 text-center shadow-sm hover:shadow-md transition-shadow">
-                <div className="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-2">
-                  <FileText className="w-6 h-6 text-purple-600" />
+              <div className="bg-white rounded-xl p-2 text-center shadow-sm hover:shadow-md transition-shadow">
+                <div className="w-10 h-10 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-1">
+                  <FileText className="w-5 h-5 text-purple-600" />
                 </div>
                 <p className="text-xs font-medium text-gray-700 leading-tight">Prescription</p>
               </div>
@@ -130,30 +130,30 @@ export default function Home() {
           </div>
           
           {/* Row 2 */}
-          <div className="grid grid-cols-3 gap-3 mb-4">
+          <div className="grid grid-cols-3 gap-2 mb-3">
             <div 
               onClick={() => setShowEmergency(true)}
-              className="bg-white rounded-2xl p-3 text-center shadow-sm cursor-pointer hover:shadow-md transition-shadow"
+              className="bg-white rounded-xl p-2 text-center shadow-sm cursor-pointer hover:shadow-md transition-shadow"
             >
-              <div className="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-2">
-                <Ambulance className="w-6 h-6 text-red-600" />
+              <div className="w-10 h-10 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-1">
+                <Ambulance className="w-5 h-5 text-red-600" />
               </div>
               <p className="text-xs font-medium text-gray-700 leading-tight">Ambulance</p>
             </div>
             
             <Link href="/book-test">
-              <div className="bg-white rounded-2xl p-3 text-center shadow-sm hover:shadow-md transition-shadow">
-                <div className="w-12 h-12 bg-orange-100 rounded-full flex items-center justify-center mx-auto mb-2">
-                  <TestTube className="w-6 h-6 text-orange-600" />
+              <div className="bg-white rounded-xl p-2 text-center shadow-sm hover:shadow-md transition-shadow">
+                <div className="w-10 h-10 bg-orange-100 rounded-full flex items-center justify-center mx-auto mb-1">
+                  <TestTube className="w-5 h-5 text-orange-600" />
                 </div>
                 <p className="text-xs font-medium text-gray-700 leading-tight">Lab Tests</p>
               </div>
             </Link>
             
             <Link href="/symptom-checker">
-              <div className="bg-white rounded-2xl p-3 text-center shadow-sm hover:shadow-md transition-shadow">
-                <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-2">
-                  <Search className="w-6 h-6 text-green-600" />
+              <div className="bg-white rounded-xl p-2 text-center shadow-sm hover:shadow-md transition-shadow">
+                <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-1">
+                  <Search className="w-5 h-5 text-green-600" />
                 </div>
                 <p className="text-xs font-medium text-gray-700 leading-tight">Symptom Check</p>
               </div>
@@ -161,29 +161,29 @@ export default function Home() {
           </div>
           
           {/* Row 3 */}
-          <div className="grid grid-cols-3 gap-3">
+          <div className="grid grid-cols-3 gap-2">
             <Link href="/face-scan">
-              <div className="bg-white rounded-2xl p-3 text-center shadow-sm hover:shadow-md transition-shadow">
-                <div className="w-12 h-12 bg-pink-100 rounded-full flex items-center justify-center mx-auto mb-2">
-                  <ScanFace className="w-6 h-6 text-pink-600" />
+              <div className="bg-white rounded-xl p-2 text-center shadow-sm hover:shadow-md transition-shadow">
+                <div className="w-10 h-10 bg-pink-100 rounded-full flex items-center justify-center mx-auto mb-1">
+                  <ScanFace className="w-5 h-5 text-pink-600" />
                 </div>
                 <p className="text-xs font-medium text-gray-700 leading-tight">Face Scan</p>
               </div>
             </Link>
             
             <Link href="/doctor-escalation">
-              <div className="bg-white rounded-2xl p-3 text-center shadow-sm hover:shadow-md transition-shadow">
-                <div className="w-12 h-12 bg-indigo-100 rounded-full flex items-center justify-center mx-auto mb-2">
-                  <UserRound className="w-6 h-6 text-indigo-600" />
+              <div className="bg-white rounded-xl p-2 text-center shadow-sm hover:shadow-md transition-shadow">
+                <div className="w-10 h-10 bg-indigo-100 rounded-full flex items-center justify-center mx-auto mb-1">
+                  <UserRound className="w-5 h-5 text-indigo-600" />
                 </div>
                 <p className="text-xs font-medium text-gray-700 leading-tight">Real Doctor</p>
               </div>
             </Link>
             
             <Link href="/notifications">
-              <div className="bg-white rounded-2xl p-3 text-center shadow-sm hover:shadow-md transition-shadow">
-                <div className="w-12 h-12 bg-yellow-100 rounded-full flex items-center justify-center mx-auto mb-2">
-                  <Bell className="w-6 h-6 text-yellow-600" />
+              <div className="bg-white rounded-xl p-2 text-center shadow-sm hover:shadow-md transition-shadow">
+                <div className="w-10 h-10 bg-yellow-100 rounded-full flex items-center justify-center mx-auto mb-1">
+                  <Bell className="w-5 h-5 text-yellow-600" />
                 </div>
                 <p className="text-xs font-medium text-gray-700 leading-tight">Alerts</p>
               </div>

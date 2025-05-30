@@ -62,36 +62,36 @@ export default function Home() {
       <Header />
       
       <main className="pb-20 pt-20">
-        {/* Welcome Section - Matching Your Design */}
-        <div className="bg-gradient-to-r from-blue-50 to-green-50 p-6 rounded-2xl mb-6 mx-4 mt-4">
+        {/* Welcome Section - Compact */}
+        <div className="bg-gradient-to-r from-blue-50 to-green-50 p-4 rounded-xl mb-4 mx-4 mt-4">
           <div className="flex items-center justify-between">
             <div>
-              <h2 className="text-xl font-semibold text-gray-800 mb-1">Welcome !</h2>
-              <p className="text-lg font-medium text-gray-600">
+              <h2 className="text-lg font-semibold text-gray-800 mb-1">Welcome !</h2>
+              <p className="text-base font-medium text-gray-600">
                 {user ? `${user.firstName} ${user.lastName}` : 'Guest User'}
               </p>
-              <p className="text-sm text-gray-500 mt-2">How is it going today?</p>
+              <p className="text-xs text-gray-500 mt-1">How is it going today?</p>
             </div>
-            <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center">
+            <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
               <img 
                 src={user?.profileImageUrl || "https://images.unsplash.com/photo-1612349317150-e413f6a5b16d?ixlib=rb-4.0.3&auto=format&fit=crop&w=64&h=64"}
                 alt="Profile" 
-                className="w-14 h-14 rounded-full object-cover"
+                className="w-10 h-10 rounded-full object-cover"
               />
             </div>
           </div>
         </div>
 
-        {/* AI Consultation Button - Professional */}
-        <div className="px-4 mb-6">
+        {/* AI Consultation Button - Compact */}
+        <div className="px-4 mb-4">
           <Link href="/consultation">
-            <div className="w-full bg-gradient-to-r from-blue-500 via-cyan-500 to-teal-600 rounded-xl p-4 shadow-lg border border-gray-200 text-center cursor-pointer hover:shadow-xl hover:from-blue-600 hover:via-cyan-600 hover:to-teal-700 transition-all duration-500 group">
-              <div className="flex items-center justify-center space-x-3">
-                <div className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center group-hover:bg-white/30 transition-colors">
-                  <Bot className="w-6 h-6 text-white" />
+            <div className="w-full bg-gradient-to-r from-blue-500 via-cyan-500 to-teal-600 rounded-lg p-3 shadow-md border border-gray-200 text-center cursor-pointer hover:shadow-lg hover:from-blue-600 hover:via-cyan-600 hover:to-teal-700 transition-all duration-300 group">
+              <div className="flex items-center justify-center space-x-2">
+                <div className="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center group-hover:bg-white/30 transition-colors">
+                  <Bot className="w-5 h-5 text-white" />
                 </div>
                 <div className="text-left">
-                  <h3 className="font-semibold text-white text-base leading-tight">AI Doctor Consultation</h3>
+                  <h3 className="font-medium text-white text-sm leading-tight">AI Doctor Consultation</h3>
                   <p className="text-white/80 text-xs">Dr. Saarthi AI • Available 24/7</p>
                 </div>
               </div>

@@ -366,6 +366,86 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Notifications API
+  app.get('/api/notifications', async (req: any, res) => {
+    try {
+      // Sample notifications for demo
+      const sampleNotifications = [
+        {
+          id: 1,
+          title: "Medicine Reminder",
+          message: "Time to take your evening medication - Paracetamol 500mg",
+          type: "medication",
+          isRead: false,
+          createdAt: new Date(Date.now() - 30 * 60 * 1000), // 30 minutes ago
+          priority: "high"
+        },
+        {
+          id: 2,
+          title: "Health Check-up Due",
+          message: "Your monthly health check-up is scheduled for tomorrow",
+          type: "appointment",
+          isRead: false,
+          createdAt: new Date(Date.now() - 2 * 60 * 60 * 1000), // 2 hours ago
+          priority: "medium"
+        },
+        {
+          id: 3,
+          title: "Blood Pressure Alert",
+          message: "Your last reading was slightly elevated. Consider lifestyle changes",
+          type: "health_alert",
+          isRead: true,
+          createdAt: new Date(Date.now() - 6 * 60 * 60 * 1000), // 6 hours ago
+          priority: "critical"
+        },
+        {
+          id: 4,
+          title: "Lab Report Ready",
+          message: "Your blood test results are now available for review",
+          type: "report",
+          isRead: false,
+          createdAt: new Date(Date.now() - 12 * 60 * 60 * 1000), // 12 hours ago
+          priority: "medium"
+        },
+        {
+          id: 5,
+          title: "Hydration Reminder",
+          message: "Don't forget to drink water! You've had only 4 glasses today",
+          type: "health_alert",
+          isRead: true,
+          createdAt: new Date(Date.now() - 24 * 60 * 60 * 1000), // 1 day ago
+          priority: "low"
+        }
+      ];
+
+      res.json(sampleNotifications);
+    } catch (error) {
+      console.error("Error fetching notifications:", error);
+      res.status(500).json({ message: "Failed to fetch notifications" });
+    }
+  });
+
+  app.patch('/api/notifications/:id/read', async (req: any, res) => {
+    try {
+      const { id } = req.params;
+      // In a real app, you'd update the database
+      res.json({ success: true, message: "Notification marked as read" });
+    } catch (error) {
+      console.error("Error marking notification as read:", error);
+      res.status(500).json({ message: "Failed to mark notification as read" });
+    }
+  });
+
+  app.patch('/api/notifications/mark-all-read', async (req: any, res) => {
+    try {
+      // In a real app, you'd update all notifications in the database
+      res.json({ success: true, message: "All notifications marked as read" });
+    } catch (error) {
+      console.error("Error marking all notifications as read:", error);
+      res.status(500).json({ message: "Failed to mark all notifications as read" });
+    }
+  });
+
   // User profile routes
   app.put('/api/user/profile', async (req: any, res) => {
     try {

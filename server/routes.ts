@@ -19,6 +19,7 @@ import { enhancedPrescriptionEngine } from "./enhanced-prescription-engine";
 import { multilingualMedicalEngine } from "./multilingual-medical-engine";
 import { localMultilingualEngine } from "./local-multilingual-engine";
 import { mistralMedicalEngine } from "./mistral-medical-engine";
+import { enhancedTTSEngine } from "./enhanced-tts-engine";
 
 if (!process.env.STRIPE_SECRET_KEY) {
   throw new Error('Missing required Stripe secret: STRIPE_SECRET_KEY');
@@ -686,6 +687,61 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Enhanced TTS Audio Generation Endpoint
+  app.post("/api/tts/generate", async (req, res) => {
+    try {
+      const { text, language = 'english', type = 'response' } = req.body;
+      
+      if (!text) {
+        return res.status(400).json({ error: 'Text is required for TTS generation' });
+      }
+
+      console.log(`=== TTS GENERATION ===`);
+      console.log(`Text: ${text}`);
+      console.log(`Language: ${language}`);
+      console.log(`Type: ${type}`);
+
+      let audioBuffer = null;
+      
+      // Generate appropriate speech based on type
+      switch (type) {
+        case 'greeting':
+          audioBuffer = await enhancedTTSEngine.generateGreeting(language);
+          break;
+        case 'question':
+          audioBuffer = await enhancedTTSEngine.generateFollowUpQuestion(text, language);
+          break;
+        case 'prescription':
+          audioBuffer = await enhancedTTSEngine.generatePrescriptionReading(JSON.parse(text), language);
+          break;
+        default:
+          audioBuffer = await enhancedTTSEngine.generateSpeech(text, language);
+          break;
+      }
+
+      if (audioBuffer) {
+        res.set({
+          'Content-Type': 'audio/mpeg',
+          'Content-Length': audioBuffer.length,
+          'Cache-Control': 'no-cache'
+        });
+        res.send(audioBuffer);
+      } else {
+        res.status(500).json({ 
+          error: 'Failed to generate audio',
+          fallbackText: text 
+        });
+      }
+
+    } catch (error) {
+      console.error('TTS generation error:', error);
+      res.status(500).json({ 
+        error: 'TTS service temporarily unavailable',
+        fallbackText: req.body.text || 'Audio generation failed'
+      });
+    }
+  });
+
   // Fixed Medical Chat with Working Disease Detection
   app.post("/api/ai-doctor/groq-medical-chat", async (req, res) => {
     try {
@@ -878,16 +934,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
         followUpCount: medicalResponse.followUp.length
       });
       
-      // Return structured response
+      // Generate natural voice response
+      let audioBuffer = null;
+      try {
+        audioBuffer = await enhancedTTSEngine.generateSpeech(medicalResponse.responseText, detectedLang);
+      } catch (ttsError) {
+        console.log('TTS generation failed, proceeding without audio:', ttsError);
+      }
+
+      // Return structured response with audio
       res.json({
         success: true,
         detectedLanguage: detectedLang,
         patientData,
         medicalAdvice: medicalResponse,
-        // Legacy format for compatibility
         response: medicalResponse.responseText,
         symptoms: mistralMedicalEngine.extractSymptoms(message, detectedLang),
-        type: medicalResponse.medicines.length > 0 ? 'prescription' : 'analysis'
+        type: medicalResponse.medicines.length > 0 ? 'prescription' : 'analysis',
+        hasAudio: !!audioBuffer,
+        audioId: audioBuffer ? `audio_${Date.now()}_${Math.random().toString(36).substr(2, 9)}` : null
       });
 
     } catch (error) {

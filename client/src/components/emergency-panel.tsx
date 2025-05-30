@@ -237,7 +237,7 @@ Time: ${new Date().toLocaleString('hi-IN')}
               <Phone className="w-6 h-6" />
             </Button>
             <p className="text-center text-sm text-gray-600 mt-2">
-              तुरंत ambulance के लिए click करें - Location automatically share होगी
+              Click for instant ambulance - Location will be shared automatically
             </p>
           </section>
 

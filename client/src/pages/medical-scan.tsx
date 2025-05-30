@@ -98,8 +98,7 @@ export default function MedicalScan() {
       formData.append('file', selectedFile);
       formData.append('scan_type', scanType);
 
-      const apiUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000';
-      const response = await fetch(`${apiUrl}/api/medical-scan/predict`, {
+      const response = await fetch('/api/medical-scan/predict', {
         method: 'POST',
         body: formData,
       });

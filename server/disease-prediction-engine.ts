@@ -391,12 +391,13 @@ Please provide:
 Keep response professional and include both English and Hindi guidance where helpful.
 Always emphasize consulting healthcare professionals for serious conditions.`;
 
+      const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
       const response = await openai.chat.completions.create({
         model: "gpt-4o",
         messages: [
           {
             role: "system",
-            content: "You are a professional medical AI assistant. Provide accurate, helpful medical information while emphasizing the importance of professional medical consultation."
+            content: "You are a professional medical AI assistant. Use only clean professional language with standard English letters and medical terminology. Never include special characters or symbols in your response. Provide accurate, helpful medical information while emphasizing the importance of professional medical consultation."
           },
           {
             role: "user",

@@ -105,13 +105,15 @@ export class IndicMedicalEngine {
       hindi: `आप एक अनुभवी भारतीय डॉक्टर हैं जो 15+ साल का अनुभव रखते हैं। आप मरीजों से बेहद सम्मानजनक और दयालु तरीके से बात करते हैं।
 
 महत्वपूर्ण निर्देश:
-- मरीज़ जो भी कहे उसका उत्तर दें (लक्षण, सवाल, चिंता, कोई भी बात)
-- अगर लक्षण नहीं बताए गए हैं तो प्यार से पूछें
-- अगर सामान्य बात की है तो दोस्ताना जवाब दें फिर medical सवाल पूछें
-- हमेशा भारतीय दवाओं और ब्रांड्स का सुझाव दें (जैसे Crocin, Combiflam, Cetrizine, Digene)
+- केवल शुद्ध हिंदी और अंग्रेजी भाषा का उपयोग करें
+- किसी भी विशेष चिह्न या प्रतीक का उपयोग न करें
+- केवल मेडिकल शब्दावली और वैज्ञानिक भाषा का प्रयोग करें
+- मरीज़ जो भी कहे उसका professional उत्तर दें
+- अगर लक्षण नहीं बताए गए हैं तो विनम्रता से पूछें
+- हमेशा भारतीय दवाओं और ब्रांड्स का सुझाव दें जैसे Crocin, Combiflam, Cetrizine, Digene
 - खुराक हमेशा भारतीय मानकों के अनुसार दें
-- मरीज़ को "आप" कहकर संबोधित करें
-- सभी medical advice Hindi में दें
+- मरीज़ को आप कहकर संबोधित करें
+- स्पष्ट और सरल चिकित्सा सलाह दें
 - JSON format में response दें
 
 Response Structure:
@@ -127,16 +129,18 @@ Response Structure:
   "emergencyContact": true/false
 }`,
 
-      english: `You are an experienced Indian doctor with 15+ years of practice. You speak with patients in a respectful, caring manner using Indian English.
+      english: `You are an experienced Indian doctor with 15+ years of practice. You speak with patients in a respectful, caring manner using clear professional English.
 
 Important Guidelines:
-- Respond to whatever the patient says (symptoms, questions, concerns, casual talk)
-- If no symptoms mentioned, gently ask what's bothering them
-- If casual conversation, respond friendly then ask medical questions
-- Always suggest Indian medicines and brands (Crocin, Combiflam, Cetrizine, Digene)
+- Use only clean professional medical language
+- Never use special characters or symbols in responses
+- Use only standard English letters and medical terminology
+- Respond to whatever the patient says with professional medical guidance
+- If no symptoms mentioned, politely ask what health concerns they have
+- Always suggest Indian medicines and brands like Crocin, Combiflam, Cetrizine, Digene
 - Dosages should follow Indian medical standards
-- Address patient respectfully
-- Provide medical advice in English with Indian context
+- Address patient respectfully with proper medical etiquette
+- Provide clear medical advice in simple English
 - Respond in JSON format
 
 Response Structure:
@@ -223,16 +227,35 @@ Respond in JSON format.`
 
   private formatMedicalResponse(result: any, language: string, patient: PatientDetails): MedicalResponse {
     return {
-      greeting: result.greeting || this.getDefaultGreeting(patient, language),
-      diagnosis: result.diagnosis || "सामान्य जांच की आवश्यकता है",
-      medicines: result.medicines || [],
-      tests: result.tests || [],
-      lifestyle: result.lifestyle || [],
-      precautions: result.precautions || [],
-      followUp: result.followUp || "2-3 दिन बाद मिलें यदि सुधार न हो",
+      greeting: this.sanitizeText(result.greeting || this.getDefaultGreeting(patient, language)),
+      diagnosis: this.sanitizeText(result.diagnosis || "सामान्य जांच की आवश्यकता है"),
+      medicines: (result.medicines || []).map((med: any) => ({
+        ...med,
+        name: this.sanitizeText(med.name || ''),
+        composition: this.sanitizeText(med.composition || ''),
+        instructions: this.sanitizeText(med.instructions || '')
+      })),
+      tests: (result.tests || []).map((test: any) => ({
+        ...test,
+        name: this.sanitizeText(test.name || ''),
+        instructions: this.sanitizeText(test.instructions || '')
+      })),
+      lifestyle: (result.lifestyle || []).map((item: string) => this.sanitizeText(item)),
+      precautions: (result.precautions || []).map((item: string) => this.sanitizeText(item)),
+      followUp: this.sanitizeText(result.followUp || "2-3 दिन बाद मिलें यदि सुधार न हो"),
       severity: result.severity || 'mild',
       emergencyContact: result.emergencyContact || false
     };
+  }
+
+  private sanitizeText(text: string): string {
+    if (!text) return '';
+    
+    // Remove special characters and symbols, keep only letters, numbers, spaces, and basic punctuation
+    return text
+      .replace(/[^\w\s\u0900-\u097F\u0A00-\u0A7F\u0A80-\u0AFF\u0B00-\u0B7F\u0B80-\u0BFF\u0C00-\u0C7F\u0C80-\u0CFF\u0D00-\u0D7F.,।?()-]/g, '')
+      .replace(/\s+/g, ' ')
+      .trim();
   }
 
   private getDefaultGreeting(patient: PatientDetails, language: string): string {

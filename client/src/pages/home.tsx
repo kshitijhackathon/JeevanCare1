@@ -119,12 +119,12 @@ export default function Home() {
               </div>
             </Link>
             
-            <Link href="/prescription">
+            <Link href="/face-scan">
               <div className="bg-white rounded-xl p-2 text-center shadow-sm hover:shadow-md transition-shadow">
                 <div className="w-10 h-10 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-1">
-                  <FileText className="w-5 h-5 text-purple-600" />
+                  <ScanFace className="w-5 h-5 text-purple-600" />
                 </div>
-                <p className="text-xs font-medium text-gray-700 leading-tight">Prescription</p>
+                <p className="text-xs font-medium text-gray-700 leading-tight">Medical Scan</p>
               </div>
             </Link>
           </div>
@@ -162,12 +162,12 @@ export default function Home() {
           
           {/* Row 3 */}
           <div className="grid grid-cols-3 gap-2">
-            <Link href="/face-scan">
+            <Link href="/prescription">
               <div className="bg-white rounded-xl p-2 text-center shadow-sm hover:shadow-md transition-shadow">
                 <div className="w-10 h-10 bg-pink-100 rounded-full flex items-center justify-center mx-auto mb-1">
-                  <ScanFace className="w-5 h-5 text-pink-600" />
+                  <FileText className="w-5 h-5 text-pink-600" />
                 </div>
-                <p className="text-xs font-medium text-gray-700 leading-tight">Medical Scan</p>
+                <p className="text-xs font-medium text-gray-700 leading-tight">Prescription</p>
               </div>
             </Link>
             

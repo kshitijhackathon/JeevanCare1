@@ -1,4 +1,4 @@
-import { useState } from "react";
+import React, { useState } from "react";
 import { useLocation } from "wouter";
 import { useMutation } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/useAuth";
@@ -19,12 +19,26 @@ export default function Profile() {
   const [formData, setFormData] = useState({
     age: "",
     weight: "",
+    height: "",
     gender: "",
     bloodGroup: "",
+    phone: "",
+    address: "",
+    emergencyContact: "",
+    medicalHistory: "",
+    allergies: "",
+    currentMedications: "",
+    smokingStatus: "",
+    alcoholConsumption: "",
+    exerciseFrequency: "",
+    dietType: "",
+    familyHistory: ""
   });
 
   const updateProfileMutation = useMutation({
     mutationFn: async (data: typeof formData) => {
+      // Also store in localStorage for immediate access
+      localStorage.setItem('userProfile', JSON.stringify(data));
       return await apiRequest("PUT", "/api/user/profile", data);
     },
     onSuccess: () => {
@@ -42,6 +56,36 @@ export default function Profile() {
       });
     },
   });
+
+  // Load existing profile data on component mount
+  React.useEffect(() => {
+    const savedProfile = localStorage.getItem('userProfile');
+    if (savedProfile) {
+      try {
+        const profileData = JSON.parse(savedProfile);
+        setFormData({
+          age: profileData.age || "",
+          weight: profileData.weight || "",
+          height: profileData.height || "",
+          gender: profileData.gender || "",
+          bloodGroup: profileData.bloodGroup || "",
+          phone: profileData.phone || "",
+          address: profileData.address || "",
+          emergencyContact: profileData.emergencyContact || "",
+          medicalHistory: profileData.medicalHistory || "",
+          allergies: profileData.allergies || "",
+          currentMedications: profileData.currentMedications || "",
+          smokingStatus: profileData.smokingStatus || "",
+          alcoholConsumption: profileData.alcoholConsumption || "",
+          exerciseFrequency: profileData.exerciseFrequency || "",
+          dietType: profileData.dietType || "",
+          familyHistory: profileData.familyHistory || ""
+        });
+      } catch (error) {
+        console.error('Error loading profile data:', error);
+      }
+    }
+  }, []);
 
   const handleLogout = () => {
     // Clear JWT token and user data
@@ -150,7 +194,27 @@ export default function Profile() {
                     onChange={(e) => setFormData({...formData, age: e.target.value})}
                   />
                 ) : (
-                  <span className="text-gray-700">Not set</span>
+                  <span className="text-gray-700">{formData.age || "Not set"}</span>
+                )}
+              </div>
+            </div>
+
+            {/* Height */}
+            <div className="space-y-2">
+              <Label htmlFor="height" className="text-sm font-medium text-gray-700">
+                Height (cm)
+              </Label>
+              <div className="min-h-[40px] flex items-center">
+                {isEditing ? (
+                  <Input
+                    id="height"
+                    type="number"
+                    value={formData.height}
+                    onChange={(e) => setFormData({...formData, height: e.target.value})}
+                    placeholder="e.g., 170"
+                  />
+                ) : (
+                  <span className="text-gray-700">{formData.height ? `${formData.height} cm` : "Not set"}</span>
                 )}
               </div>
             </div>
@@ -164,12 +228,13 @@ export default function Profile() {
                 {isEditing ? (
                   <Input
                     id="weight"
-                    type="text"
+                    type="number"
                     value={formData.weight}
                     onChange={(e) => setFormData({...formData, weight: e.target.value})}
+                    placeholder="e.g., 70"
                   />
                 ) : (
-                  <span className="text-gray-700">Not set</span>
+                  <span className="text-gray-700">{formData.weight ? `${formData.weight} kg` : "Not set"}</span>
                 )}
               </div>
             </div>
@@ -225,7 +290,311 @@ export default function Profile() {
                     </div>
                   </RadioGroup>
                 ) : (
-                  <span className="text-gray-700">Not set</span>
+                  <span className="text-gray-700">{formData.bloodGroup || "Not set"}</span>
+                )}
+              </div>
+            </div>
+
+            {/* Gender */}
+            <div className="space-y-2">
+              <Label className="text-sm font-medium text-gray-700">Gender</Label>
+              <div className="min-h-[40px] flex items-center">
+                {isEditing ? (
+                  <RadioGroup
+                    value={formData.gender}
+                    onValueChange={(value) => setFormData({...formData, gender: value})}
+                    className="flex gap-4"
+                  >
+                    <div className="flex items-center space-x-2">
+                      <RadioGroupItem value="male" id="male" />
+                      <Label htmlFor="male">Male</Label>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <RadioGroupItem value="female" id="female" />
+                      <Label htmlFor="female">Female</Label>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <RadioGroupItem value="other" id="other" />
+                      <Label htmlFor="other">Other</Label>
+                    </div>
+                  </RadioGroup>
+                ) : (
+                  <span className="text-gray-700">{formData.gender || "Not set"}</span>
+                )}
+              </div>
+            </div>
+
+            {/* Phone */}
+            <div className="space-y-2">
+              <Label htmlFor="phone" className="text-sm font-medium text-gray-700">Phone Number</Label>
+              <div className="min-h-[40px] flex items-center">
+                {isEditing ? (
+                  <Input
+                    id="phone"
+                    type="tel"
+                    value={formData.phone}
+                    onChange={(e) => setFormData({...formData, phone: e.target.value})}
+                    placeholder="Enter your phone number"
+                  />
+                ) : (
+                  <span className="text-gray-700">{formData.phone || "Not set"}</span>
+                )}
+              </div>
+            </div>
+
+            {/* Address */}
+            <div className="space-y-2">
+              <Label htmlFor="address" className="text-sm font-medium text-gray-700">Address</Label>
+              <div className="min-h-[40px] flex items-center">
+                {isEditing ? (
+                  <textarea
+                    id="address"
+                    value={formData.address}
+                    onChange={(e) => setFormData({...formData, address: e.target.value})}
+                    placeholder="Enter your full address"
+                    className="w-full p-2 border rounded-md resize-none"
+                    rows={2}
+                  />
+                ) : (
+                  <span className="text-gray-700">{formData.address || "Not set"}</span>
+                )}
+              </div>
+            </div>
+
+            {/* Emergency Contact */}
+            <div className="space-y-2">
+              <Label htmlFor="emergencyContact" className="text-sm font-medium text-gray-700">Emergency Contact</Label>
+              <div className="min-h-[40px] flex items-center">
+                {isEditing ? (
+                  <Input
+                    id="emergencyContact"
+                    type="tel"
+                    value={formData.emergencyContact}
+                    onChange={(e) => setFormData({...formData, emergencyContact: e.target.value})}
+                    placeholder="Emergency contact number"
+                  />
+                ) : (
+                  <span className="text-gray-700">{formData.emergencyContact || "Not set"}</span>
+                )}
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Medical History */}
+        <Card className="mt-4">
+          <CardHeader>
+            <CardTitle className="text-lg font-semibold text-gray-800">Medical History</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            {/* Past Medical History */}
+            <div className="space-y-2">
+              <Label htmlFor="medicalHistory" className="text-sm font-medium text-gray-700">Past Medical History</Label>
+              <div className="min-h-[40px] flex items-center">
+                {isEditing ? (
+                  <textarea
+                    id="medicalHistory"
+                    value={formData.medicalHistory}
+                    onChange={(e) => setFormData({...formData, medicalHistory: e.target.value})}
+                    placeholder="List any past medical conditions, surgeries, or hospitalizations"
+                    className="w-full p-2 border rounded-md resize-none"
+                    rows={3}
+                  />
+                ) : (
+                  <span className="text-gray-700">{formData.medicalHistory || "None reported"}</span>
+                )}
+              </div>
+            </div>
+
+            {/* Allergies */}
+            <div className="space-y-2">
+              <Label htmlFor="allergies" className="text-sm font-medium text-gray-700">Allergies</Label>
+              <div className="min-h-[40px] flex items-center">
+                {isEditing ? (
+                  <textarea
+                    id="allergies"
+                    value={formData.allergies}
+                    onChange={(e) => setFormData({...formData, allergies: e.target.value})}
+                    placeholder="List any food, drug, or environmental allergies"
+                    className="w-full p-2 border rounded-md resize-none"
+                    rows={2}
+                  />
+                ) : (
+                  <span className="text-gray-700">{formData.allergies || "None reported"}</span>
+                )}
+              </div>
+            </div>
+
+            {/* Current Medications */}
+            <div className="space-y-2">
+              <Label htmlFor="currentMedications" className="text-sm font-medium text-gray-700">Current Medications</Label>
+              <div className="min-h-[40px] flex items-center">
+                {isEditing ? (
+                  <textarea
+                    id="currentMedications"
+                    value={formData.currentMedications}
+                    onChange={(e) => setFormData({...formData, currentMedications: e.target.value})}
+                    placeholder="List all current medications and supplements"
+                    className="w-full p-2 border rounded-md resize-none"
+                    rows={2}
+                  />
+                ) : (
+                  <span className="text-gray-700">{formData.currentMedications || "None reported"}</span>
+                )}
+              </div>
+            </div>
+
+            {/* Family History */}
+            <div className="space-y-2">
+              <Label htmlFor="familyHistory" className="text-sm font-medium text-gray-700">Family Medical History</Label>
+              <div className="min-h-[40px] flex items-center">
+                {isEditing ? (
+                  <textarea
+                    id="familyHistory"
+                    value={formData.familyHistory}
+                    onChange={(e) => setFormData({...formData, familyHistory: e.target.value})}
+                    placeholder="List any significant family medical history (diabetes, heart disease, cancer, etc.)"
+                    className="w-full p-2 border rounded-md resize-none"
+                    rows={3}
+                  />
+                ) : (
+                  <span className="text-gray-700">{formData.familyHistory || "None reported"}</span>
+                )}
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Lifestyle Information */}
+        <Card className="mt-4">
+          <CardHeader>
+            <CardTitle className="text-lg font-semibold text-gray-800">Lifestyle Information</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            {/* Smoking Status */}
+            <div className="space-y-2">
+              <Label className="text-sm font-medium text-gray-700">Smoking Status</Label>
+              <div className="min-h-[40px] flex items-center">
+                {isEditing ? (
+                  <RadioGroup
+                    value={formData.smokingStatus}
+                    onValueChange={(value) => setFormData({...formData, smokingStatus: value})}
+                    className="flex flex-wrap gap-4"
+                  >
+                    <div className="flex items-center space-x-2">
+                      <RadioGroupItem value="never" id="never" />
+                      <Label htmlFor="never">Never</Label>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <RadioGroupItem value="former" id="former" />
+                      <Label htmlFor="former">Former</Label>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <RadioGroupItem value="current" id="current" />
+                      <Label htmlFor="current">Current</Label>
+                    </div>
+                  </RadioGroup>
+                ) : (
+                  <span className="text-gray-700">{formData.smokingStatus || "Not specified"}</span>
+                )}
+              </div>
+            </div>
+
+            {/* Alcohol Consumption */}
+            <div className="space-y-2">
+              <Label className="text-sm font-medium text-gray-700">Alcohol Consumption</Label>
+              <div className="min-h-[40px] flex items-center">
+                {isEditing ? (
+                  <RadioGroup
+                    value={formData.alcoholConsumption}
+                    onValueChange={(value) => setFormData({...formData, alcoholConsumption: value})}
+                    className="flex flex-wrap gap-4"
+                  >
+                    <div className="flex items-center space-x-2">
+                      <RadioGroupItem value="none" id="none" />
+                      <Label htmlFor="none">None</Label>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <RadioGroupItem value="occasional" id="occasional" />
+                      <Label htmlFor="occasional">Occasional</Label>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <RadioGroupItem value="moderate" id="moderate" />
+                      <Label htmlFor="moderate">Moderate</Label>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <RadioGroupItem value="heavy" id="heavy" />
+                      <Label htmlFor="heavy">Heavy</Label>
+                    </div>
+                  </RadioGroup>
+                ) : (
+                  <span className="text-gray-700">{formData.alcoholConsumption || "Not specified"}</span>
+                )}
+              </div>
+            </div>
+
+            {/* Exercise Frequency */}
+            <div className="space-y-2">
+              <Label className="text-sm font-medium text-gray-700">Exercise Frequency</Label>
+              <div className="min-h-[40px] flex items-center">
+                {isEditing ? (
+                  <RadioGroup
+                    value={formData.exerciseFrequency}
+                    onValueChange={(value) => setFormData({...formData, exerciseFrequency: value})}
+                    className="flex flex-wrap gap-4"
+                  >
+                    <div className="flex items-center space-x-2">
+                      <RadioGroupItem value="none" id="exercise-none" />
+                      <Label htmlFor="exercise-none">None</Label>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <RadioGroupItem value="1-2" id="1-2" />
+                      <Label htmlFor="1-2">1-2 times/week</Label>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <RadioGroupItem value="3-4" id="3-4" />
+                      <Label htmlFor="3-4">3-4 times/week</Label>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <RadioGroupItem value="daily" id="daily" />
+                      <Label htmlFor="daily">Daily</Label>
+                    </div>
+                  </RadioGroup>
+                ) : (
+                  <span className="text-gray-700">{formData.exerciseFrequency || "Not specified"}</span>
+                )}
+              </div>
+            </div>
+
+            {/* Diet Type */}
+            <div className="space-y-2">
+              <Label className="text-sm font-medium text-gray-700">Diet Type</Label>
+              <div className="min-h-[40px] flex items-center">
+                {isEditing ? (
+                  <RadioGroup
+                    value={formData.dietType}
+                    onValueChange={(value) => setFormData({...formData, dietType: value})}
+                    className="flex flex-wrap gap-4"
+                  >
+                    <div className="flex items-center space-x-2">
+                      <RadioGroupItem value="vegetarian" id="vegetarian" />
+                      <Label htmlFor="vegetarian">Vegetarian</Label>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <RadioGroupItem value="vegan" id="vegan" />
+                      <Label htmlFor="vegan">Vegan</Label>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <RadioGroupItem value="non-vegetarian" id="non-vegetarian" />
+                      <Label htmlFor="non-vegetarian">Non-Vegetarian</Label>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <RadioGroupItem value="mixed" id="mixed" />
+                      <Label htmlFor="mixed">Mixed</Label>
+                    </div>
+                  </RadioGroup>
+                ) : (
+                  <span className="text-gray-700">{formData.dietType || "Not specified"}</span>
                 )}
               </div>
             </div>

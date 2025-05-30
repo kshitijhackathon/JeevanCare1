@@ -46,7 +46,7 @@ export default function ContinuousVoiceRecognition({
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
     const recognition = new SpeechRecognition();
     
-    recognition.continuous = true;
+    recognition.continuous = false; // Changed to false for better reliability
     recognition.interimResults = true;
     recognition.maxAlternatives = 1;
     recognition.lang = languageConfigs[language as keyof typeof languageConfigs].code;

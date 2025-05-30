@@ -2478,6 +2478,12 @@ Patient Context: ${patientContext}`
     return recommendations;
   }
 
+  // Test endpoint for medical scan
+  app.get('/api/medical-scan/test', (req, res) => {
+    console.log('Test endpoint called');
+    res.json({ status: 'Medical scan API is working', timestamp: new Date().toISOString() });
+  });
+
   // Medical Image Analysis API
   const upload = multer({ 
     storage: multer.memoryStorage(),
@@ -2487,6 +2493,11 @@ Patient Context: ${patientContext}`
   });
 
   app.post('/api/medical-scan/predict', upload.single('file'), async (req, res) => {
+    console.log('Medical scan API called');
+    
+    // Set response headers to prevent timeout
+    res.setTimeout(0);
+    
     try {
       const file = req.file;
       const scanType = req.body.scan_type || 'xray';
@@ -2495,20 +2506,24 @@ Patient Context: ${patientContext}`
       console.log('Scan type:', scanType);
 
       if (!file) {
+        console.log('No file provided');
         return res.status(400).json({ error: 'No file uploaded' });
       }
 
       // Validate file type
       const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'application/gzip'];
       if (!allowedTypes.includes(file.mimetype) && !file.originalname.toLowerCase().endsWith('.nii.gz')) {
+        console.log('Invalid file type:', file.mimetype);
         return res.status(400).json({ error: 'Invalid file type. Only JPG, PNG, and NII.GZ files are supported.' });
       }
 
       // Use Google Gemini for medical image analysis
       if (!process.env.GEMINI_API_KEY) {
+        console.log('GEMINI_API_KEY not found');
         return res.status(500).json({ error: 'Medical analysis service not configured. Please provide GEMINI_API_KEY.' });
       }
 
+      console.log('GEMINI_API_KEY found, processing image...');
       const base64Image = file.buffer.toString('base64');
       const mimeType = file.mimetype;
 

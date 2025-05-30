@@ -246,7 +246,7 @@ export default function AIDoctorVideoConsultation() {
 
   const goToHome = () => {
     stopVideoCall();
-    setLocation('/dashboard');
+    setLocation('/');
   };
 
   const toggleVideo = () => {

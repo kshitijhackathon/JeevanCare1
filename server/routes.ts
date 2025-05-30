@@ -598,9 +598,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Cart routes
-  app.get('/api/cart', isAuthenticated, async (req: any, res) => {
+  app.get('/api/cart', async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      // For demo purposes, use a default user ID if not authenticated
+      const userId = req.user?.claims?.sub || 'demo-user-123';
       const cartItems = await storage.getCartItems(userId);
       res.json(cartItems);
     } catch (error) {
@@ -625,9 +626,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post('/api/cart/add', isAuthenticated, async (req: any, res) => {
+  app.post('/api/cart/add', async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      // For demo purposes, use a default user ID if not authenticated
+      const userId = req.user?.claims?.sub || 'demo-user-123';
       const { productId, quantity } = req.body;
       
       const cartItemData = {
@@ -644,7 +646,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.put('/api/cart/:id', isAuthenticated, async (req, res) => {
+  app.put('/api/cart/:id', async (req, res) => {
     try {
       const itemId = parseInt(req.params.id);
       const { quantity } = req.body;
@@ -657,7 +659,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.delete('/api/cart/:id', isAuthenticated, async (req, res) => {
+  app.delete('/api/cart/:id', async (req, res) => {
     try {
       const itemId = parseInt(req.params.id);
       await storage.removeFromCart(itemId);

@@ -31,6 +31,9 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
   apiVersion: "2025-04-30.basil",
 });
 
+// In-memory cart for demo purposes
+const demoCart = new Map();
+
 export async function registerRoutes(app: Express): Promise<Server> {
   // Whisper transcription endpoint for accurate voice recognition
   app.post('/api/whisper-transcribe', async (req, res) => {
@@ -600,9 +603,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Cart routes
   app.get('/api/cart', async (req: any, res) => {
     try {
-      // For demo purposes, use a default user ID if not authenticated
-      const userId = req.user?.claims?.sub || 'demo-user-123';
-      const cartItems = await storage.getCartItems(userId);
+      // Return in-memory cart items
+      const cartItems = Array.from(demoCart.values());
       res.json(cartItems);
     } catch (error) {
       console.error("Error fetching cart:", error);
@@ -628,18 +630,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post('/api/cart/add', async (req: any, res) => {
     try {
-      // For demo purposes, use a default user ID if not authenticated
-      const userId = req.user?.claims?.sub || 'demo-user-123';
       const { productId, quantity } = req.body;
       
-      const cartItemData = {
-        userId,
-        productId,
-        quantity: quantity || 1
-      };
+      // Get product details
+      const product = await storage.getProduct(productId);
+      if (!product) {
+        return res.status(404).json({ message: "Product not found" });
+      }
       
-      const cartItem = await storage.addToCart(cartItemData);
-      res.json(cartItem);
+      // Add to in-memory cart
+      const existingItem = demoCart.get(productId);
+      if (existingItem) {
+        existingItem.quantity += quantity || 1;
+        demoCart.set(productId, existingItem);
+      } else {
+        demoCart.set(productId, {
+          id: Date.now(),
+          productId,
+          quantity: quantity || 1,
+          product
+        });
+      }
+      
+      res.json({ success: true, message: "Added to cart" });
     } catch (error) {
       console.error("Error adding to cart:", error);
       res.status(500).json({ message: "Failed to add to cart" });
@@ -651,8 +664,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const itemId = parseInt(req.params.id);
       const { quantity } = req.body;
       
-      const updatedItem = await storage.updateCartItemQuantity(itemId, quantity);
-      res.json(updatedItem);
+      // Find and update item in memory cart
+      for (let [productId, item] of demoCart.entries()) {
+        if (item.id === itemId) {
+          item.quantity = quantity;
+          demoCart.set(productId, item);
+          return res.json(item);
+        }
+      }
+      
+      res.status(404).json({ message: "Cart item not found" });
     } catch (error) {
       console.error("Error updating cart item:", error);
       res.status(500).json({ message: "Failed to update cart item" });
@@ -662,8 +683,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.delete('/api/cart/:id', async (req, res) => {
     try {
       const itemId = parseInt(req.params.id);
-      await storage.removeFromCart(itemId);
-      res.json({ message: "Item removed from cart" });
+      
+      // Remove item from memory cart
+      for (let [productId, item] of demoCart.entries()) {
+        if (item.id === itemId) {
+          demoCart.delete(productId);
+          return res.json({ message: "Item removed from cart" });
+        }
+      }
+      
+      res.status(404).json({ message: "Cart item not found" });
     } catch (error) {
       console.error("Error removing from cart:", error);
       res.status(500).json({ message: "Failed to remove from cart" });

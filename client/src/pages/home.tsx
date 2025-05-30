@@ -106,12 +106,12 @@ export default function Home() {
               </div>
             </Link>
             
-            <Link href="/symptom-checker">
+            <Link href="/medicine-delivery">
               <div className="bg-white rounded-2xl p-3 text-center shadow-sm hover:shadow-md transition-shadow">
-                <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-2">
-                  <Search className="w-6 h-6 text-green-600" />
+                <div className="w-12 h-12 bg-teal-100 rounded-full flex items-center justify-center mx-auto mb-2">
+                  <Truck className="w-6 h-6 text-teal-600" />
                 </div>
-                <p className="text-xs font-medium text-gray-700 leading-tight">Symptom Check</p>
+                <p className="text-xs font-medium text-gray-700 leading-tight">Medicine Delivery</p>
               </div>
             </Link>
             
@@ -146,12 +146,12 @@ export default function Home() {
               </div>
             </Link>
             
-            <Link href="/medicine-delivery">
+            <Link href="/symptom-checker">
               <div className="bg-white rounded-2xl p-3 text-center shadow-sm hover:shadow-md transition-shadow">
-                <div className="w-12 h-12 bg-teal-100 rounded-full flex items-center justify-center mx-auto mb-2">
-                  <Truck className="w-6 h-6 text-teal-600" />
+                <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-2">
+                  <Search className="w-6 h-6 text-green-600" />
                 </div>
-                <p className="text-xs font-medium text-gray-700 leading-tight">Medicine Delivery</p>
+                <p className="text-xs font-medium text-gray-700 leading-tight">Symptom Check</p>
               </div>
             </Link>
           </div>

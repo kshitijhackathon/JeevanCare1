@@ -14,6 +14,7 @@ import Checkout from "@/pages/checkout";
 import Profile from "@/pages/profile-simple";
 import AIDoctorConsultation from "@/pages/ai-doctor-consultation";
 import EnhancedAIConsultation from "@/pages/enhanced-ai-consultation";
+import MultilingualConsultation from "@/pages/multilingual-consultation";
 import BookTest from "@/pages/book-test";
 import MedicineDelivery from "@/pages/medicine-delivery";
 import Reports from "@/pages/reports";

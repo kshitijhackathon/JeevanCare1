@@ -2492,15 +2492,50 @@ Patient Context: ${patientContext}`
     }
   });
 
+  // X-Ray Analysis API
+  app.post('/api/medical-scan/predict/xray', upload.single('file'), async (req, res) => {
+    await handleMedicalScanPrediction(req, res, 'xray');
+  });
+
+  // CT Scan 2D Analysis API
+  app.post('/api/medical-scan/predict/ct/2d', upload.single('file'), async (req, res) => {
+    await handleMedicalScanPrediction(req, res, 'ct_2d');
+  });
+
+  // CT Scan 3D Analysis API
+  app.post('/api/medical-scan/predict/ct/3d', upload.single('file'), async (req, res) => {
+    await handleMedicalScanPrediction(req, res, 'ct_3d');
+  });
+
+  // MRI 2D Analysis API
+  app.post('/api/medical-scan/predict/mri/2d', upload.single('file'), async (req, res) => {
+    await handleMedicalScanPrediction(req, res, 'mri_2d');
+  });
+
+  // MRI 3D Analysis API
+  app.post('/api/medical-scan/predict/mri/3d', upload.single('file'), async (req, res) => {
+    await handleMedicalScanPrediction(req, res, 'mri_3d');
+  });
+
+  // Ultrasound Analysis API
+  app.post('/api/medical-scan/predict/ultrasound', upload.single('file'), async (req, res) => {
+    await handleMedicalScanPrediction(req, res, 'ultrasound');
+  });
+
+  // General Medical Scan API (backward compatibility)
   app.post('/api/medical-scan/predict', upload.single('file'), async (req, res) => {
-    console.log('Medical scan API called');
+    const scanType = req.body.scan_type || 'xray';
+    await handleMedicalScanPrediction(req, res, scanType);
+  });
+
+  // Helper function for medical scan prediction
+  async function handleMedicalScanPrediction(req: any, res: any, scanType: string) {
+    console.log(`${scanType.toUpperCase()} scan API called`);
     
-    // Set response headers to prevent timeout
     res.setTimeout(0);
     
     try {
       const file = req.file;
-      const scanType = req.body.scan_type || 'xray';
 
       console.log('File upload received:', file ? file.originalname : 'No file');
       console.log('Scan type:', scanType);
@@ -2529,6 +2564,19 @@ Patient Context: ${patientContext}`
 
       console.log('Sending request to Gemini API...');
 
+      // Specialized prompts for different scan types
+      const getSpecializedPrompt = (type: string) => {
+        const prompts = {
+          xray: `Analyze this X-ray medical image focusing on bone structures, chest cavity, and skeletal abnormalities. Look for fractures, pneumonia, tuberculosis, and other chest-related conditions.`,
+          ct_2d: `Analyze this 2D CT scan image focusing on cross-sectional anatomy. Look for tumors, organ abnormalities, internal bleeding, and structural damage.`,
+          ct_3d: `Analyze this 3D CT scan image with focus on tumor detection and volumetric analysis. Identify any masses, metastases, or abnormal growths.`,
+          mri_2d: `Analyze this 2D MRI scan focusing on soft tissue contrast. Look for brain abnormalities, spinal issues, joint problems, and soft tissue damage.`,
+          mri_3d: `Analyze this 3D MRI scan with volumetric soft tissue analysis. Focus on brain structures, white matter lesions, and detailed anatomical assessment.`,
+          ultrasound: `Analyze this ultrasound image focusing on real-time soft tissue imaging. Look for pregnancy-related findings, organ abnormalities, and fluid collections.`
+        };
+        return prompts[type as keyof typeof prompts] || prompts.xray;
+      };
+
       const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${process.env.GEMINI_API_KEY}`, {
         method: 'POST',
         headers: {
@@ -2538,7 +2586,7 @@ Patient Context: ${patientContext}`
           contents: [{
             parts: [
               {
-                text: `Analyze this ${scanType} medical image and provide detailed medical insights. 
+                text: `${getSpecializedPrompt(scanType)}
                 
                 Please respond in JSON format with the following structure:
                 {
@@ -2551,15 +2599,19 @@ Patient Context: ${patientContext}`
                       "recommendations": ["recommendation 1", "recommendation 2"],
                       "treatment": ["treatment option 1", "treatment option 2"]
                     }
-                  ]
+                  ],
+                  "report": "detailed medical report text",
+                  "disease": "primary disease/condition identified",
+                  "symptoms": ["symptom 1", "symptom 2"]
                 }
                 
                 Focus on:
-                1. Identifying any abnormalities or pathological findings
+                1. Identifying any abnormalities or pathological findings specific to ${scanType}
                 2. Assessing the severity level
                 3. Providing confidence scores based on image quality and clarity
                 4. Suggesting appropriate medical recommendations
                 5. Recommending treatment options if applicable
+                6. Generate a comprehensive medical report
                 
                 Be thorough but conservative in your analysis. Always recommend consulting with a medical professional for definitive diagnosis.`
               },
@@ -2575,7 +2627,7 @@ Patient Context: ${patientContext}`
             temperature: 0.1,
             topK: 1,
             topP: 1,
-            maxOutputTokens: 2048,
+            maxOutputTokens: 3000,
           }
         })
       });
@@ -2605,13 +2657,16 @@ Patient Context: ${patientContext}`
           // Fallback parsing if JSON is not properly formatted
           predictions = {
             predictions: [{
-              condition: "Analysis Generated",
+              condition: `${scanType.toUpperCase()} Analysis Generated`,
               confidence: 0.75,
               severity: "medium",
-              description: analysisText.substring(0, 200) + "...",
+              description: analysisText.substring(0, 300) + "...",
               recommendations: ["Consult with a medical professional for detailed evaluation"],
               treatment: ["Follow medical professional's advice"]
-            }]
+            }],
+            report: analysisText,
+            disease: `Findings from ${scanType.toUpperCase()} analysis`,
+            symptoms: ["Requires professional medical evaluation"]
           };
         }
       } catch (parseError) {
@@ -2619,27 +2674,30 @@ Patient Context: ${patientContext}`
         // Create a structured response from the text
         predictions = {
           predictions: [{
-            condition: "Medical Image Analysis",
+            condition: `${scanType.toUpperCase()} Medical Image Analysis`,
             confidence: 0.75,
             severity: "medium",
             description: analysisText,
             recommendations: ["Consult with a radiologist or relevant specialist", "Compare with previous scans if available"],
             treatment: ["Follow medical professional's recommendations based on this analysis"]
-          }]
+          }],
+          report: analysisText,
+          disease: `${scanType.toUpperCase()} scan findings`,
+          symptoms: ["Professional medical evaluation required"]
         };
       }
 
-      console.log('Analysis completed successfully');
+      console.log(`${scanType.toUpperCase()} analysis completed successfully`);
       res.json(predictions);
 
     } catch (error) {
-      console.error('Medical scan prediction error:', error);
+      console.error(`${scanType.toUpperCase()} scan prediction error:`, error);
       res.status(500).json({ 
-        error: 'Medical scan analysis failed',
+        error: `${scanType.toUpperCase()} scan analysis failed`,
         message: error instanceof Error ? error.message : 'Unknown error occurred'
       });
     }
-  });
+  }
 
   // Generate Medical Report API
   app.post('/api/medical-scan/generate-report', async (req, res) => {

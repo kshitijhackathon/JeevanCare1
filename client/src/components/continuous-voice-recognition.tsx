@@ -94,9 +94,9 @@ export default function ContinuousVoiceRecognition({
     };
 
     recognition.onerror = (event: any) => {
-      console.log('Speech recognition event:', event.error);
+      console.log('Speech recognition error:', event.error);
       
-      // Handle specific error types
+      // Handle specific error types differently
       if (event.error === 'aborted') {
         // Don't restart on abort, it's intentional
         return;

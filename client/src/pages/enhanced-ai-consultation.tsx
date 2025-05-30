@@ -12,7 +12,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useMutation } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import PrescriptionTemplate from "@/components/prescription-template";
-import ContinuousVoiceRecognition from "@/components/continuous-voice-recognition";
+import ImprovedVoiceRecognition from "@/components/improved-voice-recognition";
 import PersonalizedAIAvatar from "@/components/personalized-ai-avatar";
 import SmartSymptomDisplay from "@/components/smart-symptom-display";
 import { voiceToneAdapter } from "@/lib/voice-tone-adapter";
@@ -890,10 +890,8 @@ export default function EnhancedAIConsultation() {
             
             {/* Continuous Voice Recognition Component */}
             <div className="mb-3 md:mb-4">
-              <ContinuousVoiceRecognition
+              <ImprovedVoiceRecognition
                 onTranscript={handleVoiceTranscript}
-                language={detectedLanguage}
-                onLanguageChange={handleLanguageChange}
                 isProcessing={isProcessing}
               />
             </div>

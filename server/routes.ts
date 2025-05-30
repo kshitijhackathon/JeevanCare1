@@ -20,6 +20,8 @@ import { multilingualMedicalEngine } from "./multilingual-medical-engine";
 import { localMultilingualEngine } from "./local-multilingual-engine";
 import { mistralMedicalEngine } from "./mistral-medical-engine";
 import { enhancedTTSEngine } from "./enhanced-tts-engine";
+import { indicMedicalEngine } from "./indic-medical-engine";
+import { humanVoiceEngine } from "./human-voice-engine";
 
 if (!process.env.STRIPE_SECRET_KEY) {
   throw new Error('Missing required Stripe secret: STRIPE_SECRET_KEY');
@@ -739,6 +741,139 @@ export async function registerRoutes(app: Express): Promise<Server> {
         error: 'TTS service temporarily unavailable',
         fallbackText: req.body.text || 'Audio generation failed'
       });
+    }
+  });
+
+  // Comprehensive AI Doctor Consultation with IndicTrans and Human Voice
+  app.post("/api/ai-doctor/indic-consultation", async (req, res) => {
+    try {
+      const { symptoms, patientDetails } = req.body;
+      
+      if (!symptoms || !patientDetails) {
+        return res.status(400).json({ error: 'Symptoms and patient details are required' });
+      }
+
+      console.log("=== INDIC AI DOCTOR CONSULTATION ===");
+      console.log("Patient:", patientDetails.name, "Age:", patientDetails.age);
+      console.log("Symptoms:", symptoms);
+      console.log("Language:", patientDetails.language);
+
+      // Generate comprehensive medical consultation using IndicTrans approach
+      const medicalResponse = await indicMedicalEngine.generateMedicalConsultation(symptoms, {
+        name: patientDetails.name,
+        age: parseInt(patientDetails.age),
+        gender: patientDetails.gender,
+        bloodGroup: patientDetails.bloodGroup,
+        language: patientDetails.language || 'hindi'
+      });
+
+      console.log("Medical consultation generated:", {
+        diagnosis: medicalResponse.diagnosis.substring(0, 100) + "...",
+        medicineCount: medicalResponse.medicines.length,
+        testCount: medicalResponse.tests.length,
+        severity: medicalResponse.severity
+      });
+
+      // Generate human-like voice response
+      let audioBuffer = null;
+      let audioGenerated = false;
+
+      try {
+        if (humanVoiceEngine.isAvailable()) {
+          const voiceText = indicMedicalEngine.generateVoiceResponse(medicalResponse, patientDetails.language);
+          audioBuffer = await humanVoiceEngine.generateDoctorVoice(voiceText, patientDetails.language, 'diagnosis');
+          audioGenerated = !!audioBuffer;
+          console.log(`Human-like voice generated: ${audioGenerated}`);
+        } else {
+          console.log("Google TTS not available. Please provide credentials for human-like voice.");
+        }
+      } catch (voiceError) {
+        console.log('Voice generation failed:', voiceError);
+      }
+
+      // Generate personalized greeting audio
+      let greetingAudioBuffer = null;
+      try {
+        if (humanVoiceEngine.isAvailable()) {
+          greetingAudioBuffer = await humanVoiceEngine.generatePersonalizedGreeting(
+            patientDetails.name, 
+            patientDetails.language
+          );
+        }
+      } catch (greetingError) {
+        console.log('Greeting voice generation failed:', greetingError);
+      }
+
+      const response = {
+        success: true,
+        consultation: medicalResponse,
+        voiceResponse: {
+          hasMainAudio: audioGenerated,
+          hasGreeting: !!greetingAudioBuffer,
+          audioId: audioGenerated ? `consultation_${Date.now()}` : null,
+          greetingId: greetingAudioBuffer ? `greeting_${Date.now()}` : null,
+          humanLikeVoice: humanVoiceEngine.isAvailable(),
+          credentialsMessage: !humanVoiceEngine.isAvailable() ? humanVoiceEngine.getCredentialsMessage() : null
+        },
+        patientContext: {
+          name: patientDetails.name,
+          age: patientDetails.age,
+          language: patientDetails.language,
+          detectedLanguage: indicMedicalEngine.detectLanguage(symptoms)
+        }
+      };
+
+      // Store audio buffers temporarily (in production, use proper file storage)
+      if (audioBuffer) {
+        global.audioCache = global.audioCache || {};
+        global.audioCache[response.voiceResponse.audioId] = audioBuffer;
+      }
+      if (greetingAudioBuffer) {
+        global.audioCache = global.audioCache || {};
+        global.audioCache[response.voiceResponse.greetingId] = greetingAudioBuffer;
+      }
+
+      res.json(response);
+
+    } catch (error) {
+      console.error("AI Doctor consultation error:", error);
+      res.status(500).json({ 
+        error: 'Medical consultation service temporarily unavailable',
+        success: false,
+        fallback: true
+      });
+    }
+  });
+
+  // Audio streaming endpoint for consultation responses
+  app.get("/api/ai-doctor/audio/:audioId", async (req, res) => {
+    try {
+      const { audioId } = req.params;
+      
+      if (!global.audioCache || !global.audioCache[audioId]) {
+        return res.status(404).json({ error: 'Audio not found' });
+      }
+
+      const audioBuffer = global.audioCache[audioId];
+      
+      res.set({
+        'Content-Type': 'audio/mpeg',
+        'Content-Length': audioBuffer.length,
+        'Cache-Control': 'public, max-age=3600'
+      });
+      
+      res.send(audioBuffer);
+
+      // Clean up after serving (optional - implement proper cleanup strategy)
+      setTimeout(() => {
+        if (global.audioCache && global.audioCache[audioId]) {
+          delete global.audioCache[audioId];
+        }
+      }, 300000); // 5 minutes
+
+    } catch (error) {
+      console.error('Audio streaming error:', error);
+      res.status(500).json({ error: 'Audio streaming failed' });
     }
   });
 

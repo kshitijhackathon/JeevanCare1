@@ -1,7 +1,7 @@
 import React from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Download, Print } from 'lucide-react';
+import { Download, Printer } from 'lucide-react';
 import jsPDF from 'jspdf';
 
 interface PrescriptionData {
@@ -264,7 +264,7 @@ export function JeevancarePrescription({ data, onClose }: PrescriptionProps) {
               Download PDF
             </Button>
             <Button onClick={() => window.print()} variant="outline">
-              <Print className="w-4 h-4 mr-2" />
+              <Printer className="w-4 h-4 mr-2" />
               Print
             </Button>
             <Button onClick={onClose} variant="secondary">

@@ -6,10 +6,12 @@ import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { WhisperSpeechRecognition } from '@/components/whisper-speech-recognition';
+import { BodyModel3D } from '@/components/3d-body-model';
+import { JeevancarePrescription } from '@/components/jeevancare-prescription';
 import { 
   Stethoscope, User, Calendar, Phone, Mail, MapPin, Loader2, 
   Pill, FileText, AlertTriangle, Video, VideoOff, Mic, MicOff,
-  PhoneCall, X, Volume2
+  PhoneCall, X, Volume2, Clock, Eye, Smile
 } from 'lucide-react';
 
 interface PatientDetails {
@@ -86,6 +88,10 @@ export default function AIDoctorVideoConsultation() {
   const [isAudioEnabled, setIsAudioEnabled] = useState(true);
   const [detectedLanguage, setDetectedLanguage] = useState('hindi');
   const [speechConfidence, setSpeechConfidence] = useState(0);
+  const [selectedBodyParts, setSelectedBodyParts] = useState<string[]>([]);
+  const [showPrescription, setShowPrescription] = useState(false);
+  const [isReviewing, setIsReviewing] = useState(false);
+  const [doctorAction, setDoctorAction] = useState<string | null>(null);
   
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
@@ -135,10 +141,19 @@ export default function AIDoctorVideoConsultation() {
       setConsultation(data.consultation);
       setDetectedLanguage(data.patientContext.detectedLanguage);
       
-      // Play greeting first, then main consultation
+      // Check if doctor wants specific examination
+      const response = data.consultation.diagnosis.toLowerCase();
+      if (response.includes('दिखाओ') || response.includes('show') || response.includes('eyes') || response.includes('आंख')) {
+        setDoctorAction('eyes');
+      } else if (response.includes('मुंह') || response.includes('mouth') || response.includes('खोल')) {
+        setDoctorAction('mouth');
+      } else if (response.includes('दर्द') || response.includes('pain') || response.includes('tap') || response.includes('point')) {
+        setDoctorAction('body_model');
+      }
+      
+      // Play voice response
       if (data.voiceResponse.hasGreeting && data.voiceResponse.greetingId) {
         await playAudio(data.voiceResponse.greetingId);
-        // Small delay before main consultation
         setTimeout(() => {
           if (data.voiceResponse.hasMainAudio && data.voiceResponse.audioId) {
             playAudio(data.voiceResponse.audioId);
@@ -148,9 +163,15 @@ export default function AIDoctorVideoConsultation() {
         await playAudio(data.voiceResponse.audioId);
       }
 
-      // Show credentials message if needed
-      if (data.voiceResponse.credentialsMessage) {
-        console.log('Voice credentials needed:', data.voiceResponse.credentialsMessage);
+      // Auto-generate prescription after complete consultation
+      if (data.consultation.medicines.length > 0) {
+        setTimeout(() => {
+          setIsReviewing(true);
+          setTimeout(() => {
+            setIsReviewing(false);
+            setShowPrescription(true);
+          }, 60000); // 1 minute review
+        }, 3000);
       }
     },
     onError: (error) => {
@@ -260,8 +281,28 @@ export default function AIDoctorVideoConsultation() {
     
     // Auto-submit for ANY user input - AI should respond to everything
     if (transcript.trim().length > 3) {
-      handleSubmitSymptoms(transcript);
+      // Include body part information if selected
+      const bodyPartsInfo = selectedBodyParts.length > 0 
+        ? ` Pain areas selected: ${selectedBodyParts.join(', ')}` 
+        : '';
+      handleSubmitSymptoms(transcript + bodyPartsInfo);
     }
+  };
+
+  const handleBodyPainSelection = (bodyPart: string, location: { x: number; y: number }) => {
+    setSelectedBodyParts(prev => {
+      const newParts = prev.includes(bodyPart) 
+        ? prev.filter(p => p !== bodyPart)
+        : [...prev, bodyPart];
+      
+      // Auto-inform doctor about pain selection
+      const painMessage = patientDetails.language === 'hindi'
+        ? `मुझे ${bodyPart} में दर्द है`
+        : `I have pain in ${bodyPart}`;
+      
+      setTimeout(() => handleSubmitSymptoms(painMessage), 500);
+      return newParts;
+    });
   };
 
   const handleSubmitSymptoms = (symptoms?: string) => {
@@ -514,11 +555,81 @@ export default function AIDoctorVideoConsultation() {
               <CardHeader>
                 <CardTitle className="text-xl font-bold flex items-center">
                   <Stethoscope className="w-5 h-5 mr-2" />
-                  चिकित्सा परामर्श / Medical Consultation
+                  Dr. Saarthi AI - चिकित्सा परामर्श / Medical Consultation
                 </CardTitle>
               </CardHeader>
 
               <CardContent className="flex-1 overflow-auto space-y-4">
+                {/* Reviewing State */}
+                {isReviewing && (
+                  <div className="text-center py-8 bg-blue-50 rounded-lg">
+                    <Clock className="w-16 h-16 mx-auto mb-4 text-blue-600 animate-spin" />
+                    <h3 className="text-lg font-semibold mb-2">Cross-checking & Reviewing by Dr. Saarthi</h3>
+                    <p className="text-gray-600">कृपया प्रतीक्षा करें... डॉक्टर आपके केस की समीक्षा कर रहे हैं</p>
+                    <div className="mt-4">
+                      <div className="bg-blue-200 rounded-full h-2 overflow-hidden">
+                        <div className="bg-blue-600 h-full animate-pulse w-3/4"></div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Doctor Action Requests */}
+                {doctorAction === 'eyes' && (
+                  <Card className="bg-yellow-50 border-yellow-200">
+                    <CardContent className="p-4">
+                      <div className="flex items-center mb-3">
+                        <Eye className="w-6 h-6 mr-2 text-yellow-600" />
+                        <h3 className="font-semibold">डॉक्टर का निर्देश / Doctor's Request</h3>
+                      </div>
+                      <p className="mb-3">कृपया अपनी आंखें कैमरे के सामने दिखाएं / Please show your eyes to the camera</p>
+                      <Button 
+                        onClick={() => setDoctorAction(null)}
+                        size="sm"
+                        className="bg-yellow-600 hover:bg-yellow-700"
+                      >
+                        Done / हो गया
+                      </Button>
+                    </CardContent>
+                  </Card>
+                )}
+
+                {doctorAction === 'mouth' && (
+                  <Card className="bg-pink-50 border-pink-200">
+                    <CardContent className="p-4">
+                      <div className="flex items-center mb-3">
+                        <Smile className="w-6 h-6 mr-2 text-pink-600" />
+                        <h3 className="font-semibold">डॉक्टर का निर्देश / Doctor's Request</h3>
+                      </div>
+                      <p className="mb-3">कृपया मुंह खोलकर दिखाएं / Please open your mouth and show</p>
+                      <Button 
+                        onClick={() => setDoctorAction(null)}
+                        size="sm"
+                        className="bg-pink-600 hover:bg-pink-700"
+                      >
+                        Done / हो गया
+                      </Button>
+                    </CardContent>
+                  </Card>
+                )}
+
+                {doctorAction === 'body_model' && (
+                  <Card className="bg-red-50 border-red-200">
+                    <CardContent className="p-4">
+                      <BodyModel3D 
+                        onPainPointSelect={handleBodyPainSelection}
+                        selectedParts={selectedBodyParts}
+                      />
+                      <Button 
+                        onClick={() => setDoctorAction(null)}
+                        size="sm"
+                        className="bg-red-600 hover:bg-red-700 mt-3 w-full"
+                      >
+                        Pain Areas Selected / दर्द की जगह चुनी गई
+                      </Button>
+                    </CardContent>
+                  </Card>
+                )}
                 {!consultation && !consultationMutation.isPending && (
                   <div className="text-center text-gray-500 dark:text-gray-400 py-8">
                     <Volume2 className="w-16 h-16 mx-auto mb-4 opacity-50" />
@@ -668,6 +779,27 @@ export default function AIDoctorVideoConsultation() {
           preload="none"
           className="hidden"
         />
+
+        {/* Prescription Modal */}
+        {showPrescription && consultation && (
+          <JeevancarePrescription
+            data={{
+              patientName: patientDetails.name,
+              age: patientDetails.age,
+              date: new Date().toLocaleDateString('en-IN'),
+              bloodGroup: patientDetails.bloodGroup || 'Not Known',
+              gender: patientDetails.gender,
+              symptoms: selectedBodyParts.length > 0 
+                ? [...consultation.diagnosis.split(','), ...selectedBodyParts.map(part => `Pain in ${part}`)]
+                : [consultation.diagnosis],
+              medicines: consultation.medicines,
+              tests: consultation.tests,
+              doctorAdvice: [...consultation.lifestyle, ...consultation.precautions],
+              followUp: consultation.followUp
+            }}
+            onClose={() => setShowPrescription(false)}
+          />
+        )}
       </div>
     </div>
   );

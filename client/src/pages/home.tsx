@@ -82,15 +82,29 @@ export default function Home() {
           </div>
         </div>
 
-        {/* AI Consultation Button */}
+        {/* AI Consultation Button - Professional */}
         <div className="px-4 mb-6">
           <Link href="/consultation">
-            <div className="w-full bg-gradient-to-r from-blue-600 to-purple-600 rounded-2xl p-6 shadow-lg border-2 border-transparent text-center cursor-pointer hover:shadow-xl hover:scale-105 transition-all duration-300 transform">
-              <div className="flex items-center justify-center space-x-3">
-                <Bot className="w-8 h-8 text-white" />
-                <h3 className="font-bold text-white text-xl">Consult your AI Doctor</h3>
+            <div className="w-full bg-gradient-to-r from-emerald-600 via-blue-600 to-indigo-700 rounded-xl p-5 shadow-lg border border-gray-200 text-center cursor-pointer hover:shadow-xl hover:from-emerald-700 hover:via-blue-700 hover:to-indigo-800 transition-all duration-500 group">
+              <div className="flex items-center justify-center space-x-3 mb-2">
+                <div className="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center group-hover:bg-white/30 transition-colors">
+                  <Bot className="w-7 h-7 text-white" />
+                </div>
+                <div className="text-left">
+                  <h3 className="font-semibold text-white text-lg leading-tight">AI Doctor Consultation</h3>
+                  <p className="text-white/80 text-xs">Dr. Saarthi AI • Available 24/7</p>
+                </div>
               </div>
-              <p className="text-blue-100 text-sm mt-2">Get instant medical consultation</p>
+              <div className="flex items-center justify-center space-x-4 text-white/90 text-xs">
+                <span className="flex items-center space-x-1">
+                  <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
+                  <span>Live</span>
+                </span>
+                <span>•</span>
+                <span>Instant Response</span>
+                <span>•</span>
+                <span>Multilingual Support</span>
+              </div>
             </div>
           </Link>
         </div>

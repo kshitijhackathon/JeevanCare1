@@ -71,6 +71,10 @@ function Router() {
 
   return (
     <Switch>
+      {/* Allow direct access to consultation for testing */}
+      <Route path="/consultation" component={MultilingualConsultation} />
+      <Route path="/multilingual-consultation" component={MultilingualConsultation} />
+      
       {!isAuthenticated ? (
         <>
           <Route path="/" component={Landing} />

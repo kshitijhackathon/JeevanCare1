@@ -98,7 +98,16 @@ export default function ContinuousVoiceRecognition({
       
       // Handle specific error types differently
       if (event.error === 'aborted') {
-        // Don't restart on abort, it's intentional
+        return;
+      }
+      
+      if (event.error === 'no-speech') {
+        // For no-speech error, just restart quickly without showing error state
+        if (isEnabled) {
+          restartTimeoutRef.current = setTimeout(() => {
+            startListening();
+          }, 1000);
+        }
         return;
       }
       

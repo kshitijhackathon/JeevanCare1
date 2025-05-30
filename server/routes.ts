@@ -18,6 +18,7 @@ import { geminiGrokMedicalEngine } from "./gemini-grok-medical-engine";
 import { enhancedPrescriptionEngine } from "./enhanced-prescription-engine";
 import { multilingualMedicalEngine } from "./multilingual-medical-engine";
 import { localMultilingualEngine } from "./local-multilingual-engine";
+import { mistralMedicalEngine } from "./mistral-medical-engine";
 
 if (!process.env.STRIPE_SECRET_KEY) {
   throw new Error('Missing required Stripe secret: STRIPE_SECRET_KEY');
@@ -852,8 +853,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log("Patient message:", message);
       console.log("Patient details:", patientDetails);
       
-      // Use local multilingual engine for consultation
-      const detectedLang = localMultilingualEngine.detectLanguage(message);
+      // Use Mistral AI for medical consultation
+      const detectedLang = mistralMedicalEngine.detectLanguage(message);
       console.log("Detected language:", detectedLang);
       
       // Prepare patient data in standardized format
@@ -866,8 +867,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         lang: detectedLang
       };
       
-      // Generate medical advice using local engine
-      const medicalResponse = await localMultilingualEngine.generateMedicalAdvice(patientData);
+      // Generate medical advice using Mistral AI
+      const medicalResponse = await mistralMedicalEngine.generateMedicalAdvice(patientData);
       
       console.log("Medical response generated:", {
         language: detectedLang,
@@ -885,7 +886,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         medicalAdvice: medicalResponse,
         // Legacy format for compatibility
         response: medicalResponse.responseText,
-        symptoms: localMultilingualEngine.extractSymptoms(message, detectedLang),
+        symptoms: mistralMedicalEngine.extractSymptoms(message, detectedLang),
         type: medicalResponse.medicines.length > 0 ? 'prescription' : 'analysis'
       });
 

@@ -120,9 +120,93 @@ export class FastResponseEngine {
     return 'eng_Latn'; // Default to English
   }
 
-  // Generate fast response based on symptoms
+  // Generate fast response using Groq API
   async generateFastResponse(userText: string): Promise<FastResponse> {
     const detectedLang = this.detectLanguage(userText);
+    
+    try {
+      // Use Groq API for intelligent medical responses
+      const groqResponse = await this.callGroqAPI(userText, detectedLang);
+      
+      if (groqResponse) {
+        // Determine urgency and category from user text
+        const urgency = this.determineUrgency(userText);
+        const category = this.determineCategory(userText);
+        
+        return {
+          text: groqResponse.response,
+          confidence: 0.95,
+          followUpQuestion: groqResponse.followUp,
+          urgency,
+          category
+        };
+      }
+    } catch (error) {
+      console.error('Groq API failed, using pattern matching:', error);
+    }
+
+    // Fallback to pattern matching if Groq fails
+    return this.generatePatternBasedResponse(userText, detectedLang);
+  }
+
+  // Call Groq API for medical responses
+  private async callGroqAPI(userText: string, language: string): Promise<{response: string, followUp: string} | null> {
+    try {
+      const languageInstruction = language === 'hin_Deva' ? 
+        'Respond in Hindi (Devanagari script)' : 'Respond in English';
+
+      const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${process.env.GROQ_API_KEY}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          model: 'llama-3.1-70b-versatile',
+          messages: [
+            {
+              role: 'system',
+              content: `You are Dr. AI, a professional medical assistant. ${languageInstruction}. 
+              Provide quick, empathetic medical responses. Keep responses under 50 words. 
+              Always ask a relevant follow-up question about symptoms, duration, or severity.
+              Be culturally sensitive for Indian patients.`
+            },
+            {
+              role: 'user',
+              content: userText
+            }
+          ],
+          temperature: 0.3,
+          max_tokens: 150
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error(`Groq API error: ${response.statusText}`);
+      }
+
+      const data = await response.json();
+      const fullResponse = data.choices[0].message.content;
+      
+      // Split response and follow-up (if available)
+      const parts = fullResponse.split('?');
+      const mainResponse = parts[0] + (parts.length > 1 ? '?' : '');
+      const followUp = parts.length > 1 ? parts.slice(1).join('?').trim() : 
+        (language === 'hin_Deva' ? 'कुछ और बताना चाहेंगे?' : 'Anything else you\'d like to share?');
+
+      return {
+        response: mainResponse.trim(),
+        followUp: followUp || (language === 'hin_Deva' ? 'और कोई समस्या है?' : 'Any other concerns?')
+      };
+
+    } catch (error) {
+      console.error('Groq API call failed:', error);
+      return null;
+    }
+  }
+
+  // Pattern-based fallback response
+  private generatePatternBasedResponse(userText: string, detectedLang: string): FastResponse {
     const lowerText = userText.toLowerCase();
 
     // Find best matching pattern
@@ -171,6 +255,36 @@ export class FastResponseEngine {
       urgency: 'low',
       category: 'general'
     };
+  }
+
+  // Determine urgency from text
+  private determineUrgency(text: string): 'low' | 'medium' | 'high' {
+    const urgentKeywords = ['severe', 'emergency', 'bleeding', 'chest pain', 'तेज़ दर्द', 'खून', 'सांस'];
+    const mediumKeywords = ['pain', 'fever', 'headache', 'दर्द', 'बुखार', 'सिरदर्द'];
+    
+    const lowerText = text.toLowerCase();
+    
+    if (urgentKeywords.some(keyword => lowerText.includes(keyword.toLowerCase()))) {
+      return 'high';
+    }
+    if (mediumKeywords.some(keyword => lowerText.includes(keyword.toLowerCase()))) {
+      return 'medium';
+    }
+    return 'low';
+  }
+
+  // Determine category from text
+  private determineCategory(text: string): string {
+    const lowerText = text.toLowerCase();
+    
+    if (/fever|bukhar|बुखार/.test(lowerText)) return 'fever';
+    if (/headache|सिरदर्द|sir/.test(lowerText)) return 'headache';
+    if (/stomach|pet|पेट/.test(lowerText)) return 'stomach';
+    if (/vomit|उल्टी|ulti/.test(lowerText)) return 'vomiting';
+    if (/cold|cough|सर्दी|खांसी/.test(lowerText)) return 'cold';
+    if (/skin|rash|खुजली/.test(lowerText)) return 'skin';
+    
+    return 'general';
   }
 
   // Generate instant acknowledgment (within 500ms)

@@ -48,6 +48,7 @@ import BottomNavigation from "@/components/bottom-navigation";
 
 function Router() {
   const { isAuthenticated, isLoading } = useAuth();
+  const [location] = useLocation();
 
   // Handle OAuth callback (Google/Facebook login)
   React.useEffect(() => {
@@ -70,6 +71,10 @@ function Router() {
     }
   }, []);
 
+  // Pages where BottomNavigation should be shown
+  const pagesWithBottomNav = ['/', '/ai-consultation', '/reports', '/notifications', '/profile-simple'];
+  const showBottomNav = isAuthenticated && pagesWithBottomNav.includes(location);
+
   // Always render the same structure to avoid hook order issues
   if (isLoading) {
     return (
@@ -78,12 +83,6 @@ function Router() {
       </div>
     );
   }
-
-  const [location] = useLocation();
-  
-  // Pages where BottomNavigation should be shown
-  const pagesWithBottomNav = ['/', '/ai-consultation', '/reports', '/notifications', '/profile-simple'];
-  const showBottomNav = isAuthenticated && pagesWithBottomNav.includes(location);
 
   return (
     <div className="relative">

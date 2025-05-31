@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { ttsEngine } from "@/lib/tts-engine";
+import PrescriptionGenerator from "@/components/prescription-generator";
 import { 
   Video, 
   VideoOff, 
@@ -18,7 +19,8 @@ import {
   Stethoscope,
   Volume2,
   VolumeX,
-  Send
+  Send,
+  FileText
 } from "lucide-react";
 import { Link } from "wouter";
 
@@ -61,6 +63,10 @@ const CompactAIDoctorConsultation = () => {
   // Language and patient states
   const [selectedLanguage] = useState(INDIAN_LANGUAGES[1]); // Default to Hindi
   const [consultationTime, setConsultationTime] = useState('00:00:00');
+  
+  // Prescription states
+  const [showPrescription, setShowPrescription] = useState(false);
+  const [consultationData, setConsultationData] = useState<any>(null);
 
   // Initialize camera
   useEffect(() => {
@@ -134,8 +140,13 @@ const CompactAIDoctorConsultation = () => {
       // Use actual response instead of instant ack
       let responseText = data.response || 'मैं समझ गया। कृपया और बताएं।';
       
-      // If there's a follow-up question, add it
-      if (data.followUp && data.followUp.trim()) {
+      // Check if conversation is ending
+      const isConversationEnd = data.category === 'goodbye' || 
+        responseText.includes('धन्यवाद! स्वस्थ रहें') ||
+        responseText.includes('Thank you! Stay healthy');
+      
+      // If there's a follow-up question and not ending, add it
+      if (data.followUp && data.followUp.trim() && !isConversationEnd) {
         responseText += ' ' + data.followUp;
       }
       
@@ -146,6 +157,13 @@ const CompactAIDoctorConsultation = () => {
       };
       
       setChatMessages(prev => [...prev, doctorMessage]);
+      
+      // If conversation is ending, generate prescription
+      if (isConversationEnd) {
+        setTimeout(() => {
+          generatePrescriptionFromConversation();
+        }, 2000);
+      }
       
       // Text-to-speech
       if (isAudioEnabled) {
@@ -241,6 +259,100 @@ const CompactAIDoctorConsultation = () => {
       });
     }
   };
+
+  const generatePrescriptionFromConversation = async () => {
+    try {
+      // Extract symptoms and conversation context
+      const patientSymptoms = chatMessages
+        .filter(msg => msg.sender === 'user')
+        .map(msg => msg.text)
+        .join(', ');
+      
+      const doctorAdvice = chatMessages
+        .filter(msg => msg.sender === 'doctor')
+        .map(msg => msg.text)
+        .join(' ');
+
+      // Generate prescription using the enhanced prescription engine
+      const prescriptionResponse = await fetch('/api/generate-prescription', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          patientName: 'Patient', // Default name, can be enhanced
+          age: '25', // Default age, can be enhanced
+          gender: 'M', // Default gender, can be enhanced
+          symptoms: patientSymptoms,
+          complaint: patientSymptoms,
+          language: selectedLanguage.code
+        })
+      });
+
+      if (prescriptionResponse.ok) {
+        const prescriptionData = await prescriptionResponse.json();
+        
+        setConsultationData({
+          patientDetails: {
+            name: 'Patient',
+            age: '25',
+            gender: 'M'
+          },
+          symptoms: patientSymptoms,
+          diagnosis: doctorAdvice,
+          prescription: prescriptionData
+        });
+        
+        setShowPrescription(true);
+        
+        toast({
+          title: "Prescription Generated",
+          description: "Your medical prescription is ready for download.",
+        });
+      }
+    } catch (error) {
+      console.error('Failed to generate prescription:', error);
+      toast({
+        title: "Prescription Error",
+        description: "Unable to generate prescription. Please try again.",
+        variant: "destructive"
+      });
+    }
+  };
+
+  if (showPrescription && consultationData) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-green-50 dark:from-gray-900 dark:to-gray-800">
+        <div className="bg-white dark:bg-gray-900 shadow-sm border-b border-gray-200 dark:border-gray-700">
+          <div className="max-w-7xl mx-auto px-4 py-2">
+            <div className="flex justify-between items-center">
+              <div className="flex items-center space-x-3">
+                <Button 
+                  variant="ghost" 
+                  size="sm"
+                  onClick={() => setShowPrescription(false)}
+                >
+                  <ArrowLeft className="h-4 w-4 mr-1" />
+                  Back to Consultation
+                </Button>
+                <div className="flex items-center space-x-2">
+                  <FileText className="h-6 w-6 text-blue-500" />
+                  <span className="font-semibold text-gray-900 dark:text-white">Medical Prescription</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <div className="max-w-4xl mx-auto p-4">
+          <PrescriptionGenerator
+            patientDetails={consultationData.patientDetails}
+            symptoms={consultationData.symptoms}
+            diagnosis={consultationData.diagnosis}
+            prescription={consultationData.prescription}
+          />
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-green-50 dark:from-gray-900 dark:to-gray-800">

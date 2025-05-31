@@ -22,16 +22,46 @@ import {
   Mic 
 } from "lucide-react";
 import { useState } from "react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import type { HealthReport } from "@shared/schema";
+import { useLocation } from "wouter";
 
 export default function Home() {
   const { user } = useAuth();
   const [showConsultation, setShowConsultation] = useState(false);
   const [showEmergency, setShowEmergency] = useState(false);
+  const [showPatientForm, setShowPatientForm] = useState(false);
+  const [, setLocation] = useLocation();
+  
+  const [patientDetails, setPatientDetails] = useState({
+    name: "",
+    age: "",
+    gender: "",
+    language: "",
+    phoneNumber: "",
+    bloodGroup: ""
+  });
 
   const { data: healthReports } = useQuery<HealthReport[]>({
     queryKey: ["/api/health-reports"],
   });
+
+  const handlePatientFormSubmit = () => {
+    if (patientDetails.name && patientDetails.age && patientDetails.gender && patientDetails.language) {
+      // Store patient details in sessionStorage for the video consultation
+      sessionStorage.setItem('patientDetails', JSON.stringify(patientDetails));
+      setShowPatientForm(false);
+      // Navigate to video consultation with patient details
+      setLocation('/ai-doctor-video-consultation-enhanced');
+    }
+  };
+
+  const handleStartConsultation = () => {
+    setShowPatientForm(true);
+  };
 
   const services = [
     {
@@ -83,16 +113,17 @@ export default function Home() {
 
         {/* AI Consultation Button - Minimal */}
         <div className="px-4 mb-3">
-          <Link href="/ai-doctor-video">
-            <div className="w-full bg-gradient-to-r from-blue-500 via-cyan-500 to-teal-600 rounded-md p-2 shadow-sm border border-gray-200 text-center cursor-pointer hover:shadow-md hover:from-blue-600 hover:via-cyan-600 hover:to-teal-700 transition-all duration-300 group">
-              <div className="flex items-center justify-center space-x-2">
-                <div className="w-6 h-6 bg-white/20 rounded-full flex items-center justify-center group-hover:bg-white/30 transition-colors">
-                  <Bot className="w-4 h-4 text-white" />
-                </div>
-                <h3 className="font-medium text-white text-xs">AI Doctor Consultation</h3>
+          <div 
+            onClick={handleStartConsultation}
+            className="w-full bg-gradient-to-r from-blue-500 via-cyan-500 to-teal-600 rounded-md p-2 shadow-sm border border-gray-200 text-center cursor-pointer hover:shadow-md hover:from-blue-600 hover:via-cyan-600 hover:to-teal-700 transition-all duration-300 group"
+          >
+            <div className="flex items-center justify-center space-x-2">
+              <div className="w-6 h-6 bg-white/20 rounded-full flex items-center justify-center group-hover:bg-white/30 transition-colors">
+                <Bot className="w-4 h-4 text-white" />
               </div>
+              <h3 className="font-medium text-white text-xs">AI Doctor Consultation</h3>
             </div>
-          </Link>
+          </div>
         </div>
 
         {/* Healthcare Services Grid */}
@@ -223,6 +254,147 @@ export default function Home() {
           </div>
         </div>
       </Link>
+
+      {/* Patient Details Modal */}
+      {showPatientForm && (
+        <Dialog open={showPatientForm} onOpenChange={setShowPatientForm}>
+          <DialogContent className="sm:max-w-md">
+            <DialogHeader>
+              <DialogTitle className="text-center text-lg font-semibold text-gray-800">
+                Patient Details & Language Selection
+              </DialogTitle>
+            </DialogHeader>
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="name">Full Name *</Label>
+                <Input
+                  id="name"
+                  placeholder="Enter your full name"
+                  value={patientDetails.name}
+                  onChange={(e) => setPatientDetails(prev => ({ ...prev, name: e.target.value }))}
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="age">Age *</Label>
+                  <Input
+                    id="age"
+                    type="number"
+                    placeholder="Age"
+                    value={patientDetails.age}
+                    onChange={(e) => setPatientDetails(prev => ({ ...prev, age: e.target.value }))}
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="gender">Gender *</Label>
+                  <Select 
+                    value={patientDetails.gender} 
+                    onValueChange={(value) => setPatientDetails(prev => ({ ...prev, gender: value }))}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="male">Male</SelectItem>
+                      <SelectItem value="female">Female</SelectItem>
+                      <SelectItem value="other">Other</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="language">Preferred Language *</Label>
+                <Select 
+                  value={patientDetails.language} 
+                  onValueChange={(value) => setPatientDetails(prev => ({ ...prev, language: value }))}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select your preferred language" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="english">English</SelectItem>
+                    <SelectItem value="hindi">हिंदी (Hindi)</SelectItem>
+                    <SelectItem value="bengali">বাংলা (Bengali)</SelectItem>
+                    <SelectItem value="telugu">తెలుగు (Telugu)</SelectItem>
+                    <SelectItem value="marathi">मराठी (Marathi)</SelectItem>
+                    <SelectItem value="tamil">தமிழ் (Tamil)</SelectItem>
+                    <SelectItem value="gujarati">ગુજરાતી (Gujarati)</SelectItem>
+                    <SelectItem value="urdu">اردو (Urdu)</SelectItem>
+                    <SelectItem value="kannada">ಕನ್ನಡ (Kannada)</SelectItem>
+                    <SelectItem value="odia">ଓଡ଼ିଆ (Odia)</SelectItem>
+                    <SelectItem value="punjabi">ਪੰਜਾਬੀ (Punjabi)</SelectItem>
+                    <SelectItem value="malayalam">മലയാളം (Malayalam)</SelectItem>
+                    <SelectItem value="assamese">অসমীয়া (Assamese)</SelectItem>
+                    <SelectItem value="maithili">मैथिली (Maithili)</SelectItem>
+                    <SelectItem value="santali">ᱥᱟᱱᱛᱟᱲᱤ (Santali)</SelectItem>
+                    <SelectItem value="kashmiri">कॉशुर (Kashmiri)</SelectItem>
+                    <SelectItem value="nepali">नेपाली (Nepali)</SelectItem>
+                    <SelectItem value="konkani">कोंकणी (Konkani)</SelectItem>
+                    <SelectItem value="sindhi">سنڌي (Sindhi)</SelectItem>
+                    <SelectItem value="dogri">डोगरी (Dogri)</SelectItem>
+                    <SelectItem value="manipuri">মৈতৈলোন্ (Manipuri)</SelectItem>
+                    <SelectItem value="bodo">बर' (Bodo)</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="phone">Phone Number</Label>
+                  <Input
+                    id="phone"
+                    placeholder="Phone number"
+                    value={patientDetails.phoneNumber}
+                    onChange={(e) => setPatientDetails(prev => ({ ...prev, phoneNumber: e.target.value }))}
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="bloodGroup">Blood Group</Label>
+                  <Select 
+                    value={patientDetails.bloodGroup} 
+                    onValueChange={(value) => setPatientDetails(prev => ({ ...prev, bloodGroup: value }))}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="A+">A+</SelectItem>
+                      <SelectItem value="A-">A-</SelectItem>
+                      <SelectItem value="B+">B+</SelectItem>
+                      <SelectItem value="B-">B-</SelectItem>
+                      <SelectItem value="AB+">AB+</SelectItem>
+                      <SelectItem value="AB-">AB-</SelectItem>
+                      <SelectItem value="O+">O+</SelectItem>
+                      <SelectItem value="O-">O-</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
+              <div className="flex space-x-3 pt-4">
+                <Button 
+                  variant="outline" 
+                  onClick={() => setShowPatientForm(false)}
+                  className="flex-1"
+                >
+                  Cancel
+                </Button>
+                <Button 
+                  onClick={handlePatientFormSubmit}
+                  disabled={!patientDetails.name || !patientDetails.age || !patientDetails.gender || !patientDetails.language}
+                  className="flex-1 bg-blue-600 hover:bg-blue-700 text-white"
+                >
+                  Start Consultation
+                </Button>
+              </div>
+            </div>
+          </DialogContent>
+        </Dialog>
+      )}
     </div>
   );
 }

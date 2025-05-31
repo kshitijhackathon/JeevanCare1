@@ -7,7 +7,7 @@ import { setupAuth, isAuthenticated } from "./replitAuth";
 import { emailService } from "./email";
 import jwt from "jsonwebtoken";
 import { z } from "zod";
-import { insertProductSchema, insertCartItemSchema, insertConsultationSchema } from "@shared/schema";
+import { insertProductSchema, insertCartItemSchema, insertConsultationSchema } from "../shared/schema.js";
 import passport from 'passport';
 import { Strategy as GoogleStrategy } from 'passport-google-oauth20';
 import { Strategy as FacebookStrategy } from 'passport-facebook';

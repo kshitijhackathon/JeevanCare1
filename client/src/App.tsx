@@ -79,7 +79,7 @@ function Router() {
 
   return (
     <Switch>
-      {/* Allow direct access to consultation for testing */}
+      {/* Allow direct access to consultation and global health map for testing */}
       <Route path="/consultation" component={MultilingualConsultation} />
       <Route path="/multilingual-consultation" component={MultilingualConsultation} />
       <Route path="/natural-consultation" component={NaturalAIConsultation} />
@@ -89,6 +89,8 @@ function Router() {
       <Route path="/ai-doctor-compact" component={CompactAIDoctorConsultation} />
       <Route path="/face-scan" component={MedicalScan} />
       <Route path="/medical-scan" component={MedicalScan} />
+      <Route path="/global-health-map" component={GlobalHealthMap} />
+      <Route path="/symptom-checker" component={SymptomChecker} />
       
       {!isAuthenticated ? (
         <>

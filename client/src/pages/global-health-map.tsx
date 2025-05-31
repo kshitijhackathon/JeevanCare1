@@ -125,7 +125,7 @@ export default function GlobalHealthMap() {
           })}
         </div>
 
-        {/* Ultra Realistic 3D Earth Globe */}
+        {/* Professional 3D Earth Globe - Enhanced */}
         <div 
           className="absolute inset-0 flex items-center justify-center cursor-grab active:cursor-grabbing select-none"
           onMouseEnter={() => setIsHovering(true)}
@@ -136,37 +136,30 @@ export default function GlobalHealthMap() {
           onMouseDown={handleMouseDown}
           onMouseMove={handleMouseMove}
           onMouseUp={handleMouseUp}
-          style={{ 
-            perspective: '1500px',
-            perspectiveOrigin: '50% 50%'
-          }}
         >
+          {/* Main Earth Sphere */}
           <div 
-            className="relative w-80 h-80 rounded-full transition-all duration-500 hover:scale-105"
+            className="relative w-96 h-96 rounded-full"
             style={{
               background: `
-                radial-gradient(ellipse 200% 150% at 25% 15%, rgba(255,255,255,0.95) 0%, rgba(255,255,255,0.6) 8%, rgba(255,255,255,0.2) 20%, transparent 40%),
-                radial-gradient(ellipse 150% 200% at 75% 85%, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0.6) 15%, rgba(0,0,0,0.2) 30%, transparent 50%),
-                conic-gradient(from ${rotation}deg at 50% 50%, 
-                  #1e3a8a 0deg, #1e40af 60deg, #1d4ed8 120deg, #2563eb 180deg, 
-                  #3b82f6 240deg, #60a5fa 300deg, #1e3a8a 360deg),
-                radial-gradient(circle at center, #0f172a 0%, #1e293b 30%, #334155 60%, #475569 80%, #64748b 100%)
+                radial-gradient(ellipse 120% 80% at 25% 20%, rgba(255,255,255,0.9) 0%, rgba(255,255,255,0.5) 10%, rgba(255,255,255,0.1) 25%, transparent 50%),
+                radial-gradient(ellipse 100% 120% at 75% 80%, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0.4) 20%, transparent 45%),
+                linear-gradient(45deg, #0ea5e9 0%, #0284c7 25%, #0369a1 50%, #075985 75%, #0c4a6e 100%)
               `,
               transform: `
-                rotateX(${globeRotation.x - 5}deg) 
+                rotateX(${globeRotation.x}deg) 
                 rotateY(${rotation + globeRotation.y}deg)
-                rotateZ(${Math.sin(rotation * Math.PI / 180) * 1}deg)
+                scale(${isHovering ? 1.05 : 1})
               `,
               boxShadow: `
-                inset -150px -100px 250px rgba(0,0,0,0.95),
-                inset 100px 80px 200px rgba(255,255,255,0.15),
-                0 0 150px rgba(59, 130, 246, 1),
-                0 0 300px rgba(34, 197, 94, 0.6),
-                0 80px 120px rgba(0,0,0,0.9)
+                inset -200px -150px 300px rgba(0,0,0,0.8),
+                inset 150px 100px 250px rgba(255,255,255,0.2),
+                0 0 200px rgba(59, 130, 246, 0.8),
+                0 0 400px rgba(34, 197, 94, 0.4),
+                0 100px 200px rgba(0,0,0,0.6)
               `,
-              border: '4px solid rgba(255,255,255,0.1)',
-              filter: 'contrast(1.4) saturate(1.5) brightness(1.2)',
-              transformStyle: 'preserve-3d'
+              transition: 'all 0.3s ease',
+              filter: 'contrast(1.3) saturate(1.4)'
             }}
           >
             {/* Realistic Ocean Base */}

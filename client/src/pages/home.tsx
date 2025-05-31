@@ -92,7 +92,24 @@ export default function Home() {
       <Header />
       
       <main className="pb-20 pt-20">
-        
+        {/* Welcome Section - Minimal */}
+        <div className="bg-gradient-to-r from-blue-50 to-green-50 p-3 rounded-lg mb-3 mx-4 mt-2">
+          <div className="flex items-center justify-between">
+            <div>
+              <h2 className="text-base font-semibold text-gray-800">Welcome !</h2>
+              <p className="text-sm font-medium text-gray-600">
+                {user ? `${user.firstName} ${user.lastName}` : 'Guest User'}
+              </p>
+            </div>
+            <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
+              <img 
+                src={user?.profileImageUrl || "https://images.unsplash.com/photo-1612349317150-e413f6a5b16d?ixlib=rb-4.0.3&auto=format&fit=crop&w=64&h=64"}
+                alt="Profile" 
+                className="w-8 h-8 rounded-full object-cover"
+              />
+            </div>
+          </div>
+        </div>
 
         {/* AI Consultation Button - Minimal */}
         <div className="px-4 mb-3">
@@ -206,6 +223,8 @@ export default function Home() {
         </div>
       </main>
 
+      <BottomNavigation />
+      
       {showConsultation && (
         <ConsultationModal 
           isOpen={showConsultation}

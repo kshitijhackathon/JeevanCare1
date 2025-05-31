@@ -1,5 +1,5 @@
 import React from "react";
-import { Switch, Route, useLocation } from "wouter";
+import { Switch, Route } from "wouter";
 import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
@@ -44,11 +44,9 @@ import GetStarted from "@/pages/auth/get-started";
 import SignUp from "@/pages/auth/signup";
 import SignIn from "@/pages/auth/signin";
 import OTPVerification from "@/pages/auth/otp-verification";
-import BottomNavigation from "@/components/bottom-navigation";
 
 function Router() {
   const { isAuthenticated, isLoading } = useAuth();
-  const [location] = useLocation();
 
   // Handle OAuth callback (Google/Facebook login)
   React.useEffect(() => {
@@ -71,10 +69,6 @@ function Router() {
     }
   }, []);
 
-  // Pages where BottomNavigation should be shown
-  const pagesWithBottomNav = ['/', '/ai-consultation', '/reports', '/notifications', '/profile-simple'];
-  const showBottomNav = isAuthenticated && pagesWithBottomNav.includes(location);
-
   // Always render the same structure to avoid hook order issues
   if (isLoading) {
     return (
@@ -85,48 +79,43 @@ function Router() {
   }
 
   return (
-    <div className="relative">
-      <Switch>
-        {!isAuthenticated ? (
-          <>
-            {/* When not logged in - show landing/auth pages */}
-            <Route path="/" component={Landing} />
-            <Route path="/auth/get-started" component={GetStarted} />
-            <Route path="/auth/signup" component={SignUp} />
-            <Route path="/auth/signin" component={SignIn} />
-            <Route path="/auth/otp-verification" component={OTPVerification} />
+    <Switch>
+      {!isAuthenticated ? (
+        <>
+          {/* When not logged in - show landing/auth pages */}
+          <Route path="/" component={Landing} />
+          <Route path="/auth/get-started" component={GetStarted} />
+          <Route path="/auth/signup" component={SignUp} />
+          <Route path="/auth/signin" component={SignIn} />
+          <Route path="/auth/otp-verification" component={OTPVerification} />
 
-            {/* Redirect to landing for any other route when not authenticated */}
-            <Route path="*" component={Landing} />
-          </>
-        ) : (
-          <>
-            {/* When logged in - show main app */}
-            <Route path="/" component={Home} />
-            <Route path="/pharmacy" component={Pharmacy} />
-            <Route path="/product/:id" component={ProductDetail} />
-            <Route path="/cart" component={Cart} />
-            <Route path="/checkout" component={Checkout} />
-            <Route path="/profile" component={Profile} />
-            <Route path="/ai-doctor-video" component={AIDoctorVideoConsultationEnhanced} />
-            <Route path="/book-test" component={BookTest} />
-            <Route path="/medicine-delivery" component={MedicineDelivery} />
-            <Route path="/reports" component={Reports} />
-            <Route path="/medical-scan" component={MedicalScan} />
-            <Route path="/medical-records" component={MedicalRecords} />
-            <Route path="/global-health-map" component={GlobalHealthMap} />
-            <Route path="/delivery-tracking" component={DeliveryTracking} />
-            <Route path="/prescription-upload" component={PrescriptionUpload} />
+          {/* Redirect to landing for any other route when not authenticated */}
+          <Route path="*" component={Landing} />
+        </>
+      ) : (
+        <>
+          {/* When logged in - show main app */}
+          <Route path="/" component={Home} />
+          <Route path="/pharmacy" component={Pharmacy} />
+          <Route path="/product/:id" component={ProductDetail} />
+          <Route path="/cart" component={Cart} />
+          <Route path="/checkout" component={Checkout} />
+          <Route path="/profile" component={Profile} />
+          <Route path="/ai-doctor-video" component={AIDoctorVideoConsultationEnhanced} />
+          <Route path="/book-test" component={BookTest} />
+          <Route path="/medicine-delivery" component={MedicineDelivery} />
+          <Route path="/reports" component={Reports} />
+          <Route path="/medical-scan" component={MedicalScan} />
+          <Route path="/medical-records" component={MedicalRecords} />
+          <Route path="/global-health-map" component={GlobalHealthMap} />
+          <Route path="/delivery-tracking" component={DeliveryTracking} />
+          <Route path="/prescription-upload" component={PrescriptionUpload} />
 
-            {/* Fallback to home for unmatched routes when authenticated */}
-            <Route path="*" component={Home} />
-          </>
-        )}
-      </Switch>
-      
-      {/* Conditionally render BottomNavigation */}
-      {showBottomNav && <BottomNavigation />}
-    </div>
+          {/* Fallback to home for unmatched routes when authenticated */}
+          <Route path="*" component={Home} />
+        </>
+      )}
+    </Switch>
   );
 }
 

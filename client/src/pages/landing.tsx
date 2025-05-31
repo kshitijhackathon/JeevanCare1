@@ -1,5 +1,6 @@
 import { Button } from "@/components/ui/button";
 import vectorIcon from "@assets/Vector.png";
+import medicalBg from "@assets/Group 141.png";
 
 export default function Landing() {
   return (
@@ -7,39 +8,11 @@ export default function Landing() {
 
       {/* Background Medical Elements */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        {/* Pills scattered around */}
-        <div className="absolute top-20 right-8">
-          <div className="w-6 h-12 bg-blue-300/40 rounded-full rotate-45"></div>
-        </div>
-        <div className="absolute top-32 right-12">
-          <div className="w-4 h-8 bg-cyan-300/40 rounded-full rotate-12"></div>
-        </div>
-        <div className="absolute top-28 right-20">
-          <div className="w-5 h-10 bg-blue-400/40 rounded-full -rotate-30"></div>
-        </div>
-        
-        {/* Stethoscope */}
-        <div className="absolute bottom-20 left-4">
-          <svg width="120" height="400" viewBox="0 0 120 400" className="opacity-20">
-            <path d="M20 50 Q30 40 40 50 L40 200 Q40 220 60 220 Q80 220 80 200 L80 50 Q90 40 100 50" 
-                  stroke="#94A3B8" strokeWidth="8" fill="none" strokeLinecap="round"/>
-            <circle cx="60" cy="350" r="25" stroke="#94A3B8" strokeWidth="8" fill="none"/>
-            <path d="M60 220 L60 325" stroke="#94A3B8" strokeWidth="8" strokeLinecap="round"/>
-            <circle cx="20" cy="50" r="15" fill="#94A3B8" opacity="0.6"/>
-            <circle cx="100" cy="50" r="15" fill="#94A3B8" opacity="0.6"/>
-          </svg>
-        </div>
-
-        {/* Additional medical shapes */}
-        <div className="absolute top-40 left-8">
-          <div className="w-8 h-8 bg-cyan-200/30 rounded-full"></div>
-        </div>
-        <div className="absolute bottom-40 right-6">
-          <div className="w-6 h-6 bg-blue-200/30 rounded-full"></div>
-        </div>
-        <div className="absolute top-60 left-12">
-          <div className="w-4 h-4 bg-cyan-300/30 rounded-full"></div>
-        </div>
+        <img 
+          src={medicalBg} 
+          alt="Medical Background" 
+          className="absolute inset-0 w-full h-full object-cover opacity-60"
+        />
       </div>
 
       {/* Main Content */}

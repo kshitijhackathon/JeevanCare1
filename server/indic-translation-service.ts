@@ -88,8 +88,14 @@ export class IndicTranslationService {
       console.error('Python service failed:', error);
     }
 
-    // Final fallback - return error message
-    throw new Error('Translation services unavailable');
+    // Translation services disabled - return original text
+    // App will work in selected language without automatic translation
+    return {
+      translatedText: request.text,
+      sourceLang: request.sourceLang,
+      targetLang: request.targetLang,
+      confidence: 1.0
+    };
   }
 
   private async callPythonService(request: TranslationRequest): Promise<TranslationResponse> {

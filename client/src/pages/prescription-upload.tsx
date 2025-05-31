@@ -192,7 +192,7 @@ export default function PrescriptionUpload() {
         <Button 
           variant="ghost" 
           size="sm" 
-          onClick={() => setLocation(-1)}
+          onClick={() => setLocation('/pharmacy')}
           className="p-2"
         >
           <ArrowLeft className="w-5 h-5" />

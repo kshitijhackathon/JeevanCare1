@@ -1,0 +1,204 @@
+\documentclass[letterpaper,11pt]{article}
+
+\usepackage{latexsym}
+\usepackage[empty]{fullpage}
+\usepackage{titlesec}
+\usepackage[usenames,dvipsnames]{color}
+\usepackage{verbatim}
+\usepackage{enumitem}
+\usepackage[hidelinks]{hyperref}
+\usepackage{fancyhdr}
+\usepackage[english]{babel}
+\usepackage{tabularx}
+\usepackage{multicol}
+\setlength{\multicolsep}{-3.0pt}
+\setlength{\columnsep}{-1pt}
+\input{glyphtounicode}
+
+% Setup header and footer
+\pagestyle{fancy}
+\fancyhf{} % clear all header and footer fields
+\fancyfoot{}
+\renewcommand{\headrulewidth}{0pt}
+\renewcommand{\footrulewidth}{0pt}
+
+% Adjust margins
+\addtolength{\oddsidemargin}{-0.6in}
+\addtolength{\evensidemargin}{-0.5in}
+\addtolength{\textwidth}{1.19in}
+\addtolength{\topmargin}{-.7in}
+\addtolength{\textheight}{1.4in}
+
+\urlstyle{same}
+
+\raggedbottom
+\raggedright
+\setlength{\tabcolsep}{0in}
+
+% Sections formatting
+\titleformat{\section}{
+\vspace{-4pt}\scshape\raggedright\large\bfseries
+}{}{0em}{}[\color{black}\titlerule \vspace{-5pt}]
+
+\pdfgentounicode=1
+
+%-------------------------
+% Custom commands
+\newcommand{\resumeItem}[1]{
+\item\small{
+{#1 \vspace{-2pt}}
+}
+}
+
+\newcommand{\classesList}[4]{
+\item\small{
+{#1 #2 #3 #4 \vspace{-2pt}}
+}
+}
+
+% Modified to remove italics from position and location
+\newcommand{\resumeSubheading}[4]{
+\vspace{-2pt}\item
+\begin{tabular*}{1.0\textwidth}[t]{l@{\extracolsep{\fill}}r}
+\textbf{#1} & \textbf{\small #2} \\
+{\small#3} & {\small #4} \\
+\end{tabular*}\vspace{-7pt}
+}
+
+\newcommand{\resumeSubSubheading}[2]{
+\item
+\begin{tabular*}{0.97\textwidth}{l@{\extracolsep{\fill}}r}
+{\small#1} & {\small #2} \\
+\end{tabular*}\vspace{-7pt}
+}
+
+\newcommand{\resumeProjectHeading}[2]{
+\item
+\begin{tabular*}{1.001\textwidth}{l@{\extracolsep{\fill}}r}
+\small#1 & \textbf{\small #2}\\
+\end{tabular*}\vspace{-7pt}
+}
+
+\newcommand{\resumeSubItem}[1]{\resumeItem{#1}\vspace{-4pt}}
+
+\renewcommand\labelitemi{\bullet}
+\renewcommand\labelitemii{\bullet}
+
+\newcommand{\resumeSubHeadingListStart}{\begin{itemize}[leftmargin=0.0in, label={}]}
+\newcommand{\resumeSubHeadingListEnd}{\end{itemize}}
+\newcommand{\resumeItemListStart}{\begin{itemize}}
+\newcommand{\resumeItemListEnd}{\end{itemize}\vspace{-5pt}}
+
+% Define consistent section spacing
+\newcommand{\sectionspace}{\vspace{-5pt}}
+
+%-------------------------------------------
+%%%%%% RESUME STARTS HERE %%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\begin{document}
+
+%----------HEADING----------
+\begin{center}
+{\Huge \scshape Kshitij Singh} \\ \vspace{5pt}
+Bhopal, Madhya Pradesh\\ \vspace{5pt}
+\small Phone: 7357802287 ~
+Email: \href{mailto:kshitijsingh066@gmail.com}{\underline{kshitijsingh066@gmail.com}} ~
+\href{https://linkedin.com/in/kshitij-singh-915579222/}{\underline{LinkedIn}} ~
+\href{https://github.com/kshitijsingh8075}{\underline{GitHub}}
+\vspace{-5pt}
+\end{center}
+
+\section{Work Experience}
+\resumeSubHeadingListStart
+\resumeSubheading
+{RR Solutions (Remote)}{February 2025 -- Present}
+{Software Engineering (SWE) Intern}{Indore, Madhya Pradesh}
+\resumeItemListStart
+\resumeItem{Implemented real-time data pipelines using Polygon API processing 500+ daily equity transactions at 99.9\% accuracy.}
+\resumeItem{Developed company website using WordPress, increasing lead generation by 45\% through custom themes and plugins.}
+\resumeItem{Automated 15+ data workflows using Airflow and CI/CD, eliminating 520+ annual engineering hours of manual work.}
+\resumeItem{Created analytics dashboards delivering actionable trading insights to 50+ portfolio managers.}
+\resumeItem{Reduced API latency by 40\% through concurrent request batching and cache-layer implementation techniques.}
+\resumeItem{\textbf{Tech Stack:} Python, ETL, Airflow, CI/CD, Data Pipeline Architecture, Matplotlib, Plotly, WordPress, API Integration}
+\resumeItemListEnd
+\resumeSubHeadingListEnd
+\sectionspace
+\vspace{-3mm}
+
+\section{Projects}
+\resumeSubHeadingListStart
+\resumeProjectHeading
+{\textbf{Safepay – UPI Payment Security Application} \href{https://safepay1.vercel.app/}{[Link]} \textbar{} \emph{React, Node.js, Express, Python, PostgreSQL}}{}
+\resumeItemListStart
+\resumeItem{Engineered React/OpenAI UPI security app with 98\% fraud detection accuracy across 100+ transaction patterns.}
+\resumeItem{Deployed Node.js/Python microservices reducing verification time by 75\% with sub-100ms transaction processing.}
+\resumeItem{Integrated PostgreSQL/Drizzle ORM securing 10,000+ UPI transactions with 5+ multi-factor authentication methods.}
+\resumeItem{Developed React/D3.js fraud heatmap visualizing 500+ high-risk transaction locations across metropolitan India.}
+\resumeItem{Designed responsive mobile UI using Tailwind/Shadcn with a 3-step verification flow, boosting user engagement by 40\%.}
+\resumeItemListEnd
+\vspace{-25pt}
+
+\resumeProjectHeading
+{\textbf{GoldsXGym – Fitness Web Application} \href{https://goldgym8094.netlify.app/}{[Link]} \textbar{} \emph{React.js, GSAP, YouTube API, Code Splitting, Lazy Loading}}{}
+\resumeItemListStart
+\resumeItem{Built full-stack fitness platform using React.js and GSAP animations serving 1,500+ monthly active users.}
+\resumeItem{Integrated YouTube Data API to deliver 200+ exercise tutorials across 15 muscle groups with custom filters.}
+\resumeItem{Reduced initial load time by 35\% through code splitting, lazy loading, and asset optimization techniques.}
+\resumeItem{Created responsive UI components with cross-browser compatibility achieving 98\% Lighthouse accessibility score.}
+\resumeItemListEnd
+\vspace{-15pt}
+
+\resumeProjectHeading
+{\textbf{Neurion – AI-Powered Chatbot} \href{https://neurion.netlify.app/}{[Link]} \textbar{} \emph{React.js, API Integration, Caching, Sentiment Analysis}}{}
+\resumeItemListStart
+\resumeItem{Built AI chatbot using Gemini API with ChatGPT-style capabilities handling 1,000+ daily user interactions.}
+\resumeItem{Implemented session caching to preserve conversation flow, boosting user retention by 25\% month-over-month.}
+\resumeItem{Optimized API payload and request handling, reducing network calls by 30\% and response time by 250ms.}
+\resumeItem{Integrated sentiment analysis algorithms achieving 85\% user satisfaction rate through contextually appropriate responses.}
+\resumeItemListEnd
+\resumeSubHeadingListEnd
+\sectionspace
+\vspace{-6mm}
+
+%-----------TECHNICAL SKILLS-----------
+\section{Technical Skills}
+\begin{itemize}[leftmargin=0.15in, label={}]
+\small{\item{
+\textbf{Programming Languages:} Java, Python, JavaScript, TypeScript, C, Dart \\
+\textbf{Core Concepts:} Data Structures and Algorithms (DSA), Object-Oriented Programming (OOP) \\
+\textbf{Web Development:} React.js, HTML5, CSS3, Tailwind CSS, Bootstrap, WordPress, GSAP, Responsive Design, Figma \\
+\textbf{Backend Development:} Node.js, Express.js, REST APIs, API Integration \\
+\textbf{Databases:} PostgreSQL, MongoDB \\
+\textbf{Mobile Development:} Flutter \\
+\textbf{Tools and Platforms:} Git, GitHub, VS Code, Jupyter, Docker, Replit \\
+\textbf{Data Science and Visualization:} Pandas, NumPy, Matplotlib, Plotly, D3.js, Data Visualization, ETL Pipelines \\
+\textbf{AI Technologies:} OpenAI API, Google Gemini API, Cursor AI, Lovable AI, Replit AI, Perplexity, Deep Seek, Grok \\
+}}
+\end{itemize}
+\vspace{-10pt}
+
+%-----------EDUCATION-----------
+\section{Education}
+\resumeSubHeadingListStart
+\resumeSubheading
+{Maulana Azad National Institute of Technology, Bhopal}{2023 -- 2027}
+{Bachelor of Technology in Material Science and Metallurgy Engineering}{}
+\resumeSubHeadingListEnd
+\sectionspace
+\vspace{-3mm}
+
+%-----------ACHIEVEMENTS---------------
+\section{Achievements}
+\resumeSubHeadingListStart
+\resumeSubheading
+{\href{https://reskilll.com/certificate/azure/hackstasyf/30f84b7f65}{Winner -- Hackstasy 1.0 2025 [Link]}}{April 2025}
+{Microsoft x SRM}{UPI Secure Project}
+\resumeItemListStart
+\resumeItem{Led 4-member team to develop "UPI Secure" payment security app, winning 1st place among 1000+ competing teams.}
+\resumeItem{Implemented AI-powered fraud detection system with 98\% accuracy, recognized by Microsoft judges for innovation.}
+\resumeItem{Presented technical solution to panel of industry experts from Microsoft and financial technology sector leadership.}
+\resumeItem{Won Rs. 15,000 cash prize and Microsoft Azure credits for impactful real-world implementation.}
+\resumeItem{Featured in university newsletter and Microsoft student developer showcase for innovative financial security solutions.}
+\resumeItemListEnd
+\resumeSubHeadingListEnd
+\end{document}

@@ -26,7 +26,7 @@ import { enhancedTTSEngine } from "./enhanced-tts-engine";
 import { indicMedicalEngine } from "./indic-medical-engine";
 import { humanVoiceEngine } from "./human-voice-engine";
 import { whisperSTTService } from "./whisper-stt-service";
-import { simpleAudioTranscription } from "./simple-audio-transcription";
+import { enhancedAudioTranscription } from "./simple-audio-transcription";
 import multer from 'multer';
 
 if (!process.env.STRIPE_SECRET_KEY) {
@@ -67,15 +67,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       // Validate audio data format
-      if (!simpleAudioTranscription.validateAudioData(audioData)) {
+      if (!enhancedAudioTranscription.validateAudioData(audioData)) {
         return res.status(400).json({ 
           error: 'Invalid audio format',
           text: 'Audio format not supported. Please try again.'
         });
       }
 
-      // Attempt transcription with simple audio transcription service
-      const result = await simpleAudioTranscription.transcribeAudio(audioData, language);
+      // Attempt transcription with enhanced audio transcription service
+      const result = await enhancedAudioTranscription.transcribeAudio(audioData, language);
       
       res.json({
         text: result.text,

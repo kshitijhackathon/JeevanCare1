@@ -84,6 +84,7 @@ function Router() {
       <Route path="/natural-consultation" component={NaturalAIConsultation} />
       <Route path="/whisper-consultation" component={WhisperAIConsultation} />
       <Route path="/ai-doctor-video" component={AIDoctorVideoConsultationEnhanced} />
+      <Route path="/ai-doctor-video-consultation-enhanced" component={AIDoctorVideoConsultationEnhanced} />
       <Route path="/face-scan" component={MedicalScan} />
       <Route path="/medical-scan" component={MedicalScan} />
       

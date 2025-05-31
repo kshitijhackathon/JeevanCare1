@@ -3938,6 +3938,24 @@ Respond helpfully and suggest relevant platform features.`;
     res.json({ languages });
   });
 
+  // Prescription Generation API
+  app.post('/api/generate-prescription', async (req, res) => {
+    try {
+      const { patientDetails, symptoms, conversation, language } = req.body;
+      
+      // Generate prescription based on symptoms and conversation
+      const prescription = generateSmartPrescription(patientDetails, symptoms, conversation);
+      
+      res.json(prescription);
+    } catch (error) {
+      console.error('Prescription generation error:', error);
+      res.status(500).json({ 
+        error: 'Failed to generate prescription',
+        message: error.message 
+      });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }
@@ -4287,6 +4305,297 @@ What would you like to do today?`,
 }
 
 
+
+
+
+function generateSmartPrescription(patientDetails: any, symptoms: string, conversation: any[]) {
+  // Analyze symptoms to determine condition
+  const lowerSymptoms = symptoms.toLowerCase();
+  const age = parseInt(patientDetails.age);
+  
+  let diagnosis = "";
+  let medicines: any[] = [];
+  let tests: any[] = [];
+  let injections: any[] = [];
+  let followUp = "";
+  let doctorNote = "";
+  let nextVisit = "";
+
+  // Fever and Cold symptoms
+  if (lowerSymptoms.includes('fever') || lowerSymptoms.includes('cold') || lowerSymptoms.includes('cough')) {
+    diagnosis = "Upper Respiratory Tract Infection (Common Cold)";
+    medicines = [
+      {
+        name: "Paracetamol 500mg",
+        dosage: "500mg",
+        frequency: "Twice daily",
+        duration: "5 days",
+        instructions: "Take after meals",
+        timing: "Morning & Evening"
+      },
+      {
+        name: "Cetirizine 10mg",
+        dosage: "10mg",
+        frequency: "Once daily",
+        duration: "3 days",
+        instructions: "Take at bedtime",
+        timing: "Night"
+      },
+      {
+        name: "Cough Syrup (Dextromethorphan)",
+        dosage: "10ml",
+        frequency: "Thrice daily",
+        duration: "5 days",
+        instructions: "Take after meals",
+        timing: "After meals"
+      }
+    ];
+    tests = [
+      {
+        name: "Complete Blood Count (CBC)",
+        type: "Blood Test",
+        urgency: "routine",
+        instructions: "Fasting not required"
+      }
+    ];
+    followUp = "Rest, drink plenty of fluids, avoid cold drinks. Return if fever persists beyond 3 days.";
+    nextVisit = "After 5 days or if symptoms worsen";
+  }
+  
+  // Headache symptoms
+  else if (lowerSymptoms.includes('headache') || lowerSymptoms.includes('head pain')) {
+    diagnosis = "Primary Headache (Tension-type)";
+    medicines = [
+      {
+        name: "Ibuprofen 400mg",
+        dosage: "400mg",
+        frequency: "Twice daily",
+        duration: "3 days",
+        instructions: "Take with food",
+        timing: "Morning & Evening"
+      },
+      {
+        name: "Domperidone 10mg",
+        dosage: "10mg",
+        frequency: "Thrice daily",
+        duration: "3 days",
+        instructions: "Take 30 minutes before meals",
+        timing: "Before meals"
+      }
+    ];
+    tests = [
+      {
+        name: "Blood Pressure Check",
+        type: "Vital Signs",
+        urgency: "routine",
+        instructions: "Check in sitting position"
+      }
+    ];
+    followUp = "Avoid stress, get adequate sleep, stay hydrated. Avoid screen time for extended periods.";
+    nextVisit = "After 1 week or if severe headache occurs";
+  }
+  
+  // Stomach pain/acidity
+  else if (lowerSymptoms.includes('stomach') || lowerSymptoms.includes('acidity') || lowerSymptoms.includes('gas')) {
+    diagnosis = "Gastritis with Dyspepsia";
+    medicines = [
+      {
+        name: "Pantoprazole 40mg",
+        dosage: "40mg",
+        frequency: "Once daily",
+        duration: "7 days",
+        instructions: "Take on empty stomach, 30 minutes before breakfast",
+        timing: "Morning (empty stomach)"
+      },
+      {
+        name: "Simethicone 40mg",
+        dosage: "40mg",
+        frequency: "Thrice daily",
+        duration: "5 days",
+        instructions: "Take after meals",
+        timing: "After meals"
+      },
+      {
+        name: "Sucralfate Suspension",
+        dosage: "10ml",
+        frequency: "Twice daily",
+        duration: "5 days",
+        instructions: "Take 1 hour before meals",
+        timing: "Before meals"
+      }
+    ];
+    tests = [
+      {
+        name: "Stool Routine & Microscopy",
+        type: "Stool Test",
+        urgency: "routine",
+        instructions: "Fresh sample required"
+      }
+    ];
+    followUp = "Avoid spicy and oily foods, eat small frequent meals, avoid lying down immediately after eating.";
+    nextVisit = "After 1 week";
+  }
+  
+  // Joint pain/body ache
+  else if (lowerSymptoms.includes('joint') || lowerSymptoms.includes('body ache') || lowerSymptoms.includes('pain')) {
+    diagnosis = "Myalgia with Joint discomfort";
+    medicines = [
+      {
+        name: "Diclofenac 50mg",
+        dosage: "50mg",
+        frequency: "Twice daily",
+        duration: "5 days",
+        instructions: "Take after meals",
+        timing: "Morning & Evening"
+      },
+      {
+        name: "Calcium + Vitamin D3",
+        dosage: "1 tablet",
+        frequency: "Once daily",
+        duration: "30 days",
+        instructions: "Take with milk or after dinner",
+        timing: "Night"
+      }
+    ];
+    tests = [
+      {
+        name: "Vitamin D3 Level",
+        type: "Blood Test",
+        urgency: "routine",
+        instructions: "Fasting not required"
+      },
+      {
+        name: "Calcium Level",
+        type: "Blood Test",
+        urgency: "routine",
+        instructions: "Fasting not required"
+      }
+    ];
+    if (age > 40) {
+      injections = [
+        {
+          name: "Vitamin B12 Injection",
+          dosage: "1ml (1000mcg)",
+          route: "Intramuscular",
+          frequency: "Once weekly",
+          duration: "4 weeks"
+        }
+      ];
+    }
+    followUp = "Apply warm compress, gentle exercise, avoid heavy lifting. Physiotherapy may be beneficial.";
+    nextVisit = "After 1 week";
+  }
+  
+  // Skin problems
+  else if (lowerSymptoms.includes('skin') || lowerSymptoms.includes('rash') || lowerSymptoms.includes('itching')) {
+    diagnosis = "Allergic Dermatitis";
+    medicines = [
+      {
+        name: "Loratadine 10mg",
+        dosage: "10mg",
+        frequency: "Once daily",
+        duration: "7 days",
+        instructions: "Take at bedtime",
+        timing: "Night"
+      },
+      {
+        name: "Calamine Lotion",
+        dosage: "Apply topically",
+        frequency: "Thrice daily",
+        duration: "7 days",
+        instructions: "Apply on affected areas",
+        timing: "As needed"
+      }
+    ];
+    tests = [
+      {
+        name: "Allergy Panel (Basic)",
+        type: "Blood Test",
+        urgency: "routine",
+        instructions: "Avoid antihistamines 48 hours before test"
+      }
+    ];
+    followUp = "Avoid known allergens, use mild soap, wear cotton clothes, keep skin moisturized.";
+    nextVisit = "After 1 week or if rash spreads";
+  }
+  
+  // Default case for general symptoms
+  else {
+    diagnosis = "General symptoms requiring symptomatic treatment";
+    medicines = [
+      {
+        name: "Multivitamin Tablet",
+        dosage: "1 tablet",
+        frequency: "Once daily",
+        duration: "30 days",
+        instructions: "Take after breakfast",
+        timing: "Morning"
+      },
+      {
+        name: "Paracetamol 500mg (SOS)",
+        dosage: "500mg",
+        frequency: "As needed",
+        duration: "As required",
+        instructions: "Only if fever or pain occurs",
+        timing: "As needed"
+      }
+    ];
+    tests = [
+      {
+        name: "Complete Health Checkup",
+        type: "Comprehensive Panel",
+        urgency: "routine",
+        instructions: "12 hours fasting required"
+      }
+    ];
+    followUp = "Maintain healthy lifestyle, adequate sleep, balanced diet, regular exercise.";
+    nextVisit = "After 2 weeks";
+  }
+
+  // Age-specific additions
+  if (age > 50) {
+    tests.push({
+      name: "Blood Sugar (Fasting & PP)",
+      type: "Blood Test",
+      urgency: "routine",
+      instructions: "12 hours fasting required for fasting sugar"
+    });
+    tests.push({
+      name: "Lipid Profile",
+      type: "Blood Test",
+      urgency: "routine",
+      instructions: "12 hours fasting required"
+    });
+  }
+
+  if (age > 40 && patientDetails.gender === 'female') {
+    tests.push({
+      name: "Bone Mineral Density (DEXA)",
+      type: "Imaging",
+      urgency: "routine",
+      instructions: "No special preparation required"
+    });
+  }
+
+  doctorNote = `Patient presents with ${symptoms}. Clinical assessment suggests ${diagnosis}. Treatment plan includes symptomatic management with medications as prescribed. Patient advised to follow lifestyle modifications and return for follow-up as scheduled.`;
+
+  return {
+    patientName: patientDetails.name,
+    age: patientDetails.age,
+    gender: patientDetails.gender,
+    bloodGroup: patientDetails.bloodGroup || "Not specified",
+    phoneNumber: patientDetails.phoneNumber,
+    city: patientDetails.city,
+    symptoms,
+    diagnosis,
+    medicines,
+    tests,
+    injections,
+    followUp,
+    doctorNote,
+    nextVisit
+  };
+}
 
 // Simple AI response generator (legacy function for compatibility)
 function generateAIResponse(symptoms: string): string {

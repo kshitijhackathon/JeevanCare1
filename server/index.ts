@@ -25,18 +25,27 @@ app.get('/health', (req, res) => {
   res.json({ status: 'OK', timestamp: new Date().toISOString() });
 });
 
-// Serve frontend files
-app.use(express.static(path.join(process.cwd(), 'frontend')));
+const server = app.listen(port, () => {
+  console.log(`Backend server running on port ${port}`);
+});
 
-// Handle SPA routing - serve index.html for non-API routes
+// Serve frontend application
+app.use(express.static(path.join(process.cwd(), 'frontend'), {
+  setHeaders: (res, filePath) => {
+    if (filePath.endsWith('.tsx') || filePath.endsWith('.ts')) {
+      res.setHeader('Content-Type', 'application/javascript');
+    }
+    if (filePath.endsWith('.jsx') || filePath.endsWith('.js')) {
+      res.setHeader('Content-Type', 'application/javascript');
+    }
+  }
+}));
+
+// Handle client-side routing
 app.get('*', (req, res) => {
   if (!req.path.startsWith('/api') && !req.path.startsWith('/health')) {
     res.sendFile(path.join(process.cwd(), 'frontend', 'index.html'));
   }
-});
-
-const server = app.listen(port, () => {
-  console.log(`Backend server running on port ${port}`);
 });
 
 export default server;

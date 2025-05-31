@@ -781,7 +781,67 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // If not found in products, try to get from medicines
       if (!product) {
-        const medicines = await storage.getMedicines();
+        // Get medicines from the same data source as /api/medicines endpoint
+        const medicines = [
+          {
+            id: 1,
+            name: 'Crocin Advance',
+            genericName: 'Paracetamol',
+            manufacturer: 'GSK Consumer Healthcare',
+            price: 45,
+            mrp: 50,
+            discount: 10,
+            dosage: '500mg',
+            composition: 'Paracetamol 500mg',
+            category: 'prescription',
+            prescriptionRequired: false,
+            inStock: true,
+            quantity: 20,
+            imageUrl: '/images/crocin.jpg',
+            rating: 4.6,
+            reviewCount: 1250,
+            description: 'Fast and effective pain relief and fever reducer'
+          },
+          {
+            id: 2,
+            name: 'D3 Must',
+            genericName: 'Vitamin D3',
+            manufacturer: 'Mankind Pharma',
+            price: 280,
+            mrp: 320,
+            discount: 12,
+            dosage: '60000 IU',
+            composition: 'Cholecalciferol 60000 IU',
+            category: 'vitamins',
+            prescriptionRequired: false,
+            inStock: true,
+            quantity: 15,
+            imageUrl: '/images/d3must.jpg',
+            rating: 4.4,
+            reviewCount: 892,
+            description: 'High potency Vitamin D3 supplement for bone health'
+          },
+          {
+            id: 3,
+            name: 'Shelcal',
+            genericName: 'Calcium Carbonate',
+            manufacturer: 'Torrent Pharmaceuticals',
+            price: 155,
+            mrp: 175,
+            discount: 11,
+            dosage: '500mg',
+            composition: 'Calcium Carbonate 1250mg + Vitamin D3 250 IU',
+            category: 'vitamins',
+            prescriptionRequired: false,
+            inStock: true,
+            quantity: 25,
+            imageUrl: '/images/shelcal.jpg',
+            rating: 4.3,
+            reviewCount: 567,
+            description: 'Calcium and Vitamin D3 supplement for bone strength'
+          }
+        ];
+        
         const medicine = medicines.find(m => m.id === productId);
         
         if (medicine) {
@@ -791,12 +851,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
             name: medicine.name,
             price: medicine.price.toString(),
             description: medicine.description || '',
-            category: medicine.type || 'Medicine',
-            inStock: true,
-            rating: "4.5",
+            category: medicine.category || 'Medicine',
+            inStock: medicine.inStock,
+            rating: medicine.rating?.toString() || "4.5",
             manufacturer: medicine.manufacturer || '',
             composition: medicine.composition || '',
-            imageUrl: "/api/placeholder/medicine.jpg"
+            imageUrl: medicine.imageUrl || "/api/placeholder/medicine.jpg"
           };
         }
       }

@@ -1,7 +1,4 @@
-import React, { useState, useRef, useEffect, Suspense } from 'react';
-import { Canvas } from '@react-three/fiber';
-import { OrbitControls, Environment, Text, Box, Sphere, useGLTF } from '@react-three/drei';
-import * as THREE from 'three';
+import React, { useState, useRef, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -67,84 +64,57 @@ const INDIAN_LANGUAGES = [
   { code: 'snd_Deva', name: 'Sindhi (Devanagari)', native: 'सिन्धी' }
 ];
 
-// 3D Doctor Avatar Component
+// Animated Doctor Avatar Component (CSS-based)
 function DoctorAvatar({ isListening, isSpeaking }: { isListening: boolean; isSpeaking: boolean }) {
-  const meshRef = useRef<THREE.Mesh>(null);
-  
-  useEffect(() => {
-    if (meshRef.current) {
-      // Animate the avatar based on speaking/listening state
-      const animate = () => {
-        if (meshRef.current) {
-          if (isSpeaking) {
-            meshRef.current.rotation.y += 0.01;
-            meshRef.current.scale.setScalar(1 + Math.sin(Date.now() * 0.01) * 0.05);
-          } else if (isListening) {
-            meshRef.current.rotation.y += 0.005;
-          }
-        }
-        requestAnimationFrame(animate);
-      };
-      animate();
-    }
-  }, [isSpeaking, isListening]);
-
   return (
-    <group>
-      {/* Doctor's Head */}
-      <Sphere ref={meshRef} args={[1, 32, 32]} position={[0, 1, 0]}>
-        <meshStandardMaterial 
-          color={isSpeaking ? "#4ade80" : isListening ? "#60a5fa" : "#f3f4f6"} 
-          roughness={0.3}
-          metalness={0.1}
-        />
-      </Sphere>
-      
-      {/* Doctor's Body */}
-      <Box args={[1.5, 2, 0.8]} position={[0, -0.5, 0]}>
-        <meshStandardMaterial color="#2563eb" />
-      </Box>
-      
-      {/* Stethoscope */}
-      <Box args={[0.1, 1, 0.1]} position={[0.3, 0.5, 0.45]}>
-        <meshStandardMaterial color="#1f2937" />
-      </Box>
-      
-      {/* Doctor Badge */}
-      <Box args={[0.4, 0.2, 0.05]} position={[0.5, 0.3, 0.45]}>
-        <meshStandardMaterial color="#ffffff" />
-      </Box>
-      
-      {/* Speaking indicator */}
-      {isSpeaking && (
-        <group>
-          <Sphere args={[0.1]} position={[1.5, 1, 0]}>
-            <meshBasicMaterial color="#10b981" />
-          </Sphere>
-          <Sphere args={[0.08]} position={[1.7, 1.2, 0]}>
-            <meshBasicMaterial color="#34d399" />
-          </Sphere>
-          <Sphere args={[0.06]} position={[1.9, 0.8, 0]}>
-            <meshBasicMaterial color="#6ee7b7" />
-          </Sphere>
-        </group>
-      )}
-      
-      {/* Listening indicator */}
-      {isListening && (
-        <group>
-          <Sphere args={[0.1]} position={[-1.5, 1, 0]}>
-            <meshBasicMaterial color="#3b82f6" />
-          </Sphere>
-          <Sphere args={[0.08]} position={[-1.7, 1.2, 0]}>
-            <meshBasicMaterial color="#60a5fa" />
-          </Sphere>
-          <Sphere args={[0.06]} position={[-1.9, 0.8, 0]}>
-            <meshBasicMaterial color="#93c5fd" />
-          </Sphere>
-        </group>
-      )}
-    </group>
+    <div className="flex items-center justify-center h-full">
+      <div className="relative">
+        {/* Doctor Avatar */}
+        <div className={`w-64 h-64 rounded-full flex items-center justify-center transition-all duration-300 ${
+          isSpeaking ? 'bg-gradient-to-br from-green-400 to-green-600 animate-pulse' :
+          isListening ? 'bg-gradient-to-br from-blue-400 to-blue-600' :
+          'bg-gradient-to-br from-gray-300 to-gray-500'
+        }`}>
+          <div className="w-48 h-48 bg-white rounded-full flex items-center justify-center shadow-lg">
+            <Stethoscope className="w-24 h-24 text-blue-600" />
+          </div>
+        </div>
+        
+        {/* Animated rings for speaking */}
+        {isSpeaking && (
+          <>
+            <div className="absolute inset-0 rounded-full border-4 border-green-300 animate-ping"></div>
+            <div className="absolute inset-4 rounded-full border-2 border-green-400 animate-pulse"></div>
+          </>
+        )}
+        
+        {/* Animated rings for listening */}
+        {isListening && (
+          <>
+            <div className="absolute inset-0 rounded-full border-4 border-blue-300 animate-pulse"></div>
+            <div className="absolute inset-8 rounded-full border-2 border-blue-400 animate-ping"></div>
+          </>
+        )}
+        
+        {/* Status indicators */}
+        <div className="absolute -top-4 left-1/2 transform -translate-x-1/2">
+          {isSpeaking && (
+            <div className="flex space-x-1">
+              <div className="w-2 h-6 bg-green-500 rounded animate-bounce"></div>
+              <div className="w-2 h-8 bg-green-400 rounded animate-bounce" style={{animationDelay: '0.1s'}}></div>
+              <div className="w-2 h-4 bg-green-300 rounded animate-bounce" style={{animationDelay: '0.2s'}}></div>
+            </div>
+          )}
+          {isListening && (
+            <div className="flex space-x-1">
+              <div className="w-2 h-4 bg-blue-500 rounded animate-pulse"></div>
+              <div className="w-2 h-6 bg-blue-400 rounded animate-pulse" style={{animationDelay: '0.1s'}}></div>
+              <div className="w-2 h-8 bg-blue-300 rounded animate-pulse" style={{animationDelay: '0.2s'}}></div>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
   );
 }
 
@@ -443,7 +413,7 @@ function VideoConsultationInterface({ patientDetails }: { patientDetails: any })
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 h-[calc(100vh-80px)]">
-        {/* 3D Doctor Avatar */}
+        {/* Doctor Avatar */}
         <div className="lg:col-span-2 bg-gradient-to-br from-blue-900 to-indigo-900 relative">
           <div className="absolute top-4 left-4 z-10">
             <Badge className="bg-blue-600">
@@ -467,15 +437,7 @@ function VideoConsultationInterface({ patientDetails }: { patientDetails: any })
             )}
           </div>
 
-          <Canvas camera={{ position: [0, 0, 5], fov: 60 }}>
-            <Suspense fallback={null}>
-              <ambientLight intensity={0.4} />
-              <pointLight position={[10, 10, 10]} intensity={1} />
-              <DoctorAvatar isListening={isListening} isSpeaking={isSpeaking} />
-              <Environment preset="sunset" />
-              <OrbitControls enableZoom={false} enablePan={false} />
-            </Suspense>
-          </Canvas>
+          <DoctorAvatar isListening={isListening} isSpeaking={isSpeaking} />
 
           {/* Patient Video (placeholder) */}
           <div className="absolute bottom-4 right-4 w-48 h-36 bg-gray-800 rounded-lg border-2 border-gray-600">

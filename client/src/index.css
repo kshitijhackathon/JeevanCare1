@@ -96,7 +96,7 @@
   
   /* Mobile-first responsive container */
   .mobile-container {
-    @apply max-w-md mx-auto bg-white min-h-screen relative;
+    @apply max-w-md mx-auto bg-white min-h-screen relative overflow-hidden;
   }
   
   /* Card hover effects */

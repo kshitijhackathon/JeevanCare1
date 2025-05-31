@@ -776,8 +776,31 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { productId, quantity } = req.body;
       console.log("Adding to cart - productId:", productId, "quantity:", quantity);
       
-      // Get product details
-      const product = await storage.getProduct(productId);
+      // First try to get from products
+      let product = await storage.getProduct(productId);
+      
+      // If not found in products, try to get from medicines
+      if (!product) {
+        const medicines = await storage.getMedicines();
+        const medicine = medicines.find(m => m.id === productId);
+        
+        if (medicine) {
+          // Convert medicine to product format for cart
+          product = {
+            id: medicine.id,
+            name: medicine.name,
+            price: medicine.price.toString(),
+            description: medicine.description || '',
+            category: medicine.type || 'Medicine',
+            inStock: true,
+            rating: "4.5",
+            manufacturer: medicine.manufacturer || '',
+            composition: medicine.composition || '',
+            imageUrl: "/api/placeholder/medicine.jpg"
+          };
+        }
+      }
+      
       console.log("Found product:", product ? product.name : "Not found");
       
       if (!product) {

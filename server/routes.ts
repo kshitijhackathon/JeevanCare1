@@ -2402,7 +2402,7 @@ Patient Context: ${patientContext}`
         }
       ];
       
-      res.json(sampleHistory);
+      // Remove duplicate response - will send combined response below
       
       const conditions = [...new Set([
         ...consultations.filter(c => c.diagnosis).map(c => c.diagnosis),

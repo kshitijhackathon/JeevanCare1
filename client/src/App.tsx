@@ -79,58 +79,61 @@ function Router() {
 
   return (
     <Switch>
-      {/* Auth routes - always accessible */}
-      <Route path="/auth/get-started" component={GetStarted} />
-      <Route path="/auth/signup" component={SignUp} />
-      <Route path="/auth/signin" component={SignIn} />
-      <Route path="/auth/otp-verification" component={OTPVerification} />
-      
-      {/* Public routes - accessible without authentication */}
-      <Route path="/consultation" component={MultilingualConsultation} />
-      <Route path="/multilingual-consultation" component={MultilingualConsultation} />
-      <Route path="/natural-consultation" component={NaturalAIConsultation} />
-      <Route path="/whisper-consultation" component={WhisperAIConsultation} />
-      <Route path="/ai-doctor-video" component={CompactAIDoctorConsultation} />
-      <Route path="/ai-doctor-video-consultation-enhanced" component={CompactAIDoctorConsultation} />
-      <Route path="/ai-doctor-compact" component={CompactAIDoctorConsultation} />
-      <Route path="/ai-doctor" component={AIDoctorConsultation} />
-      <Route path="/face-scan" component={MedicalScan} />
-      <Route path="/medical-scan" component={MedicalScan} />
-      <Route path="/global-health-map" component={GlobalHealthMap} />
-      <Route path="/symptom-checker" component={SymptomChecker} />
-      <Route path="/pharmacy" component={Pharmacy} />
-      <Route path="/book-test" component={BookTest} />
-      
       {!isAuthenticated ? (
         <>
+          {/* When not logged in - show landing/auth pages */}
           <Route path="/" component={Landing} />
+          <Route path="/auth/get-started" component={GetStarted} />
+          <Route path="/auth/signup" component={SignUp} />
+          <Route path="/auth/signin" component={SignIn} />
+          <Route path="/auth/otp-verification" component={OTPVerification} />
+          
+          {/* Redirect to landing for any other route when not authenticated */}
+          <Route component={Landing} />
         </>
       ) : (
         <>
+          {/* When logged in - show main app */}
           <Route path="/" component={Home} />
+          <Route path="/pharmacy" component={Pharmacy} />
           <Route path="/product/:id" component={ProductDetail} />
           <Route path="/cart" component={Cart} />
           <Route path="/checkout" component={Checkout} />
           <Route path="/profile" component={Profile} />
+          <Route path="/consultation" component={MultilingualConsultation} />
+          <Route path="/multilingual-consultation" component={MultilingualConsultation} />
+          <Route path="/natural-consultation" component={NaturalAIConsultation} />
+          <Route path="/whisper-consultation" component={WhisperAIConsultation} />
+          <Route path="/ai-doctor-video" component={CompactAIDoctorConsultation} />
+          <Route path="/ai-doctor-video-consultation-enhanced" component={CompactAIDoctorConsultation} />
+          <Route path="/ai-doctor-compact" component={CompactAIDoctorConsultation} />
+          <Route path="/ai-doctor" component={AIDoctorConsultation} />
+          <Route path="/book-test" component={BookTest} />
           <Route path="/medicine-delivery" component={MedicineDelivery} />
           <Route path="/delivery/:orderId" component={MedicineDelivery} />
           <Route path="/reports" component={Reports} />
+          <Route path="/face-scan" component={MedicalScan} />
+          <Route path="/medical-scan" component={MedicalScan} />
           <Route path="/doctor-escalation" component={DoctorEscalation} />
           <Route path="/ai-consultation" component={AIConsultation} />
           <Route path="/medical-records" component={MedicalRecords} />
+          <Route path="/global-health-map" component={GlobalHealthMap} />
           <Route path="/fraud-heatmap" component={FraudHeatmap} />
           <Route path="/health-assistant" component={HealthAssistant} />
           <Route path="/notifications" component={Notifications} />
           <Route path="/prescription" component={Prescription} />
+          <Route path="/symptom-checker" component={SymptomChecker} />
           <Route path="/voice-companion" component={VoiceCompanion} />
           <Route path="/voice-tone-test" component={VoiceToneTest} />
           <Route path="/gemini-grok-test" component={GeminiGrokMedicalTest} />
           <Route path="/medical-test" component={MedicalTest} />
           <Route path="/delivery-tracking" component={DeliveryTracking} />
           <Route path="/prescription-upload" component={PrescriptionUpload} />
+          
+          {/* 404 for authenticated users */}
+          <Route component={NotFound} />
         </>
       )}
-      <Route component={NotFound} />
     </Switch>
   );
 }

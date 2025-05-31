@@ -4,6 +4,7 @@
 import { spawn } from 'child_process';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import OpenAI from 'openai';
 
 interface TranslationRequest {
   text: string;
@@ -20,11 +21,17 @@ interface TranslationResponse {
 
 export class IndicTranslationService {
   private pythonServicePath: string;
+  private openai: OpenAI | null = null;
 
   constructor() {
     const __filename = fileURLToPath(import.meta.url);
     const __dirname = path.dirname(__filename);
     this.pythonServicePath = path.join(__dirname, 'indictrans2-service.py');
+    
+    // Initialize OpenAI client if API key is available
+    if (process.env.OPENAI_API_KEY) {
+      this.openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+    }
   }
 
   // Language mapping for IndicTrans2
@@ -58,6 +65,34 @@ export class IndicTranslationService {
   };
 
   async translateText(request: TranslationRequest): Promise<TranslationResponse> {
+    // Try OpenAI translation first for authentic results
+    try {
+      if (this.openai) {
+        const translatedText = await this.translateWithOpenAI(request);
+        return {
+          translatedText,
+          sourceLang: request.sourceLang,
+          targetLang: request.targetLang,
+          confidence: 0.92
+        };
+      }
+    } catch (error) {
+      console.error('OpenAI translation failed:', error);
+    }
+
+    // Fallback to Python IndicTrans2 service
+    try {
+      const pythonResult = await this.callPythonService(request);
+      return pythonResult;
+    } catch (error) {
+      console.error('Python service failed:', error);
+    }
+
+    // Final fallback - return error message
+    throw new Error('Translation services unavailable');
+  }
+
+  private async callPythonService(request: TranslationRequest): Promise<TranslationResponse> {
     return new Promise((resolve, reject) => {
       const pythonProcess = spawn('python3', [
         this.pythonServicePath,
@@ -128,6 +163,33 @@ export class IndicTranslationService {
         });
       });
     });
+  }
+
+  private async translateWithOpenAI(request: TranslationRequest): Promise<string> {
+    if (!this.openai) {
+      throw new Error('OpenAI client not initialized');
+    }
+
+    const sourceLangName = this.languageMap[request.sourceLang] || request.sourceLang;
+    const targetLangName = this.languageMap[request.targetLang] || request.targetLang;
+
+    const response = await this.openai.chat.completions.create({
+      model: "gpt-4o", // the newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
+      messages: [
+        {
+          role: "system",
+          content: `You are a professional medical translator specializing in Indian languages. Translate the given text from ${sourceLangName} to ${targetLangName}. Maintain medical accuracy and cultural sensitivity. Provide only the translation without any additional text.`
+        },
+        {
+          role: "user",
+          content: request.text
+        }
+      ],
+      temperature: 0.1,
+      max_tokens: 500
+    });
+
+    return response.choices[0].message.content || request.text;
   }
 
   private async mockTranslate(request: TranslationRequest): Promise<string> {

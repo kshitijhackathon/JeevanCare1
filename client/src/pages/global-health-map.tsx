@@ -126,35 +126,47 @@ export default function GlobalHealthMap() {
           onMouseUp={handleMouseUp}
         >
           <div 
-            className="relative w-80 h-80 rounded-full transform-gpu transition-transform duration-500 hover:scale-105"
+            className="relative w-80 h-80 rounded-full transform-gpu transition-transform duration-500 hover:scale-110 shadow-2xl"
             style={{
               background: `
-                radial-gradient(circle at 25% 25%, rgba(255,255,255,0.9) 0%, rgba(255,255,255,0.4) 15%, transparent 35%),
-                radial-gradient(circle at 75% 75%, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0.3) 25%, transparent 45%),
+                radial-gradient(circle at 30% 20%, rgba(255,255,255,0.9) 0%, rgba(255,255,255,0.5) 12%, rgba(255,255,255,0.1) 25%, transparent 40%),
+                radial-gradient(circle at 70% 80%, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0.6) 20%, rgba(0,0,0,0.2) 35%, transparent 50%),
                 radial-gradient(ellipse at center, 
+                  #0f172a 0%, 
+                  #1e293b 10%, 
+                  #334155 20%, 
+                  #475569 35%, 
+                  #64748b 50%, 
+                  #94a3b8 70%, 
+                  #cbd5e1 85%, 
+                  #e2e8f0 100%
+                ),
+                linear-gradient(135deg, 
                   #1e40af 0%, 
-                  #1e3a8a 15%, 
-                  #1d4ed8 30%, 
+                  #1d4ed8 25%, 
                   #2563eb 50%, 
-                  #3b82f6 70%, 
+                  #3b82f6 75%, 
                   #60a5fa 100%
                 )
               `,
               transform: `
-                perspective(800px) 
+                perspective(1000px) 
                 rotateX(${globeRotation.x}deg) 
                 rotateY(${rotation + globeRotation.y}deg) 
-                rotateZ(${rotation * 0.1}deg)
+                rotateZ(${rotation * 0.2}deg)
+                translateZ(20px)
               `,
               boxShadow: `
-                inset -80px -80px 160px rgba(0,0,0,0.8),
-                inset 60px 60px 160px rgba(255,255,255,0.15),
-                0 0 160px rgba(59, 130, 246, 0.7),
-                0 0 320px rgba(34, 197, 94, 0.4),
-                0 60px 120px rgba(0,0,0,0.5)
+                inset -100px -100px 200px rgba(0,0,0,0.9),
+                inset 80px 80px 200px rgba(255,255,255,0.2),
+                0 0 200px rgba(59, 130, 246, 0.8),
+                0 0 400px rgba(34, 197, 94, 0.5),
+                0 80px 160px rgba(0,0,0,0.6),
+                0 0 50px rgba(255,255,255,0.3)
               `,
-              border: '3px solid rgba(255,255,255,0.15)',
-              filter: 'contrast(1.2) saturate(1.3) brightness(1.1)'
+              border: '4px solid rgba(255,255,255,0.2)',
+              filter: 'contrast(1.3) saturate(1.4) brightness(1.15)',
+              backgroundBlendMode: 'multiply, screen, normal'
             }}
           >
             {/* Detailed Ocean Layers */}

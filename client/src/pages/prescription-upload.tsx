@@ -76,12 +76,25 @@ export default function PrescriptionUpload() {
       const formData = new FormData();
       formData.append('image', file);
 
+      const token = localStorage.getItem('authToken');
       const response = await fetch('/api/extract-prescription', {
         method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        },
         body: formData,
       });
 
       if (!response.ok) {
+        if (response.status === 401) {
+          toast({
+            title: "Authentication Required",
+            description: "Please log in to extract prescription medicines.",
+            variant: "destructive",
+          });
+          setLocation('/auth');
+          return;
+        }
         throw new Error('Failed to extract medicines');
       }
 

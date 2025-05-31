@@ -101,7 +101,7 @@ function Router() {
           <Route path="/cart" component={Cart} />
           <Route path="/checkout" component={Checkout} />
           <Route path="/profile" component={Profile} />
-          <Route path="/ai-doctor-video" component={CompactAIDoctorConsultation} />
+          <Route path="/ai-doctor-video" component={AIDoctorVideoConsultationEnhanced} />
           <Route path="/book-test" component={BookTest} />
           <Route path="/medicine-delivery" component={MedicineDelivery} />
           <Route path="/reports" component={Reports} />

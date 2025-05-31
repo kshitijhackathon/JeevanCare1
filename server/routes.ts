@@ -4218,6 +4218,44 @@ Respond helpfully and suggest relevant platform features.`;
     res.json({ languages });
   });
 
+  // Test Booking API
+  app.post('/api/test-booking', async (req, res) => {
+    try {
+      const { testType, date, timeSlot, address, pincode, phone, paymentMethod } = req.body;
+      
+      // Generate a booking ID
+      const bookingId = `TEST${Date.now()}`;
+      
+      // Simulate booking creation
+      const booking = {
+        id: bookingId,
+        testType,
+        date,
+        timeSlot,
+        address,
+        pincode,
+        phone,
+        paymentMethod,
+        status: 'confirmed',
+        createdAt: new Date().toISOString()
+      };
+      
+      console.log('Test booking created:', booking);
+      
+      res.json({
+        success: true,
+        booking,
+        message: 'Test booked successfully'
+      });
+    } catch (error) {
+      console.error('Test booking error:', error);
+      res.status(500).json({ 
+        error: 'Failed to book test',
+        message: error.message 
+      });
+    }
+  });
+
   // Prescription Generation API
   app.post('/api/generate-prescription', async (req, res) => {
     try {

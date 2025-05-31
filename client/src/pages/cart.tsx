@@ -115,11 +115,11 @@ export default function Cart() {
           {cartItems.map((item) => (
             <Card key={item.id} className="shadow-sm border border-gray-100">
               <CardContent className="p-4 flex items-center space-x-4">
-                <img 
-                  src={item.product.imageUrl || "https://images.unsplash.com/photo-1584362917165-526a968579e8?ixlib=rb-4.0.3&auto=format&fit=crop&w=60&h=60"}
-                  alt={item.product.name}
-                  className="w-12 h-12 object-cover rounded-lg"
-                />
+                <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                  <span className="text-blue-600 font-semibold text-xs">
+                    {item.product.name.substring(0, 2).toUpperCase()}
+                  </span>
+                </div>
                 <div className="flex-1">
                   <h4 className="font-medium text-gray-800">{item.product.name}</h4>
                   <p className="text-sm text-gray-500">{item.product.category}</p>

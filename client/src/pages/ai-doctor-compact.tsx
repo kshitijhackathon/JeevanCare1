@@ -129,27 +129,33 @@ const CompactAIDoctorConsultation = () => {
 
       const data = await response.json();
       
-      setTimeout(() => {
-        setIsTyping(false);
-        
-        const doctorMessage: ChatMessage = {
-          text: data.response || data.instantAck || 'मैं समझ गया। कृपया और बताएं।',
-          sender: 'doctor',
-          timestamp: new Date().toLocaleTimeString()
-        };
-        
-        setChatMessages(prev => [...prev, doctorMessage]);
-        
-        // Text-to-speech
-        if (isAudioEnabled) {
-          ttsEngine.speak({
-            text: doctorMessage.text,
-            language: selectedLanguage.code,
-            gender: 'female',
-            emotion: 'professional'
-          }).catch(console.error);
-        }
-      }, 1000);
+      setIsTyping(false);
+      
+      // Use actual response instead of instant ack
+      let responseText = data.response || 'मैं समझ गया। कृपया और बताएं।';
+      
+      // If there's a follow-up question, add it
+      if (data.followUp && data.followUp.trim()) {
+        responseText += ' ' + data.followUp;
+      }
+      
+      const doctorMessage: ChatMessage = {
+        text: responseText,
+        sender: 'doctor',
+        timestamp: new Date().toLocaleTimeString()
+      };
+      
+      setChatMessages(prev => [...prev, doctorMessage]);
+      
+      // Text-to-speech
+      if (isAudioEnabled) {
+        ttsEngine.speak({
+          text: responseText,
+          language: selectedLanguage.code,
+          gender: 'female',
+          emotion: 'professional'
+        }).catch(console.error);
+      }
 
     } catch (error) {
       console.error('Message failed:', error);

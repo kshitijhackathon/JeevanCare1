@@ -5,6 +5,7 @@ import { spawn } from 'child_process';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import OpenAI from 'openai';
+import { GoogleGenerativeAI } from '@google/generative-ai';
 
 interface TranslationRequest {
   text: string;
@@ -22,15 +23,31 @@ interface TranslationResponse {
 export class IndicTranslationService {
   private pythonServicePath: string;
   private openai: OpenAI | null = null;
+  private gemini: GoogleGenerativeAI | null = null;
 
   constructor() {
     const __filename = fileURLToPath(import.meta.url);
     const __dirname = path.dirname(__filename);
     this.pythonServicePath = path.join(__dirname, 'indictrans2-service.py');
     
-    // Initialize OpenAI client if API key is available
+    // Initialize Gemini client if API key is available
+    if (process.env.GEMINI_API_KEY) {
+      try {
+        this.gemini = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+        console.log('Gemini translation service initialized');
+      } catch (error) {
+        console.error('Failed to initialize Gemini:', error);
+      }
+    }
+    
+    // Initialize OpenAI client as fallback if API key is available
     if (process.env.OPENAI_API_KEY) {
-      this.openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+      try {
+        this.openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+        console.log('OpenAI translation service initialized as fallback');
+      } catch (error) {
+        console.error('Failed to initialize OpenAI:', error);
+      }
     }
   }
 
@@ -65,7 +82,22 @@ export class IndicTranslationService {
   };
 
   async translateText(request: TranslationRequest): Promise<TranslationResponse> {
-    // Try OpenAI translation first for authentic results
+    // Try Gemini translation first for Indian languages
+    try {
+      if (this.gemini) {
+        const translatedText = await this.translateWithGemini(request);
+        return {
+          translatedText,
+          sourceLang: request.sourceLang,
+          targetLang: request.targetLang,
+          confidence: 0.95
+        };
+      }
+    } catch (error) {
+      console.error('Gemini translation failed:', error);
+    }
+
+    // Try OpenAI translation as fallback
     try {
       if (this.openai) {
         const translatedText = await this.translateWithOpenAI(request);
@@ -196,6 +228,28 @@ export class IndicTranslationService {
     });
 
     return response.choices[0].message.content || request.text;
+  }
+
+  private async translateWithGemini(request: TranslationRequest): Promise<string> {
+    if (!this.gemini) {
+      throw new Error('Gemini client not initialized');
+    }
+
+    const sourceLangName = this.languageMap[request.sourceLang] || request.sourceLang;
+    const targetLangName = this.languageMap[request.targetLang] || request.targetLang;
+
+    const model = this.gemini.getGenerativeModel({ model: "gemini-pro" });
+
+    const prompt = `You are a professional medical translator specializing in Indian languages. Translate the following text from ${sourceLangName} to ${targetLangName}. Maintain medical accuracy and cultural sensitivity. Provide only the translation without any additional text.
+
+Text to translate: "${request.text}"
+
+Translation:`;
+
+    const result = await model.generateContent(prompt);
+    const response = await result.response;
+    
+    return response.text() || request.text;
   }
 
   private async mockTranslate(request: TranslationRequest): Promise<string> {

@@ -54,18 +54,18 @@ export default function GlobalHealthMap() {
     { value: 'tuberculosis', label: 'Tuberculosis' }
   ];
 
-  // Enhanced 3D Globe with CSS transforms (more reliable)
+  // Ultra Realistic 3D Earth Globe using advanced CSS techniques
   const Interactive3DGlobe = () => {
     const [rotation, setRotation] = useState(0);
     const [isHovering, setIsHovering] = useState(false);
     const [isDragging, setIsDragging] = useState(false);
     const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
-    const [globeRotation, setGlobeRotation] = useState({ x: -15, y: 0 });
+    const [globeRotation, setGlobeRotation] = useState({ x: -10, y: 0 });
     
     useEffect(() => {
       const interval = setInterval(() => {
         if (!isDragging) {
-          setRotation(prev => (prev + (isHovering ? 0.3 : 0.8)) % 360);
+          setRotation(prev => (prev + (isHovering ? 0.1 : 0.3)) % 360);
         }
       }, 50);
       return () => clearInterval(interval);
@@ -82,8 +82,8 @@ export default function GlobalHealthMap() {
         const deltaY = e.clientY - dragStart.y;
         
         setGlobeRotation(prev => ({
-          x: Math.max(-60, Math.min(60, prev.x - deltaY * 0.3)),
-          y: prev.y + deltaX * 0.5
+          x: Math.max(-45, Math.min(45, prev.x - deltaY * 0.2)),
+          y: prev.y + deltaX * 0.3
         }));
         
         setDragStart({ x: e.clientX, y: e.clientY });
@@ -95,25 +95,37 @@ export default function GlobalHealthMap() {
     };
 
     return (
-      <div className="relative bg-gradient-to-br from-slate-900 via-blue-900 to-black rounded-lg h-96 overflow-hidden">
-        {/* Animated Stars Background */}
+      <div className="relative bg-black rounded-lg h-96 overflow-hidden" style={{
+        background: `
+          radial-gradient(ellipse at center, #0a0a0a 0%, #000000 100%),
+          url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.03'%3E%3Ccircle cx='30' cy='30' r='1'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")
+        `,
+        transformStyle: 'preserve-3d',
+        perspective: '1000px'
+      }}>
+        {/* Realistic Star Field */}
         <div className="absolute inset-0">
-          {[...Array(120)].map((_, i) => (
-            <div
-              key={i}
-              className="absolute w-px h-px bg-white rounded-full animate-pulse"
-              style={{
-                left: `${Math.random() * 100}%`,
-                top: `${Math.random() * 100}%`,
-                animationDelay: `${Math.random() * 5}s`,
-                opacity: Math.random() * 0.9 + 0.1,
-                transform: `scale(${0.5 + Math.random() * 1.5})`
-              }}
-            />
-          ))}
+          {[...Array(200)].map((_, i) => {
+            const size = Math.random();
+            return (
+              <div
+                key={i}
+                className="absolute bg-white rounded-full"
+                style={{
+                  left: `${Math.random() * 100}%`,
+                  top: `${Math.random() * 100}%`,
+                  width: size > 0.8 ? '2px' : size > 0.6 ? '1.5px' : '1px',
+                  height: size > 0.8 ? '2px' : size > 0.6 ? '1.5px' : '1px',
+                  opacity: Math.random() * 0.8 + 0.2,
+                  animation: size > 0.9 ? 'pulse 2s ease-in-out infinite' : 'none',
+                  animationDelay: `${Math.random() * 3}s`
+                }}
+              />
+            );
+          })}
         </div>
 
-        {/* Enhanced 3D Earth Globe */}
+        {/* Ultra Realistic 3D Earth Globe */}
         <div 
           className="absolute inset-0 flex items-center justify-center cursor-grab active:cursor-grabbing select-none"
           onMouseEnter={() => setIsHovering(true)}
@@ -124,124 +136,157 @@ export default function GlobalHealthMap() {
           onMouseDown={handleMouseDown}
           onMouseMove={handleMouseMove}
           onMouseUp={handleMouseUp}
+          style={{ 
+            perspective: '1500px',
+            perspectiveOrigin: '50% 50%'
+          }}
         >
           <div 
-            className="relative w-80 h-80 rounded-full transform-gpu transition-transform duration-500 hover:scale-110 shadow-2xl"
+            className="relative w-80 h-80 rounded-full transition-all duration-500 hover:scale-105"
             style={{
               background: `
-                radial-gradient(circle at 30% 20%, rgba(255,255,255,0.9) 0%, rgba(255,255,255,0.5) 12%, rgba(255,255,255,0.1) 25%, transparent 40%),
-                radial-gradient(circle at 70% 80%, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0.6) 20%, rgba(0,0,0,0.2) 35%, transparent 50%),
-                radial-gradient(ellipse at center, 
-                  #0f172a 0%, 
-                  #1e293b 10%, 
-                  #334155 20%, 
-                  #475569 35%, 
-                  #64748b 50%, 
-                  #94a3b8 70%, 
-                  #cbd5e1 85%, 
-                  #e2e8f0 100%
-                ),
-                linear-gradient(135deg, 
-                  #1e40af 0%, 
-                  #1d4ed8 25%, 
-                  #2563eb 50%, 
-                  #3b82f6 75%, 
-                  #60a5fa 100%
-                )
+                radial-gradient(ellipse 200% 150% at 25% 15%, rgba(255,255,255,0.95) 0%, rgba(255,255,255,0.6) 8%, rgba(255,255,255,0.2) 20%, transparent 40%),
+                radial-gradient(ellipse 150% 200% at 75% 85%, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0.6) 15%, rgba(0,0,0,0.2) 30%, transparent 50%),
+                conic-gradient(from ${rotation}deg at 50% 50%, 
+                  #1e3a8a 0deg, #1e40af 60deg, #1d4ed8 120deg, #2563eb 180deg, 
+                  #3b82f6 240deg, #60a5fa 300deg, #1e3a8a 360deg),
+                radial-gradient(circle at center, #0f172a 0%, #1e293b 30%, #334155 60%, #475569 80%, #64748b 100%)
               `,
               transform: `
-                perspective(1000px) 
-                rotateX(${globeRotation.x}deg) 
-                rotateY(${rotation + globeRotation.y}deg) 
-                rotateZ(${rotation * 0.2}deg)
-                translateZ(20px)
+                rotateX(${globeRotation.x - 5}deg) 
+                rotateY(${rotation + globeRotation.y}deg)
+                rotateZ(${Math.sin(rotation * Math.PI / 180) * 1}deg)
               `,
               boxShadow: `
-                inset -100px -100px 200px rgba(0,0,0,0.9),
-                inset 80px 80px 200px rgba(255,255,255,0.2),
-                0 0 200px rgba(59, 130, 246, 0.8),
-                0 0 400px rgba(34, 197, 94, 0.5),
-                0 80px 160px rgba(0,0,0,0.6),
-                0 0 50px rgba(255,255,255,0.3)
+                inset -150px -100px 250px rgba(0,0,0,0.95),
+                inset 100px 80px 200px rgba(255,255,255,0.15),
+                0 0 150px rgba(59, 130, 246, 1),
+                0 0 300px rgba(34, 197, 94, 0.6),
+                0 80px 120px rgba(0,0,0,0.9)
               `,
-              border: '4px solid rgba(255,255,255,0.2)',
-              filter: 'contrast(1.3) saturate(1.4) brightness(1.15)',
-              backgroundBlendMode: 'multiply, screen, normal'
+              border: '4px solid rgba(255,255,255,0.1)',
+              filter: 'contrast(1.4) saturate(1.5) brightness(1.2)',
+              transformStyle: 'preserve-3d'
             }}
           >
-            {/* Detailed Ocean Layers */}
+            {/* Realistic Ocean Base */}
             <div 
               className="absolute inset-0 rounded-full overflow-hidden"
               style={{
                 background: `
-                  radial-gradient(ellipse 70% 45% at 25% 20%, #0ea5e9 0%, #0284c7 20%, #0369a1 40%, #075985 60%, #0c4a6e 100%),
-                  radial-gradient(ellipse 50% 70% at 75% 80%, #0891b2 0%, #0e7490 25%, #155e75 50%, #164e63 75%, #082f49 100%),
-                  conic-gradient(from ${rotation * 1.5}deg at 50% 50%, 
-                    #1e40af 0deg, #0ea5e9 45deg, #0284c7 90deg, #0369a1 135deg, #075985 180deg, 
-                    #0c4a6e 225deg, #155e75 270deg, #164e63 315deg, #1e40af 360deg)
+                  radial-gradient(ellipse 80% 60% at 40% 30%, #1e40af 0%, #1d4ed8 25%, #2563eb 50%, #3b82f6 75%, #60a5fa 100%),
+                  radial-gradient(ellipse 60% 80% at 60% 70%, #0ea5e9 0%, #0284c7 30%, #0369a1 60%, #075985 90%)
                 `,
-                transform: `rotate(${rotation * 0.3}deg)`,
-                opacity: 0.95,
-                mixBlendMode: 'multiply'
-              }}
-            />
-
-            {/* Realistic Continental Landmasses */}
-            <div 
-              className="absolute inset-0 rounded-full overflow-hidden"
-              style={{
-                background: `
-                  radial-gradient(ellipse 30% 18% at 35% 25%, #654321 0%, #8b7355 25%, #a0875f 50%, transparent 80%),
-                  radial-gradient(ellipse 25% 15% at 60% 35%, #8b7355 0%, #a0875f 30%, #cd853f 60%, transparent 90%),
-                  radial-gradient(ellipse 22% 30% at 20% 45%, #cd853f 0%, #d2b48c 40%, #f5deb3 70%, transparent 95%),
-                  radial-gradient(ellipse 35% 25% at 50% 20%, #556b2f 0%, #6b8e23 30%, #9acd32 60%, transparent 90%),
-                  radial-gradient(ellipse 18% 12% at 70% 30%, #8fbc8f 0%, #9acd32 50%, #adff2f 80%, transparent 100%)
-                `,
-                transform: `rotate(${rotation * 0.2}deg)`,
-                opacity: 0.85
-              }}
-            />
-
-            {/* India Subcontinent - Enhanced Detail */}
-            <div 
-              className="absolute inset-0 rounded-full overflow-hidden"
-              style={{
-                background: `
-                  radial-gradient(ellipse 15% 22% at 55% 42%, #8b7355 0%, #cd853f 30%, #d2b48c 60%, #f5deb3 80%, transparent 100%),
-                  radial-gradient(ellipse 10% 8% at 52% 38%, #556b2f 0%, #6b8e23 40%, #9acd32 70%, transparent 95%),
-                  radial-gradient(ellipse 8% 6% at 54% 45%, #daa520 0%, #f4a460 50%, #ffb347 80%, transparent 100%),
-                  radial-gradient(ellipse 6% 4% at 56% 40%, #228b22 0%, #32cd32 60%, transparent 100%)
-                `,
-                transform: `rotate(${rotation * 0.15}deg)`,
+                transform: `rotate(${rotation * 0.1}deg)`,
                 opacity: 0.9
               }}
             />
 
-            {/* Dynamic Cloud Cover System */}
+            {/* North America */}
             <div 
               className="absolute inset-0 rounded-full overflow-hidden"
               style={{
                 background: `
-                  radial-gradient(ellipse 40% 20% at 20% 25%, rgba(255,255,255,0.7) 0%, rgba(255,255,255,0.4) 40%, transparent 70%),
-                  radial-gradient(ellipse 35% 18% at 70% 45%, rgba(255,255,255,0.6) 0%, rgba(255,255,255,0.3) 50%, transparent 80%),
-                  radial-gradient(ellipse 30% 15% at 35% 65%, rgba(255,255,255,0.5) 0%, rgba(255,255,255,0.2) 60%, transparent 90%),
-                  radial-gradient(ellipse 25% 12% at 80% 70%, rgba(255,255,255,0.4) 0%, rgba(255,255,255,0.15) 70%, transparent 100%),
-                  linear-gradient(${rotation + 45}deg, transparent 30%, rgba(255,255,255,0.1) 50%, transparent 70%)
+                  radial-gradient(ellipse 25% 35% at 25% 35%, #228b22 0%, #32cd32 30%, #9acd32 60%, transparent 85%),
+                  radial-gradient(ellipse 15% 20% at 20% 30%, #8b4513 0%, #cd853f 40%, transparent 70%),
+                  radial-gradient(ellipse 12% 15% at 30% 25%, #556b2f 0%, #6b8e23 50%, transparent 80%)
                 `,
-                transform: `rotate(${rotation * 0.6}deg)`,
-                opacity: 0.75
+                transform: `rotate(${rotation * 0.08}deg)`,
+                opacity: 0.85
               }}
             />
 
-            {/* Polar Ice Caps - Enhanced */}
+            {/* Europe and Asia */}
             <div 
               className="absolute inset-0 rounded-full overflow-hidden"
               style={{
                 background: `
-                  radial-gradient(ellipse 50% 12% at 50% 8%, rgba(255,255,255,0.95) 0%, rgba(240,248,255,0.8) 50%, rgba(224,255,255,0.4) 80%, transparent 100%),
-                  radial-gradient(ellipse 45% 10% at 50% 92%, rgba(255,255,255,0.9) 0%, rgba(240,248,255,0.7) 60%, rgba(224,255,255,0.3) 90%, transparent 100%)
+                  radial-gradient(ellipse 45% 25% at 65% 30%, #228b22 0%, #32cd32 20%, #9acd32 40%, #adff2f 60%, transparent 80%),
+                  radial-gradient(ellipse 35% 20% at 70% 25%, #8b4513 0%, #cd853f 30%, #d2b48c 50%, transparent 75%),
+                  radial-gradient(ellipse 25% 15% at 75% 35%, #654321 0%, #8b7355 40%, transparent 70%)
                 `,
+                transform: `rotate(${rotation * 0.12}deg)`,
+                opacity: 0.8
+              }}
+            />
+
+            {/* Africa */}
+            <div 
+              className="absolute inset-0 rounded-full overflow-hidden"
+              style={{
+                background: `
+                  radial-gradient(ellipse 20% 35% at 55% 55%, #daa520 0%, #f4a460 25%, #cd853f 50%, #8b4513 75%, transparent 90%),
+                  radial-gradient(ellipse 15% 25% at 58% 50%, #228b22 0%, #32cd32 30%, transparent 70%),
+                  radial-gradient(ellipse 12% 20% at 52% 65%, #8b4513 0%, #cd853f 40%, transparent 80%)
+                `,
+                transform: `rotate(${rotation * 0.09}deg)`,
                 opacity: 0.85
+              }}
+            />
+
+            {/* South America */}
+            <div 
+              className="absolute inset-0 rounded-full overflow-hidden"
+              style={{
+                background: `
+                  radial-gradient(ellipse 18% 40% at 35% 65%, #228b22 0%, #32cd32 25%, #9acd32 50%, transparent 80%),
+                  radial-gradient(ellipse 12% 25% at 38% 60%, #8b4513 0%, #cd853f 35%, transparent 70%),
+                  radial-gradient(ellipse 8% 15% at 32% 75%, #daa520 0%, #f4a460 50%, transparent 85%)
+                `,
+                transform: `rotate(${rotation * 0.07}deg)`,
+                opacity: 0.8
+              }}
+            />
+
+            {/* Australia */}
+            <div 
+              className="absolute inset-0 rounded-full overflow-hidden"
+              style={{
+                background: `
+                  radial-gradient(ellipse 15% 12% at 75% 70%, #daa520 0%, #f4a460 40%, #cd853f 70%, transparent 90%),
+                  radial-gradient(ellipse 10% 8% at 78% 68%, #8b4513 0%, #cd853f 50%, transparent 85%)
+                `,
+                transform: `rotate(${rotation * 0.06}deg)`,
+                opacity: 0.85
+              }}
+            />
+
+            {/* India Subcontinent - Highlighted */}
+            <div 
+              className="absolute inset-0 rounded-full overflow-hidden"
+              style={{
+                background: `
+                  radial-gradient(ellipse 8% 15% at 68% 40%, #ff6b35 0%, #f7931e 30%, #ffc72c 60%, transparent 85%),
+                  radial-gradient(ellipse 6% 10% at 70% 42%, #228b22 0%, #32cd32 40%, transparent 80%)
+                `,
+                transform: `rotate(${rotation * 0.11}deg)`,
+                opacity: 0.9
+              }}
+            />
+
+            {/* Realistic Cloud Cover */}
+            <div 
+              className="absolute inset-0 rounded-full overflow-hidden"
+              style={{
+                background: `
+                  radial-gradient(ellipse 30% 15% at 30% 20%, rgba(255,255,255,0.6) 0%, rgba(255,255,255,0.3) 50%, transparent 80%),
+                  radial-gradient(ellipse 25% 12% at 80% 60%, rgba(255,255,255,0.5) 0%, rgba(255,255,255,0.2) 60%, transparent 90%),
+                  radial-gradient(ellipse 20% 10% at 50% 80%, rgba(255,255,255,0.4) 0%, rgba(255,255,255,0.15) 70%, transparent 100%)
+                `,
+                transform: `rotate(${rotation * 0.4}deg)`,
+                opacity: 0.7
+              }}
+            />
+
+            {/* Ice Caps */}
+            <div 
+              className="absolute inset-0 rounded-full overflow-hidden"
+              style={{
+                background: `
+                  radial-gradient(ellipse 40% 8% at 50% 5%, rgba(255,255,255,0.9) 0%, rgba(240,248,255,0.6) 60%, transparent 100%),
+                  radial-gradient(ellipse 35% 6% at 50% 95%, rgba(255,255,255,0.8) 0%, rgba(240,248,255,0.5) 70%, transparent 100%)
+                `,
+                opacity: 0.9
               }}
             />
 

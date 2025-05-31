@@ -5,8 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Download, Printer, FileText, Calendar, User, Phone, MapPin, Activity } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import html2canvas from "html2canvas";
-import jsPDF from "jspdf";
+// Lightweight PDF generation using browser's print API
 
 interface Medicine {
   name: string;
@@ -59,47 +58,52 @@ export default function PrescriptionGenerator({ prescriptionData, onClose }: Pre
   const prescriptionRef = useRef<HTMLDivElement>(null);
   const [isGenerating, setIsGenerating] = useState(false);
 
-  const downloadPDF = async () => {
-    if (!prescriptionRef.current) return;
-    
+  const downloadPDF = () => {
     setIsGenerating(true);
     try {
-      const canvas = await html2canvas(prescriptionRef.current, {
-        scale: 2,
-        useCORS: true,
-        allowTaint: true
-      });
+      // Use browser's built-in print functionality
+      const printWindow = window.open('', '_blank');
+      const prescriptionHTML = prescriptionRef.current?.innerHTML || '';
       
-      const imgData = canvas.toDataURL('image/png');
-      const pdf = new jsPDF('p', 'mm', 'a4');
-      const imgWidth = 210;
-      const pageHeight = 295;
-      const imgHeight = (canvas.height * imgWidth) / canvas.width;
-      let heightLeft = imgHeight;
-      
-      let position = 0;
-      
-      pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
-      heightLeft -= pageHeight;
-      
-      while (heightLeft >= 0) {
-        position = heightLeft - imgHeight;
-        pdf.addPage();
-        pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
-        heightLeft -= pageHeight;
-      }
-      
-      pdf.save(`prescription_${prescriptionData.patientName.replace(/\s+/g, '_')}_${new Date().toISOString().split('T')[0]}.pdf`);
+      printWindow?.document.write(`
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <title>Prescription - ${prescriptionData.patientName}</title>
+          <style>
+            body { font-family: Arial, sans-serif; margin: 20px; }
+            .prescription-header { background: #5BC0EB; color: white; padding: 20px; text-align: center; }
+            .patient-info { margin: 20px 0; }
+            .medicines-list { margin: 20px 0; }
+            .medicine-item { margin: 10px 0; padding: 10px; border: 1px solid #ddd; }
+            @media print { 
+              body { margin: 0; }
+              .print-only { display: block; }
+              .no-print { display: none; }
+            }
+          </style>
+        </head>
+        <body>
+          ${prescriptionHTML}
+          <script>
+            window.onload = function() {
+              window.print();
+              window.close();
+            }
+          </script>
+        </body>
+        </html>
+      `);
       
       toast({
-        title: "Download Complete",
-        description: "Prescription has been downloaded successfully.",
+        title: "Print Dialog Opened",
+        description: "Use your browser's print dialog to save as PDF.",
       });
     } catch (error) {
-      console.error('Error generating PDF:', error);
+      console.error('Error opening print dialog:', error);
       toast({
-        title: "Download Failed",
-        description: "Could not generate PDF. Please try again.",
+        title: "Print Failed",
+        description: "Could not open print dialog. Please try again.",
         variant: "destructive"
       });
     } finally {

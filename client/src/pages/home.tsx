@@ -22,7 +22,7 @@ import {
   Mic 
 } from "lucide-react";
 import { useState } from "react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -263,6 +263,9 @@ export default function Home() {
               <DialogTitle className="text-center text-lg font-semibold text-gray-800">
                 Patient Details & Language Selection
               </DialogTitle>
+              <DialogDescription className="text-center text-sm text-gray-600">
+                Please provide your details and preferred language for the consultation
+              </DialogDescription>
             </DialogHeader>
             <div className="space-y-4">
               <div className="space-y-2">
@@ -362,6 +365,7 @@ export default function Home() {
                       <SelectValue placeholder="Select" />
                     </SelectTrigger>
                     <SelectContent>
+                      <SelectItem value="not-known">Not Known</SelectItem>
                       <SelectItem value="A+">A+</SelectItem>
                       <SelectItem value="A-">A-</SelectItem>
                       <SelectItem value="B+">B+</SelectItem>

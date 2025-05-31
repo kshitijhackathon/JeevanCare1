@@ -38,12 +38,11 @@ We take security vulnerabilities seriously, especially those affecting medical d
 ### How to Report
 
 **For Security Issues:**
-- Email: security@ai-healthcare.com
+- Email: codefreaks0@gmail.com
 - Subject: [SECURITY] Vulnerability Report
-- Use our PGP key for sensitive reports: [Key ID: ABC123...]
 
 **For Medical Safety Issues:**
-- Email: medical-safety@ai-healthcare.com
+- Email: codefreaks0@gmail.com
 - Subject: [URGENT] Medical Safety Concern
 - Include steps to reproduce and potential patient impact
 
@@ -125,9 +124,9 @@ We recognize security researchers who help improve our platform:
 
 ## Security Contact
 
-- **Security Team**: security@ai-healthcare.com
-- **Medical Safety**: medical-safety@ai-healthcare.com
-- **General Contact**: support@ai-healthcare.com
+- **Security Team**: codefreaks0@gmail.com
+- **Medical Safety**: codefreaks0@gmail.com
+- **General Contact**: codefreaks0@gmail.com
 
 ## Updates
 

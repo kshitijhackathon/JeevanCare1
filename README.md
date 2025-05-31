@@ -229,9 +229,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## 📞 Contact & Support
 
-- **Email**: healthcare.ai.support@example.com
-- **Documentation**: [docs.ai-healthcare.com](https://docs.ai-healthcare.com)
-- **Demo**: [demo.ai-healthcare.com](https://demo.ai-healthcare.com)
+- **Email**: codefreaks0@gmail.com
 - **Issues**: [GitHub Issues](https://github.com/yourusername/ai-healthcare-assistant/issues)
 
 ## 🙏 Acknowledgments

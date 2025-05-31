@@ -274,7 +274,7 @@ Contributors will be recognized in:
 ## Questions?
 
 - Create an issue for technical questions
-- Email healthcare.ai.support@example.com for medical accuracy concerns
+- Email codefreaks0@gmail.com for medical accuracy concerns
 - Join our community discussions for general questions
 
 Thank you for helping improve global healthcare accessibility through technology!

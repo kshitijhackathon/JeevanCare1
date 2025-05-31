@@ -96,6 +96,5 @@ We welcome contributions to improve healthcare accessibility. Please read our [C
 ## Support
 
 For technical support or medical accuracy concerns, please contact:
-- Email: healthcare.ai.support@example.com
+- Email: codefreaks0@gmail.com
 - Issues: [GitHub Issues](https://github.com/yourusername/ai-healthcare-assistant/issues)
-- Documentation: [Project Docs](https://docs.ai-healthcare.com)

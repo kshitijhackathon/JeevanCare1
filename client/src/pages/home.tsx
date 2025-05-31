@@ -2,6 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/useAuth";
 import Header from "@/components/header";
 import BottomNavigation from "@/components/bottom-navigation";
+import ConsultationModal from "@/components/consultation-modal";
 import EmergencyPanel from "@/components/emergency-panel";
 import HealthMetrics from "@/components/health-metrics";
 import { Card, CardContent } from "@/components/ui/card";
@@ -193,7 +194,12 @@ export default function Home() {
 
       <BottomNavigation />
       
-
+      {showConsultation && (
+        <ConsultationModal 
+          isOpen={showConsultation}
+          onClose={() => setShowConsultation(false)}
+        />
+      )}
       
       {showEmergency && (
         <EmergencyPanel 

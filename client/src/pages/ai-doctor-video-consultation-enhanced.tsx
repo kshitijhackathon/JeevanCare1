@@ -464,19 +464,33 @@ function VideoConsultationInterface({ patientDetails }: { patientDetails: any })
     }, 1500);
   };
 
-  // Local voice recognition using browser's Web Speech API
+  // Enhanced voice recognition with better error handling
   const startVoiceRecording = () => {
+    // Check browser support
     if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
       toast({
-        title: "Voice Recognition Not Supported",
-        description: "Your browser doesn't support voice recognition. Please type your message.",
+        title: "Voice Recognition Unavailable",
+        description: "This feature needs Chrome or Edge browser. Please type your message instead.",
         variant: "destructive"
+      });
+      return;
+    }
+
+    // Check if already recording
+    if (isRecording) {
+      toast({
+        title: "Already Recording",
+        description: "Please wait for current recording to finish.",
+        variant: "default"
       });
       return;
     }
 
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
     const recognition = new SpeechRecognition();
+    
+    // Store recognition instance for stopping
+    (window as any).currentRecognition = recognition;
     
     // Configure recognition for Indian languages
     const languageMap: { [key: string]: string } = {
@@ -553,6 +567,14 @@ function VideoConsultationInterface({ patientDetails }: { patientDetails: any })
         variant: "destructive"
       });
     }
+  };
+
+  // Stop voice recording function
+  const stopVoiceRecording = () => {
+    if ((window as any).currentRecognition) {
+      (window as any).currentRecognition.stop();
+    }
+    setIsRecording(false);
   };
 
   const stopSpeaking = () => {
@@ -668,6 +690,11 @@ function VideoConsultationInterface({ patientDetails }: { patientDetails: any })
 
           {/* Message Input */}
           <div className="p-4 border-t border-gray-700">
+            {!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window) && (
+              <div className="mb-2 p-2 bg-yellow-900/50 border border-yellow-700 rounded text-sm text-yellow-200">
+                <strong>Voice Note:</strong> Voice recognition needs Chrome/Edge browser and internet connection.
+              </div>
+            )}
             <div className="flex space-x-2 mb-4">
               <Input
                 value={currentMessage}
@@ -677,15 +704,14 @@ function VideoConsultationInterface({ patientDetails }: { patientDetails: any })
                 onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
               />
               <Button 
-                onClick={isRecording ? () => {} : startVoiceRecording} 
+                onClick={isRecording ? stopVoiceRecording : startVoiceRecording} 
                 size="sm"
                 variant={isRecording ? "destructive" : "secondary"}
-                disabled={isRecording}
               >
                 {isRecording ? (
                   <div className="flex items-center space-x-1">
                     <div className="w-2 h-2 bg-red-400 rounded-full animate-pulse"></div>
-                    <span className="text-xs">Recording...</span>
+                    <span className="text-xs">Stop</span>
                   </div>
                 ) : (
                   <Mic className="h-4 w-4" />

@@ -39,6 +39,13 @@ A comprehensive multilingual AI-powered healthcare platform that revolutionizes 
 - **Doctor Escalation System**: Seamless transition to human medical professionals
 - **Health Assistant Chatbot**: 24/7 multilingual health support
 
+## 🔐 Demo Login Credentials
+
+If you're unable to register or login, you can use these test credentials:
+
+**Email:** `kshitijsingh066@gmail.com`  
+**Password:** `Kshitij@2004a`
+
 ## 🛠️ Technology Stack
 
 ### Frontend
@@ -293,4 +300,5 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 **Built with ❤️ for improving global healthcare accessibility**
 
-*This project represents the future of AI-powered healthcare, combining cutting-edge technology with human-centered design to create meaningful impact in medical care delivery.*
+*This project represents the future of AI-powered healthcare, combining cutting-edge technology with human-centered design to create meaningful impact in medical care delivery.*# jeevancare
+# jeevancare

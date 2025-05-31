@@ -23,6 +23,7 @@ import { mistralMedicalEngine } from "./mistral-medical-engine";
 import { enhancedTTSEngine } from "./enhanced-tts-engine";
 import { indicMedicalEngine } from "./indic-medical-engine";
 import { humanVoiceEngine } from "./human-voice-engine";
+import { whisperSTTService } from "./whisper-stt-service";
 import multer from 'multer';
 
 if (!process.env.STRIPE_SECRET_KEY) {
@@ -37,35 +38,39 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
 const demoCart = new Map();
 
 export async function registerRoutes(app: Express): Promise<Server> {
-  // Whisper transcription endpoint for accurate voice recognition
+  // Local Whisper STT endpoint for accurate voice recognition
   app.post('/api/whisper-transcribe', async (req, res) => {
     try {
-      if (!process.env.OPENAI_API_KEY) {
-        return res.status(500).json({ error: 'OpenAI API key not configured' });
+      const { audioData, language } = req.body;
+      
+      if (!audioData) {
+        return res.status(400).json({ error: 'Audio data is required' });
       }
 
-      // Forward FormData to OpenAI Whisper API
-      const response = await fetch('https://api.openai.com/v1/audio/transcriptions', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${process.env.OPENAI_API_KEY}`,
-        },
-        body: req.body
+      // Use local Whisper service for transcription
+      const result = await whisperSTTService.transcribeAudio({
+        audioData,
+        languageHint: language
       });
 
-      if (!response.ok) {
-        const errorText = await response.text();
-        throw new Error(`Whisper API error: ${response.status} - ${errorText}`);
+      if (result.success) {
+        res.json({
+          text: result.text,
+          language: result.language,
+          confidence: result.confidence
+        });
+      } else {
+        res.status(500).json({
+          error: 'Transcription failed',
+          message: result.error || 'Unknown error'
+        });
       }
 
-      const result = await response.json();
-      res.json(result);
-
     } catch (error) {
-      console.error('Whisper transcription error:', error);
+      console.error('Local Whisper transcription error:', error);
       res.status(500).json({ 
-        error: 'Transcription failed',
-        message: error.message 
+        error: 'Transcription service unavailable',
+        message: error instanceof Error ? error.message : 'Unknown error'
       });
     }
   });

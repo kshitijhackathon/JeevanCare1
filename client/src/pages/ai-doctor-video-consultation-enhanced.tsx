@@ -465,47 +465,119 @@ function VideoConsultationInterface({ patientDetails }: { patientDetails: any })
   };
 
   // Voice recording functionality
-  const startVoiceRecording = () => {
-    if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
+  const startVoiceRecording = async () => {
+    try {
+      // Check for MediaRecorder support
+      if (!navigator.mediaDevices || !MediaRecorder) {
+        toast({
+          title: "Voice Recording Not Supported",
+          description: "Your browser doesn't support voice recording. Please type your message.",
+          variant: "destructive"
+        });
+        return;
+      }
+
+      // Get audio stream
+      const stream = await navigator.mediaDevices.getUserMedia({ 
+        audio: {
+          sampleRate: 16000,
+          channelCount: 1,
+          echoCancellation: true,
+          noiseSuppression: true
+        } 
+      });
+
+      setIsRecording(true);
+      const mediaRecorder = new MediaRecorder(stream, {
+        mimeType: 'audio/webm;codecs=opus'
+      });
+
+      const audioChunks: Blob[] = [];
+
+      mediaRecorder.ondataavailable = (event) => {
+        if (event.data.size > 0) {
+          audioChunks.push(event.data);
+        }
+      };
+
+      mediaRecorder.onstop = async () => {
+        const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
+        
+        // Convert to base64 for transmission
+        const reader = new FileReader();
+        reader.onloadend = async () => {
+          const base64Audio = (reader.result as string).split(',')[1];
+          
+          try {
+            // Send to our local Whisper service
+            const response = await fetch('/api/whisper-transcribe', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({
+                audioData: base64Audio,
+                language: selectedLanguage.code
+              })
+            });
+
+            if (response.ok) {
+              const result = await response.json();
+              setCurrentMessage(result.text);
+              
+              if (result.confidence < 0.7) {
+                toast({
+                  title: "Low Audio Quality",
+                  description: "Speech recognition confidence is low. Please speak clearly or try again.",
+                  variant: "default"
+                });
+              }
+            } else {
+              throw new Error('Transcription failed');
+            }
+          } catch (error) {
+            console.error('Whisper transcription error:', error);
+            toast({
+              title: "Voice Recognition Error",
+              description: "Could not process your voice. Please try again or type your message.",
+              variant: "destructive"
+            });
+          }
+        };
+        
+        reader.readAsDataURL(audioBlob);
+        
+        // Clean up
+        stream.getTracks().forEach(track => track.stop());
+        setIsRecording(false);
+      };
+
+      // Auto-stop recording after 30 seconds
+      setTimeout(() => {
+        if (mediaRecorder.state === 'recording') {
+          mediaRecorder.stop();
+        }
+      }, 30000);
+
+      mediaRecorder.start();
+
+      // Stop recording when user clicks again (implement stop functionality)
+      // For now, auto-stop after 5 seconds for demo
+      setTimeout(() => {
+        if (mediaRecorder.state === 'recording') {
+          mediaRecorder.stop();
+        }
+      }, 5000);
+
+    } catch (error) {
+      console.error('Voice recording error:', error);
+      setIsRecording(false);
       toast({
-        title: "Voice Recognition Not Supported",
-        description: "Your browser doesn't support voice recognition. Please type your message.",
+        title: "Voice Recording Error",
+        description: "Could not access microphone. Please check permissions or type your message.",
         variant: "destructive"
       });
-      return;
     }
-
-    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-    const recognition = new SpeechRecognition();
-    
-    recognition.lang = selectedLanguage.code === 'eng_Latn' ? 'en-IN' : 
-                     selectedLanguage.code === 'hin_Deva' ? 'hi-IN' : 'en-IN';
-    recognition.continuous = false;
-    recognition.interimResults = false;
-
-    setIsRecording(true);
-
-    recognition.onresult = (event: any) => {
-      const transcript = event.results[0][0].transcript;
-      setCurrentMessage(transcript);
-      setIsRecording(false);
-    };
-
-    recognition.onerror = (event: any) => {
-      console.error('Speech recognition error:', event.error);
-      setIsRecording(false);
-      toast({
-        title: "Voice Recognition Error",
-        description: "Could not capture your voice. Please try again or type your message.",
-        variant: "destructive"
-      });
-    };
-
-    recognition.onend = () => {
-      setIsRecording(false);
-    };
-
-    recognition.start();
   };
 
   const stopSpeaking = () => {

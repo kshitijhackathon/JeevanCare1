@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { ttsEngine } from "@/lib/tts-engine";
-import PrescriptionGenerator from "@/components/prescription-generator";
+import MedicalPrescription from "@/components/medical-prescription";
 import { 
   Video, 
   VideoOff, 
@@ -260,8 +260,21 @@ const CompactAIDoctorConsultation = () => {
     }
   };
 
+  const handleGeneratePrescription = async () => {
+    await generatePrescriptionFromConversation();
+  };
+
   const generatePrescriptionFromConversation = async () => {
     try {
+      // Get patient details from sessionStorage (set in home page modal)
+      const storedPatientDetails = sessionStorage.getItem('patientDetails');
+      const patientDetails = storedPatientDetails ? JSON.parse(storedPatientDetails) : {
+        name: 'Patient',
+        age: '25',
+        gender: 'Male',
+        bloodGroup: 'Not Known'
+      };
+
       // Extract symptoms and conversation context
       const patientSymptoms = chatMessages
         .filter(msg => msg.sender === 'user')
@@ -278,9 +291,9 @@ const CompactAIDoctorConsultation = () => {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          patientName: 'Patient', // Default name, can be enhanced
-          age: '25', // Default age, can be enhanced
-          gender: 'M', // Default gender, can be enhanced
+          patientName: patientDetails.name,
+          age: patientDetails.age,
+          gender: patientDetails.gender,
           symptoms: patientSymptoms,
           complaint: patientSymptoms,
           language: selectedLanguage.code
@@ -290,15 +303,21 @@ const CompactAIDoctorConsultation = () => {
       if (prescriptionResponse.ok) {
         const prescriptionData = await prescriptionResponse.json();
         
+        // Format medicines for the prescription component
+        const formattedMedicines = prescriptionData.medicines?.map((med: any) => ({
+          name: med.name || med.medicine || 'Medicine',
+          dosage: med.dosage || med.dose || '1 tablet',
+          frequency: med.frequency || med.freq || 'Twice daily',
+          duration: med.duration || med.days ? `${med.days} days` : '7 days',
+          instructions: med.instructions || med.timing || 'After meals'
+        })) || [];
+        
         setConsultationData({
-          patientDetails: {
-            name: 'Patient',
-            age: '25',
-            gender: 'M'
-          },
+          patientDetails,
           symptoms: patientSymptoms,
           diagnosis: doctorAdvice,
-          prescription: prescriptionData
+          medicines: formattedMedicines,
+          prescriptionData
         });
         
         setShowPrescription(true);
@@ -343,11 +362,15 @@ const CompactAIDoctorConsultation = () => {
         </div>
         
         <div className="max-w-4xl mx-auto p-4">
-          <PrescriptionGenerator
-            patientDetails={consultationData.patientDetails}
+          <MedicalPrescription
+            patientName={consultationData.patientDetails.name}
+            age={consultationData.patientDetails.age}
+            date={new Date().toLocaleDateString()}
+            bloodGroup={consultationData.patientDetails.bloodGroup || 'Not Known'}
+            gender={consultationData.patientDetails.gender}
             symptoms={consultationData.symptoms}
             diagnosis={consultationData.diagnosis}
-            prescription={consultationData.prescription}
+            medicines={consultationData.medicines}
           />
         </div>
       </div>
@@ -563,9 +586,7 @@ const CompactAIDoctorConsultation = () => {
                   
                   <Button
                     onClick={() => {
-                      const endMessage = selectedLanguage.code === 'hin_Deva' ? 'धन्यवाद' : 'Thank you';
-                      setCurrentMessage(endMessage);
-                      sendMessage();
+                      handleGeneratePrescription();
                     }}
                     variant="secondary"
                     size="sm"

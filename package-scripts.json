@@ -1,0 +1,11 @@
+{
+  "scripts": {
+    "build": "npm run build:client && npm run build:server",
+    "build:client": "cd client && npm run build",
+    "build:server": "tsc server/**/*.ts --outDir dist",
+    "start": "node dist/server/index.js",
+    "dev": "tsx server/index.ts",
+    "db:push": "drizzle-kit push:pg",
+    "db:studio": "drizzle-kit studio"
+  }
+}

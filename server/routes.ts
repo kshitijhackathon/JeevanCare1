@@ -18,6 +18,8 @@ import { groqMedicalService } from "./groq-medical-service";
 import { geminiGrokMedicalEngine } from "./gemini-grok-medical-engine";
 import { enhancedPrescriptionEngine } from "./enhanced-prescription-engine";
 import { multilingualMedicalEngine } from "./multilingual-medical-engine";
+import { spawn } from "child_process";
+import path from "path";
 import { localMultilingualEngine } from "./local-multilingual-engine";
 import { mistralMedicalEngine } from "./mistral-medical-engine";
 import { enhancedTTSEngine } from "./enhanced-tts-engine";
@@ -1773,6 +1775,58 @@ export async function registerRoutes(app: Express): Promise<Server> {
         response: language === 'hindi' 
           ? "Medical consultation temporarily unavailable. Please try again."
           : "Medical consultation temporarily unavailable. Please try again."
+      });
+    }
+  });
+
+  // Local Whisper transcription endpoint
+  app.post('/api/whisper-transcribe', async (req, res) => {
+    try {
+      const { audioData, language } = req.body;
+      
+      if (!audioData) {
+        return res.status(400).json({ error: 'Audio data is required' });
+      }
+
+      // Call Local Whisper service
+      const result = await new Promise<any>((resolve, reject) => {
+        const pythonProcess = spawn('python3', [
+          path.join(__dirname, 'local-whisper-service.py'),
+          audioData,
+          language || 'auto'
+        ]);
+
+        let output = '';
+        let errorOutput = '';
+
+        pythonProcess.stdout.on('data', (data) => {
+          output += data.toString();
+        });
+
+        pythonProcess.stderr.on('data', (data) => {
+          errorOutput += data.toString();
+        });
+
+        pythonProcess.on('close', (code) => {
+          if (code === 0) {
+            try {
+              const result = JSON.parse(output);
+              resolve(result);
+            } catch (parseError) {
+              reject(new Error(`Failed to parse Whisper output: ${output}`));
+            }
+          } else {
+            reject(new Error(`Whisper process failed with code ${code}: ${errorOutput}`));
+          }
+        });
+      });
+
+      res.json(result);
+    } catch (error: any) {
+      console.error('Local Whisper transcription error:', error);
+      res.status(500).json({ 
+        error: 'Transcription failed',
+        details: error.message 
       });
     }
   });

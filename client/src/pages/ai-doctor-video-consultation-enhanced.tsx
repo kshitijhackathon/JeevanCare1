@@ -497,7 +497,7 @@ function VideoConsultationInterface({ patientDetails }: { patientDetails: any })
     }, 1500);
   };
 
-  // Enhanced voice recognition with better error handling
+  // Voice recording with local Whisper fallback
   const startVoiceRecording = () => {
     // Check browser support
     if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {

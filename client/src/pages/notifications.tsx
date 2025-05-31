@@ -110,7 +110,7 @@ export default function Notifications() {
     const date = new Date(dateString);
     const now = new Date();
     const diffInMinutes = Math.floor((now.getTime() - date.getTime()) / (1000 * 60));
-    
+
     if (diffInMinutes < 1) return 'Just now';
     if (diffInMinutes < 60) return `${diffInMinutes}m ago`;
     if (diffInMinutes < 1440) return `${Math.floor(diffInMinutes / 60)}h ago`;
@@ -274,7 +274,7 @@ export default function Notifications() {
                         }`}>
                           {getNotificationIcon(notification.type, notification.priority)}
                         </div>
-                        
+
                         <div className="flex-1">
                           <div className="flex items-start justify-between mb-2">
                             <div className="flex-1">
@@ -323,7 +323,7 @@ export default function Notifications() {
                                 </Button>
                               )}
                             </div>
-                            
+
                             <div className="flex items-center text-xs text-gray-400">
                               <Clock className="w-3 h-3 mr-1" />
                               {new Date(notification.createdAt).toLocaleDateString()}
@@ -369,7 +369,7 @@ export default function Notifications() {
                 </div>
                 <input type="checkbox" defaultChecked className="rounded border-gray-300" />
               </div>
-              
+
               <div className="flex items-center justify-between">
                 <div>
                   <p className="font-medium text-sm">Appointment Reminders</p>
@@ -377,7 +377,7 @@ export default function Notifications() {
                 </div>
                 <input type="checkbox" defaultChecked className="rounded border-gray-300" />
               </div>
-              
+
               <div className="flex items-center justify-between">
                 <div>
                   <p className="font-medium text-sm">Medication Reminders</p>
@@ -385,7 +385,7 @@ export default function Notifications() {
                 </div>
                 <input type="checkbox" defaultChecked className="rounded border-gray-300" />
               </div>
-              
+
               <div className="flex items-center justify-between">
                 <div>
                   <p className="font-medium text-sm">Global Health Updates</p>
@@ -393,7 +393,7 @@ export default function Notifications() {
                 </div>
                 <input type="checkbox" className="rounded border-gray-300" />
               </div>
-              
+
               <div className="flex items-center justify-between">
                 <div>
                   <p className="font-medium text-sm">Report Updates</p>

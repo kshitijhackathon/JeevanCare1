@@ -90,7 +90,7 @@ export default function Reports() {
   const getTrendIcon = (trend: string, status: string) => {
     const colorClass = status === 'critical' ? 'text-red-500' : 
                       status === 'warning' ? 'text-yellow-500' : 'text-green-500';
-    
+
     switch (trend) {
       case 'up': return <TrendingUp className={`w-4 h-4 ${colorClass}`} />;
       case 'down': return <TrendingDown className={`w-4 h-4 ${colorClass}`} />;
@@ -266,7 +266,7 @@ export default function Reports() {
                         <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
                           <FileText className="w-6 h-6 text-blue-600" />
                         </div>
-                        
+
                         <div className="flex-1">
                           <div className="flex items-start justify-between mb-2">
                             <div>
@@ -386,6 +386,7 @@ export default function Reports() {
                 </Button>
               </Link>
             </div>
+          ```typescript
           </CardContent>
         </Card>
       </div>

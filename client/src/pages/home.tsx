@@ -223,8 +223,6 @@ export default function Home() {
         </div>
       </main>
 
-      <BottomNavigation />
-      
       {showConsultation && (
         <ConsultationModal 
           isOpen={showConsultation}

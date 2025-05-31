@@ -70,13 +70,13 @@ A comprehensive multilingual AI-powered healthcare platform that revolutionizes 
 ## 🏗️ Architecture
 
 ```
-├── client/                 # React frontend application
+├── frontend/              # React frontend application
 │   ├── src/
-│   │   ├── components/     # Reusable UI components
+│   │   ├── components/    # Reusable UI components
 │   │   ├── pages/         # Application pages and routes
 │   │   ├── hooks/         # Custom React hooks
 │   │   └── lib/           # Utility functions and configurations
-├── server/                # Node.js backend services
+├── backend/               # Node.js backend services
 │   ├── routes.ts          # API endpoint definitions
 │   ├── db.ts             # Database connection and queries
 │   ├── enhanced-medical.ts # AI medical analysis engine

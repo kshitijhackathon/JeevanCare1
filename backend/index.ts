@@ -1,5 +1,6 @@
 import express from "express";
 import cors from "cors";
+import path from "path";
 import { registerRoutes } from "./routes.js";
 
 const app = express();
@@ -9,7 +10,7 @@ const port = process.env.PORT || 5000;
 app.use(cors({
   origin: process.env.NODE_ENV === 'production' 
     ? process.env.FRONTEND_URL 
-    : 'http://localhost:3000',
+    : ['http://localhost:3000', 'http://localhost:5173'],
   credentials: true
 }));
 
@@ -22,6 +23,16 @@ registerRoutes(app);
 // Health check
 app.get('/health', (req, res) => {
   res.json({ status: 'OK', timestamp: new Date().toISOString() });
+});
+
+// Serve frontend files
+app.use(express.static(path.join(process.cwd(), 'frontend')));
+
+// Handle SPA routing - serve index.html for non-API routes
+app.get('*', (req, res) => {
+  if (!req.path.startsWith('/api') && !req.path.startsWith('/health')) {
+    res.sendFile(path.join(process.cwd(), 'frontend', 'index.html'));
+  }
 });
 
 const server = app.listen(port, () => {

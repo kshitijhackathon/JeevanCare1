@@ -22,7 +22,7 @@ import {
   type InsertHealthReport,
   type InsertConsultation,
   type InsertOtp,
-} from "../shared/schema.js";
+} from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, and, gt } from "drizzle-orm";
 import bcrypt from "bcryptjs";

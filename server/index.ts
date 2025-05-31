@@ -17,7 +17,7 @@ app.use(cors({
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 
-// API routes first
+// API routes
 registerRoutes(app);
 
 // Health check
@@ -25,13 +25,13 @@ app.get('/health', (req, res) => {
   res.json({ status: 'OK', timestamp: new Date().toISOString() });
 });
 
-// Serve client files
-app.use(express.static(path.join(process.cwd(), 'client')));
+// Serve frontend files
+app.use(express.static(path.join(process.cwd(), 'frontend')));
 
 // Handle SPA routing - serve index.html for non-API routes
 app.get('*', (req, res) => {
   if (!req.path.startsWith('/api') && !req.path.startsWith('/health')) {
-    res.sendFile(path.join(process.cwd(), 'client', 'index.html'));
+    res.sendFile(path.join(process.cwd(), 'frontend', 'index.html'));
   }
 });
 

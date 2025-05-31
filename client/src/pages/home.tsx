@@ -83,7 +83,7 @@ export default function Home() {
 
         {/* AI Consultation Button - Minimal */}
         <div className="px-4 mb-3">
-          <Link href="/consultation">
+          <Link href="/ai-doctor-video">
             <div className="w-full bg-gradient-to-r from-blue-500 via-cyan-500 to-teal-600 rounded-md p-2 shadow-sm border border-gray-200 text-center cursor-pointer hover:shadow-md hover:from-blue-600 hover:via-cyan-600 hover:to-teal-700 transition-all duration-300 group">
               <div className="flex items-center justify-center space-x-2">
                 <div className="w-6 h-6 bg-white/20 rounded-full flex items-center justify-center group-hover:bg-white/30 transition-colors">

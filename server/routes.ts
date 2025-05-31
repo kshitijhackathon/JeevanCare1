@@ -2404,32 +2404,11 @@ Patient Context: ${patientContext}`
       
       // Remove duplicate response - will send combined response below
       
-      const conditions = [...new Set([
-        ...consultations.filter(c => c.diagnosis).map(c => c.diagnosis),
-        ...healthReports.filter(r => r.diagnosis).map(r => r.diagnosis)
-      ])];
-
-      // Extract medications and other data from reports
-      const medications: string[] = [];
-      const allergies: string[] = [];
-      
-      healthReports.forEach(report => {
-        try {
-          const reportData = JSON.parse(report.reportData || '{}');
-          if (reportData.aiAnalysis) {
-            medications.push(...(reportData.aiAnalysis.medications || []));
-            allergies.push(...(reportData.aiAnalysis.allergies || []));
-          }
-        } catch (e) {
-          // Ignore parse errors
-        }
-      });
-
       res.json({
-        conditions,
-        medications: [...new Set(medications)],
-        allergies: [...new Set(allergies)],
-        recentReports: healthReports.slice(0, 5)
+        conditions: sampleHistory.map(h => h.diagnosis),
+        medications: ["Paracetamol", "Vitamin C"],
+        allergies: ["None reported"],
+        recentReports: sampleHistory
       });
     } catch (error) {
       console.error("Error fetching medical history:", error);

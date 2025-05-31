@@ -26,12 +26,12 @@ app.get('/health', (req, res) => {
 });
 
 // Serve frontend files
-app.use(express.static(path.join(process.cwd(), 'frontend')));
+app.use(express.static(path.join(process.cwd(), 'frontend', 'dist')));
 
 // Handle SPA routing - serve index.html for non-API routes
 app.get('*', (req, res) => {
   if (!req.path.startsWith('/api') && !req.path.startsWith('/health')) {
-    res.sendFile(path.join(process.cwd(), 'frontend', 'index.html'));
+    res.sendFile(path.join(process.cwd(), 'frontend', 'dist', 'index.html'));
   }
 });
 

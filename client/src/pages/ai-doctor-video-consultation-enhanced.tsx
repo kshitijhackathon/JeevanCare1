@@ -7,6 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
+import { ttsEngine } from "@/lib/tts-engine";
 import { 
   Video, 
   VideoOff, 
@@ -316,15 +317,16 @@ function VideoConsultationInterface({ patientDetails }: { patientDetails: any })
   const [isMicOn, setIsMicOn] = useState(true);
   const [isListening, setIsListening] = useState(false);
   const [isSpeaking, setIsSpeaking] = useState(false);
+  const [isRecording, setIsRecording] = useState(false);
   const [conversation, setConversation] = useState<Array<{role: 'doctor' | 'patient', message: string, timestamp: Date}>>([]);
   const [currentMessage, setCurrentMessage] = useState('');
   const { toast } = useToast();
   
   const selectedLanguage = INDIAN_LANGUAGES.find(lang => lang.code === patientDetails.language) || INDIAN_LANGUAGES[0];
 
-  // Simulate doctor's initial greeting with translation
+  // Doctor's initial greeting with translation and voice
   useEffect(() => {
-    const translateAndGreet = async () => {
+    const translateGreetAndSpeak = async () => {
       const englishGreeting = `Namaste ${patientDetails.name}! I am Dr. AI, your virtual physician. I can see you're experiencing some symptoms. Let's discuss them in ${selectedLanguage.name}. How are you feeling today?`;
       
       let finalGreeting = englishGreeting;
@@ -356,11 +358,31 @@ function VideoConsultationInterface({ patientDetails }: { patientDetails: any })
         message: finalGreeting,
         timestamp: new Date()
       }]);
+      
       setIsSpeaking(true);
-      setTimeout(() => setIsSpeaking(false), 3000);
+      
+      // Use enhanced TTS to speak the greeting
+      try {
+        await ttsEngine.speakMedicalGreeting(selectedLanguage.code, patientDetails.name);
+      } catch (error) {
+        console.error('TTS failed:', error);
+        // Fallback to basic TTS
+        try {
+          await ttsEngine.speak({
+            text: finalGreeting,
+            language: selectedLanguage.code,
+            gender: 'female',
+            emotion: 'warm'
+          });
+        } catch (fallbackError) {
+          console.error('Fallback TTS failed:', fallbackError);
+        }
+      } finally {
+        setIsSpeaking(false);
+      }
     };
     
-    setTimeout(translateAndGreet, 1000);
+    setTimeout(translateGreetAndSpeak, 1000);
   }, [patientDetails, selectedLanguage]);
 
   // Mock translation function (would use IndicTrans2 in production)
@@ -372,13 +394,15 @@ function VideoConsultationInterface({ patientDetails }: { patientDetails: any })
   const handleSendMessage = async () => {
     if (!currentMessage.trim()) return;
 
+    const userMessage = currentMessage.trim();
     const patientMessage = {
       role: 'patient' as const,
-      message: currentMessage,
+      message: userMessage,
       timestamp: new Date()
     };
 
     setConversation(prev => [...prev, patientMessage]);
+    setCurrentMessage('');
     
     // Simulate AI doctor response
     setIsListening(true);
@@ -386,22 +410,111 @@ function VideoConsultationInterface({ patientDetails }: { patientDetails: any })
       setIsListening(false);
       setIsSpeaking(true);
       
-      // Mock AI response
+      let aiResponse = `I understand your concern about "${userMessage}". Based on your symptoms, let me provide some guidance. Can you tell me more about when these symptoms started?`;
+      
+      // Translate response if needed
+      if (selectedLanguage.code !== 'eng_Latn') {
+        try {
+          const response = await fetch('/api/translate', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              text: aiResponse,
+              sourceLang: 'eng_Latn',
+              targetLang: selectedLanguage.code
+            })
+          });
+          
+          if (response.ok) {
+            const result = await response.json();
+            aiResponse = result.translatedText;
+          }
+        } catch (error) {
+          console.error('Translation failed:', error);
+        }
+      }
+      
       const doctorResponse = {
         role: 'doctor' as const,
-        message: `I understand your concern about "${currentMessage}". Based on your symptoms, let me provide some guidance. Can you tell me more about when these symptoms started?`,
+        message: aiResponse,
         timestamp: new Date()
       };
       
       setConversation(prev => [...prev, doctorResponse]);
       
-      setTimeout(() => setIsSpeaking(false), 2500);
+      // Speak the doctor's response using enhanced TTS
+      try {
+        await ttsEngine.speakFollowUpQuestion(aiResponse, selectedLanguage.code);
+      } catch (error) {
+        console.error('TTS failed for response:', error);
+        // Fallback to basic TTS
+        try {
+          await ttsEngine.speak({
+            text: aiResponse,
+            language: selectedLanguage.code,
+            gender: 'female',
+            emotion: 'professional'
+          });
+        } catch (fallbackError) {
+          console.error('Fallback TTS failed:', fallbackError);
+        }
+      } finally {
+        setIsSpeaking(false);
+      }
     }, 1500);
+  };
 
-    setCurrentMessage('');
+  // Voice recording functionality
+  const startVoiceRecording = () => {
+    if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
+      toast({
+        title: "Voice Recognition Not Supported",
+        description: "Your browser doesn't support voice recognition. Please type your message.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    const recognition = new SpeechRecognition();
+    
+    recognition.lang = selectedLanguage.code === 'eng_Latn' ? 'en-IN' : 
+                     selectedLanguage.code === 'hin_Deva' ? 'hi-IN' : 'en-IN';
+    recognition.continuous = false;
+    recognition.interimResults = false;
+
+    setIsRecording(true);
+
+    recognition.onresult = (event) => {
+      const transcript = event.results[0][0].transcript;
+      setCurrentMessage(transcript);
+      setIsRecording(false);
+    };
+
+    recognition.onerror = (event) => {
+      console.error('Speech recognition error:', event.error);
+      setIsRecording(false);
+      toast({
+        title: "Voice Recognition Error",
+        description: "Could not capture your voice. Please try again or type your message.",
+        variant: "destructive"
+      });
+    };
+
+    recognition.onend = () => {
+      setIsRecording(false);
+    };
+
+    recognition.start();
+  };
+
+  const stopSpeaking = () => {
+    ttsEngine.stop();
+    setIsSpeaking(false);
   };
 
   const endCall = () => {
+    ttsEngine.stop(); // Stop any ongoing speech
     toast({
       title: "Consultation Ended",
       description: "Thank you for using AI Doctor Consultation. Your session summary will be sent to your registered email.",

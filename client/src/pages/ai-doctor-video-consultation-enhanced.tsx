@@ -320,9 +320,42 @@ function VideoConsultationInterface({ patientDetails }: { patientDetails: any })
   const [isRecording, setIsRecording] = useState(false);
   const [conversation, setConversation] = useState<Array<{role: 'doctor' | 'patient', message: string, timestamp: Date}>>([]);
   const [currentMessage, setCurrentMessage] = useState('');
+  const [videoStream, setVideoStream] = useState<MediaStream | null>(null);
   const { toast } = useToast();
   
   const selectedLanguage = INDIAN_LANGUAGES.find(lang => lang.code === patientDetails.language) || INDIAN_LANGUAGES[0];
+
+  // Initialize camera on component mount
+  useEffect(() => {
+    const initializeCamera = async () => {
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({ 
+          video: true, 
+          audio: true 
+        });
+        setVideoStream(stream);
+        setIsVideoOn(true);
+        console.log('Camera initialized successfully');
+      } catch (error) {
+        console.error('Camera access failed:', error);
+        setIsVideoOn(false);
+        toast({
+          title: "Camera Access",
+          description: "Camera permission denied. You can still continue with audio consultation.",
+          variant: "default"
+        });
+      }
+    };
+
+    initializeCamera();
+
+    // Cleanup function
+    return () => {
+      if (videoStream) {
+        videoStream.getTracks().forEach(track => track.stop());
+      }
+    };
+  }, []);
 
   // Doctor's initial greeting with translation and voice
   useEffect(() => {
@@ -647,17 +680,56 @@ function VideoConsultationInterface({ patientDetails }: { patientDetails: any })
 
           <DoctorAvatar isListening={isListening} isSpeaking={isSpeaking} />
 
-          {/* Patient Video (placeholder) */}
-          <div className="absolute bottom-4 right-4 w-48 h-36 bg-gray-800 rounded-lg border-2 border-gray-600">
-            <div className="w-full h-full flex items-center justify-center">
-              {isVideoOn ? (
-                <div className="text-center">
-                  <User className="h-8 w-8 mx-auto mb-2 text-gray-400" />
-                  <p className="text-sm text-gray-400">{patientDetails.name}</p>
-                </div>
-              ) : (
-                <VideoOff className="h-8 w-8 text-gray-400" />
-              )}
+          {/* Patient Video */}
+          <div className="absolute bottom-4 right-4 w-48 h-36 bg-gray-800 rounded-lg border-2 border-gray-600 overflow-hidden">
+            {isVideoOn && videoStream ? (
+              <video
+                ref={(video) => {
+                  if (video && videoStream) {
+                    video.srcObject = videoStream;
+                    video.play().catch(console.error);
+                  }
+                }}
+                autoPlay
+                muted
+                className="w-full h-full object-cover"
+              />
+            ) : (
+              <div className="w-full h-full flex items-center justify-center">
+                {isVideoOn ? (
+                  <div className="text-center">
+                    <User className="h-8 w-8 mx-auto mb-2 text-gray-400" />
+                    <p className="text-sm text-gray-400">Starting camera...</p>
+                  </div>
+                ) : (
+                  <div className="text-center">
+                    <VideoOff className="h-8 w-8 mx-auto mb-2 text-gray-400" />
+                    <p className="text-sm text-gray-400">Camera off</p>
+                  </div>
+                )}
+              </div>
+            )}
+            
+            {/* Camera control overlay */}
+            <div className="absolute bottom-2 left-2">
+              <button
+                onClick={() => {
+                  if (videoStream) {
+                    const videoTrack = videoStream.getVideoTracks()[0];
+                    if (videoTrack) {
+                      videoTrack.enabled = !isVideoOn;
+                      setIsVideoOn(!isVideoOn);
+                    }
+                  }
+                }}
+                className="p-1 bg-black bg-opacity-50 rounded text-white hover:bg-opacity-70"
+              >
+                {isVideoOn ? (
+                  <Video className="h-4 w-4" />
+                ) : (
+                  <VideoOff className="h-4 w-4" />
+                )}
+              </button>
             </div>
           </div>
         </div>

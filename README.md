@@ -67,22 +67,72 @@ A comprehensive multilingual AI-powered healthcare platform that revolutionizes 
 - **Google Cloud Services** for scalable cloud infrastructure
 - **Multer** for efficient file upload handling
 
-## 🏗️ Architecture
+## 🏗️ Project Structure
 
 ```
 ├── client/                 # React frontend application
 │   ├── src/
 │   │   ├── components/     # Reusable UI components
+│   │   │   ├── ui/        # Shadcn UI components
+│   │   │   ├── voice-health-companion.tsx
+│   │   │   ├── whisper-voice-recognition.tsx
+│   │   │   ├── prescription-generator.tsx
+│   │   │   ├── health-metrics.tsx
+│   │   │   └── product-card.tsx
 │   │   ├── pages/         # Application pages and routes
+│   │   │   ├── ai-doctor-consultation.tsx
+│   │   │   ├── ai-consultation.tsx
+│   │   │   ├── pharmacy.tsx
+│   │   │   ├── reports.tsx
+│   │   │   ├── medical-scan.tsx
+│   │   │   ├── medical-records.tsx
+│   │   │   ├── global-health-map.tsx
+│   │   │   ├── doctor-escalation.tsx
+│   │   │   ├── medicine-delivery.tsx
+│   │   │   ├── cart.tsx
+│   │   │   ├── checkout.tsx
+│   │   │   └── auth/       # Authentication pages
 │   │   ├── hooks/         # Custom React hooks
+│   │   │   ├── useAuth.ts
+│   │   │   ├── use-toast.ts
+│   │   │   └── use-mobile.tsx
 │   │   └── lib/           # Utility functions and configurations
-├── server/                # Node.js backend services
-│   ├── routes.ts          # API endpoint definitions
-│   ├── db.ts             # Database connection and queries
+│   │       ├── queryClient.ts
+│   │       ├── utils.ts
+│   │       ├── types.ts
+│   │       ├── tts-engine.ts
+│   │       └── contextStore.js
+│   ├── index.html         # Main HTML template
+│   └── App.tsx            # Main application component
+├── server/                # Node.js Express backend
+│   ├── index.ts          # Main server entry point
+│   ├── routes.ts         # API endpoint definitions
+│   ├── db.ts            # Database connection and queries
+│   ├── storage.ts       # Data persistence layer
+│   ├── vite.ts          # Vite development server integration
+│   ├── replitAuth.ts    # Authentication middleware
 │   ├── enhanced-medical.ts # AI medical analysis engine
-│   └── storage.ts        # Data persistence layer
-├── shared/               # Shared type definitions and schemas
-└── medical_repo/        # Medical knowledge base and datasets
+│   ├── disease-prediction-engine.ts # Disease prediction logic
+│   ├── enhanced-prescription-engine.ts # Prescription generation
+│   ├── enhanced-tts-engine.ts # Text-to-speech services
+│   ├── gemini-grok-medical-engine.ts # Gemini AI integration
+│   ├── groq-medical-service.ts # Groq API integration
+│   ├── fast-response-engine.ts # Quick response system
+│   ├── whisper-stt-service.ts # Speech-to-text service
+│   ├── whisper-integration.ts # Whisper AI integration
+│   ├── indic-translation-service.ts # Multilingual translation
+│   ├── multilingual-medical-engine.ts # Multi-language support
+│   ├── local-whisper-service.py # Python Whisper service
+│   ├── indictrans2-service.py # Python translation service
+│   └── email.ts         # Email notification service
+├── shared/               # Shared TypeScript schemas and types
+│   └── schema.ts         # Database schema definitions
+├── components.json       # Shadcn UI configuration
+├── tailwind.config.ts    # Tailwind CSS configuration
+├── drizzle.config.ts     # Database migration configuration
+├── vite.config.ts        # Vite build configuration
+├── package.json          # Main project dependencies
+└── medical_repo/         # Additional medical resources and datasets
 ```
 
 ## 🚀 Quick Start

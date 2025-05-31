@@ -233,7 +233,7 @@ export class FastResponseEngine {
     const lowerText = userText.toLowerCase();
 
     // Check for goodbye/completion signals
-    const isGoodbye = /bye|goodbye|धन्यवाद|thanks|समाप्त|खत्म|बंद|ठीक है|ok|fine/i.test(userText);
+    const isGoodbye = /^(bye|goodbye|धन्यवाद|thanks|thank you|समाप्त|खत्म|बंद|ठीक है|thik hai|ok|fine|enough|bas|बस)$/i.test(userText.trim());
     
     if (isGoodbye) {
       const goodbyeResponses = {

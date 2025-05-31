@@ -438,15 +438,30 @@ const CompactAIDoctorConsultation = () => {
                   </Button>
                 </div>
                 
-                <Button
-                  onClick={toggleRecording}
-                  variant={isRecording ? "destructive" : "outline"}
-                  size="sm"
-                  className="w-full text-xs sm:text-sm"
-                >
-                  {isRecording ? <MicOff className="h-3 w-3 sm:h-4 sm:w-4 mr-2" /> : <Mic className="h-3 w-3 sm:h-4 sm:w-4 mr-2" />}
-                  {isRecording ? 'रिकॉर्डिंग बंद करें' : 'बोलकर बताएं'}
-                </Button>
+                <div className="flex space-x-2">
+                  <Button
+                    onClick={toggleRecording}
+                    variant={isRecording ? "destructive" : "outline"}
+                    size="sm"
+                    className="flex-1 text-xs sm:text-sm"
+                  >
+                    {isRecording ? <MicOff className="h-3 w-3 sm:h-4 sm:w-4 mr-2" /> : <Mic className="h-3 w-3 sm:h-4 sm:w-4 mr-2" />}
+                    {isRecording ? 'रिकॉर्डिंग बंद करें' : 'बोलकर बताएं'}
+                  </Button>
+                  
+                  <Button
+                    onClick={() => {
+                      const endMessage = selectedLanguage.code === 'hin_Deva' ? 'धन्यवाद' : 'Thank you';
+                      setCurrentMessage(endMessage);
+                      sendMessage();
+                    }}
+                    variant="secondary"
+                    size="sm"
+                    className="text-xs sm:text-sm px-3"
+                  >
+                    {selectedLanguage.code === 'hin_Deva' ? 'समाप्त' : 'End'}
+                  </Button>
+                </div>
               </div>
             </CardContent>
           </div>

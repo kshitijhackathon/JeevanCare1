@@ -497,18 +497,8 @@ function VideoConsultationInterface({ patientDetails }: { patientDetails: any })
     }, 1500);
   };
 
-  // Voice recording with local Whisper fallback
-  const startVoiceRecording = () => {
-    // Check browser support
-    if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
-      toast({
-        title: "Voice Recognition Unavailable",
-        description: "This feature needs Chrome or Edge browser. Please type your message instead.",
-        variant: "destructive"
-      });
-      return;
-    }
-
+  // Enhanced voice recording with Web Audio API
+  const startVoiceRecording = async () => {
     // Check if already recording
     if (isRecording) {
       toast({
@@ -519,84 +509,189 @@ function VideoConsultationInterface({ patientDetails }: { patientDetails: any })
       return;
     }
 
-    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-    const recognition = new SpeechRecognition();
-    
-    // Store recognition instance for stopping
-    (window as any).currentRecognition = recognition;
-    
-    // Configure recognition for Indian languages
-    const languageMap: { [key: string]: string } = {
-      'eng_Latn': 'en-IN',
-      'hin_Deva': 'hi-IN',
-      'ben_Beng': 'bn-IN',
-      'tam_Taml': 'ta-IN',
-      'tel_Telu': 'te-IN',
-      'mar_Deva': 'mr-IN',
-      'guj_Gujr': 'gu-IN',
-      'kan_Knda': 'kn-IN',
-      'mal_Mlym': 'ml-IN',
-      'pan_Guru': 'pa-IN',
-      'urd_Arab': 'ur-PK',
-      'ori_Orya': 'en-IN', // Fallback to English for Odia
-      'asm_Beng': 'as-IN'
-    };
-    
-    recognition.lang = languageMap[selectedLanguage.code] || 'en-IN';
-    recognition.continuous = false;
-    recognition.interimResults = false;
-    recognition.maxAlternatives = 1;
-
-    setIsRecording(true);
-
-    recognition.onresult = (event: any) => {
-      const transcript = event.results[0][0].transcript;
-      const confidence = event.results[0][0].confidence;
+    // Try Web Speech API first for real-time recognition
+    if (('webkitSpeechRecognition' in window) || ('SpeechRecognition' in window)) {
+      const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+      const recognition = new SpeechRecognition();
       
-      setCurrentMessage(transcript);
-      setIsRecording(false);
+      // Store recognition instance for stopping
+      (window as any).currentRecognition = recognition;
       
-      if (confidence < 0.7) {
-        toast({
-          title: "Low Recognition Confidence",
-          description: "Please speak clearly and try again if the text is incorrect.",
-          variant: "default"
-        });
+      // Configure recognition for Indian languages
+      const languageMap: { [key: string]: string } = {
+        'eng_Latn': 'en-IN',
+        'hin_Deva': 'hi-IN',
+        'ben_Beng': 'bn-IN',
+        'tam_Taml': 'ta-IN',
+        'tel_Telu': 'te-IN',
+        'mar_Deva': 'mr-IN',
+        'guj_Gujr': 'gu-IN',
+        'kan_Knda': 'kn-IN',
+        'mal_Mlym': 'ml-IN',
+        'pan_Guru': 'pa-IN',
+        'urd_Arab': 'ur-PK',
+        'ori_Orya': 'en-IN',
+        'asm_Beng': 'as-IN'
+      };
+      
+      recognition.lang = languageMap[selectedLanguage.code] || 'en-IN';
+      recognition.continuous = false;
+      recognition.interimResults = false;
+      recognition.maxAlternatives = 1;
+
+      setIsRecording(true);
+
+      recognition.onresult = (event: any) => {
+        const transcript = event.results[0][0].transcript;
+        const confidence = event.results[0][0].confidence;
+        
+        setCurrentMessage(transcript);
+        setIsRecording(false);
+        
+        if (confidence < 0.7) {
+          toast({
+            title: "Recognition Complete",
+            description: "Speech captured. Please review the text for accuracy.",
+            variant: "default"
+          });
+        }
+      };
+
+      recognition.onerror = (event: any) => {
+        console.error('Speech recognition error:', event.error);
+        setIsRecording(false);
+        
+        // Try fallback to audio recording
+        if (event.error === 'not-allowed' || event.error === 'audio-capture') {
+          startAudioRecording();
+        } else {
+          let errorMessage = "Speech recognition failed. Trying audio recording instead.";
+          if (event.error === 'no-speech') {
+            errorMessage = "No speech detected. Please speak clearly and try again.";
+          }
+          
+          toast({
+            title: "Trying Alternative Method",
+            description: errorMessage,
+            variant: "default"
+          });
+          
+          // Fallback to audio recording
+          startAudioRecording();
+        }
+      };
+
+      recognition.onend = () => {
+        setIsRecording(false);
+      };
+
+      try {
+        recognition.start();
+      } catch (error) {
+        console.error('Failed to start speech recognition:', error);
+        startAudioRecording();
       }
-    };
+    } else {
+      // No Speech API support, use audio recording
+      startAudioRecording();
+    }
+  };
 
-    recognition.onerror = (event: any) => {
-      console.error('Speech recognition error:', event.error);
-      setIsRecording(false);
-      
-      let errorMessage = "Could not capture your voice. Please try again or type your message.";
-      if (event.error === 'no-speech') {
-        errorMessage = "No speech was detected. Please speak clearly into your microphone.";
-      } else if (event.error === 'audio-capture') {
-        errorMessage = "No microphone was found. Please check your microphone settings.";
-      } else if (event.error === 'not-allowed') {
-        errorMessage = "Microphone access was denied. Please allow microphone access and try again.";
-      }
-      
-      toast({
-        title: "Voice Recognition Error",
-        description: errorMessage,
-        variant: "destructive"
-      });
-    };
-
-    recognition.onend = () => {
-      setIsRecording(false);
-    };
-
+  // Fallback audio recording method
+  const startAudioRecording = async () => {
     try {
-      recognition.start();
+      const stream = await navigator.mediaDevices.getUserMedia({ 
+        audio: {
+          sampleRate: 16000,
+          channelCount: 1,
+          echoCancellation: true,
+          noiseSuppression: true
+        } 
+      });
+
+      setIsRecording(true);
+      const mediaRecorder = new MediaRecorder(stream, {
+        mimeType: 'audio/webm;codecs=opus'
+      });
+
+      const audioChunks: Blob[] = [];
+
+      mediaRecorder.ondataavailable = (event) => {
+        if (event.data.size > 0) {
+          audioChunks.push(event.data);
+        }
+      };
+
+      mediaRecorder.onstop = async () => {
+        const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
+        
+        // Convert to base64 for transmission
+        const reader = new FileReader();
+        reader.onloadend = async () => {
+          const base64Audio = (reader.result as string).split(',')[1];
+          
+          try {
+            const response = await fetch('/api/whisper-transcribe', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({
+                audioData: base64Audio,
+                language: selectedLanguage.code
+              })
+            });
+
+            if (response.ok) {
+              const result = await response.json();
+              if (result.text) {
+                setCurrentMessage(result.text);
+                toast({
+                  title: "Audio Transcribed",
+                  description: "Your voice has been converted to text successfully.",
+                  variant: "default"
+                });
+              } else {
+                throw new Error('No text returned from transcription');
+              }
+            } else {
+              throw new Error('Transcription service unavailable');
+            }
+          } catch (error) {
+            console.error('Audio transcription error:', error);
+            toast({
+              title: "Transcription Failed",
+              description: "Please type your message instead.",
+              variant: "destructive"
+            });
+          }
+        };
+        
+        reader.readAsDataURL(audioBlob);
+        
+        // Clean up
+        stream.getTracks().forEach(track => track.stop());
+        setIsRecording(false);
+      };
+
+      // Store for stopping
+      (window as any).currentMediaRecorder = mediaRecorder;
+
+      mediaRecorder.start();
+
+      // Auto-stop after 10 seconds
+      setTimeout(() => {
+        if (mediaRecorder.state === 'recording') {
+          mediaRecorder.stop();
+        }
+      }, 10000);
+
     } catch (error) {
-      console.error('Failed to start recognition:', error);
+      console.error('Audio recording failed:', error);
       setIsRecording(false);
       toast({
-        title: "Voice Recognition Error",
-        description: "Could not start voice recognition. Please type your message instead.",
+        title: "Microphone Access Denied",
+        description: "Please allow microphone access or type your message.",
         variant: "destructive"
       });
     }
@@ -606,6 +701,9 @@ function VideoConsultationInterface({ patientDetails }: { patientDetails: any })
   const stopVoiceRecording = () => {
     if ((window as any).currentRecognition) {
       (window as any).currentRecognition.stop();
+    }
+    if ((window as any).currentMediaRecorder && (window as any).currentMediaRecorder.state === 'recording') {
+      (window as any).currentMediaRecorder.stop();
     }
     setIsRecording(false);
   };

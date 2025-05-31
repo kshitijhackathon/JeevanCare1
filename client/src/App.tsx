@@ -53,13 +53,13 @@ function Router() {
     const urlParams = new URLSearchParams(window.location.search);
     const token = urlParams.get('token');
     const userParam = urlParams.get('user');
-    
+
     if (token && userParam) {
       try {
         const userData = JSON.parse(decodeURIComponent(userParam));
         localStorage.setItem('authToken', token);
         localStorage.setItem('userData', JSON.stringify(userData));
-        
+
         // Clean URL and reload to update auth state
         window.history.replaceState({}, document.title, '/');
         window.location.reload();
@@ -88,7 +88,7 @@ function Router() {
           <Route path="/auth/signup" component={SignUp} />
           <Route path="/auth/signin" component={SignIn} />
           <Route path="/auth/otp-verification" component={OTPVerification} />
-          
+
           {/* Redirect to landing for any other route when not authenticated */}
           <Route path="*" component={Landing} />
         </>
@@ -110,7 +110,7 @@ function Router() {
           <Route path="/global-health-map" component={GlobalHealthMap} />
           <Route path="/delivery-tracking" component={DeliveryTracking} />
           <Route path="/prescription-upload" component={PrescriptionUpload} />
-          
+
           {/* Fallback to home for unmatched routes when authenticated */}
           <Route path="*" component={Home} />
         </>

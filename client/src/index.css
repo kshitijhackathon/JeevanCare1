@@ -2,191 +2,128 @@
 @tailwind components;
 @tailwind utilities;
 
-:root {
-  --background: 210 11% 98%; /* #F8FAFC */
-  --foreground: 210 40% 8%; /* #0F172A */
-  --muted: 210 40% 96%; /* #F1F5F9 */
-  --muted-foreground: 215 16% 47%; /* #64748B */
-  --popover: 0 0% 100%; /* #FFFFFF */
-  --popover-foreground: 210 40% 8%; /* #0F172A */
-  --card: 0 0% 100%; /* #FFFFFF */
-  --card-foreground: 210 40% 8%; /* #0F172A */
-  --border: 214 32% 91%; /* #E2E8F0 */
-  --input: 214 32% 91%; /* #E2E8F0 */
-  --primary: 197 71% 73%; /* #87CEEB - Sky Blue */
-  --primary-foreground: 210 40% 8%; /* #0F172A */
-  --secondary: 213 73% 61%; /* #4A90E2 - Blue */
-  --secondary-foreground: 210 40% 8%; /* #0F172A */
-  --accent: 210 40% 96%; /* #F1F5F9 */
-  --accent-foreground: 210 40% 8%; /* #0F172A */
-  --destructive: 0 84% 60%; /* #EF4444 - Red */
-  --destructive-foreground: 0 0% 98%; /* #FEFEFE */
-  --ring: 197 71% 73%; /* #87CEEB */
-  --radius: 0.75rem;
-  
-  /* Custom healthcare colors */
-  --success: 142 76% 36%; /* #10B981 - Green */
-  --warning: 43 96% 56%; /* #F59E0B - Yellow */
-  --error: 0 84% 60%; /* #EF4444 - Red */
-}
+@layer base {
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 222.2 84% 4.9%;
+    --card: 0 0% 100%;
+    --card-foreground: 222.2 84% 4.9%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 222.2 84% 4.9%;
+    --primary: 221.2 83.2% 53.3%;
+    --primary-foreground: 210 40% 98%;
+    --secondary: 210 40% 96%;
+    --secondary-foreground: 222.2 84% 4.9%;
+    --muted: 210 40% 96%;
+    --muted-foreground: 215.4 16.3% 46.9%;
+    --accent: 210 40% 96%;
+    --accent-foreground: 222.2 84% 4.9%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 214.3 31.8% 91.4%;
+    --input: 214.3 31.8% 91.4%;
+    --ring: 221.2 83.2% 53.3%;
+    --chart-1: 12 76% 61%;
+    --chart-2: 173 58% 39%;
+    --chart-3: 197 37% 24%;
+    --chart-4: 43 74% 66%;
+    --chart-5: 27 87% 67%;
+    --radius: 0.5rem;
+  }
 
-.dark {
-  --background: 210 40% 8%; /* #0F172A */
-  --foreground: 0 0% 98%; /* #FEFEFE */
-  --muted: 215 28% 17%; /* #1E293B */
-  --muted-foreground: 217 11% 65%; /* #94A3B8 */
-  --popover: 210 40% 8%; /* #0F172A */
-  --popover-foreground: 0 0% 98%; /* #FEFEFE */
-  --card: 210 40% 8%; /* #0F172A */
-  --card-foreground: 0 0% 98%; /* #FEFEFE */
-  --border: 215 28% 17%; /* #1E293B */
-  --input: 215 28% 17%; /* #1E293B */
-  --primary: 197 71% 73%; /* #87CEEB */
-  --primary-foreground: 210 40% 8%; /* #0F172A */
-  --secondary: 213 73% 61%; /* #4A90E2 */
-  --secondary-foreground: 0 0% 98%; /* #FEFEFE */
-  --accent: 215 28% 17%; /* #1E293B */
-  --accent-foreground: 0 0% 98%; /* #FEFEFE */
-  --destructive: 0 62% 30%; /* #991B1B */
-  --destructive-foreground: 0 0% 98%; /* #FEFEFE */
-  --ring: 197 71% 73%; /* #87CEEB */
+  .dark {
+    --background: 222.2 84% 4.9%;
+    --foreground: 210 40% 98%;
+    --card: 222.2 84% 4.9%;
+    --card-foreground: 210 40% 98%;
+    --popover: 222.2 84% 4.9%;
+    --popover-foreground: 210 40% 98%;
+    --primary: 217.2 91.2% 59.8%;
+    --primary-foreground: 222.2 84% 4.9%;
+    --secondary: 217.2 32.6% 17.5%;
+    --secondary-foreground: 210 40% 98%;
+    --muted: 217.2 32.6% 17.5%;
+    --muted-foreground: 215 20.2% 65.1%;
+    --accent: 217.2 32.6% 17.5%;
+    --accent-foreground: 210 40% 98%;
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 217.2 32.6% 17.5%;
+    --input: 217.2 32.6% 17.5%;
+    --ring: 224.3 76.3% 94.1%;
+    --chart-1: 220 70% 50%;
+    --chart-2: 160 60% 45%;
+    --chart-3: 30 80% 55%;
+    --chart-4: 280 65% 60%;
+    --chart-5: 340 75% 55%;
+  }
 }
 
 @layer base {
   * {
     @apply border-border;
   }
-
   body {
-    @apply font-sans antialiased bg-background text-foreground;
-    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    @apply bg-background text-foreground;
+    overflow-x: hidden;
+  }
+
+  /* Prevent duplicate content issues */
+  main {
+    display: block;
+    position: relative;
+    width: 100%;
   }
 }
 
-@layer utilities {
-  /* Custom animations */
-  .animate-pulse-slow {
-    animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+@layer components {
+  .glass-effect {
+    background: rgba(255, 255, 255, 0.25);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.18);
   }
-  
-  .animate-fade-in {
-    animation: fadeIn 0.3s ease-in-out;
-  }
-  
-  .animate-slide-up {
-    animation: slideUp 0.3s ease-out;
-  }
-  
-  /* Custom gradient backgrounds */
-  .bg-gradient-healthcare {
-    background: linear-gradient(135deg, hsl(var(--primary) / 0.1) 0%, hsl(var(--secondary) / 0.1) 100%);
-  }
-  
-  .bg-gradient-success {
-    background: linear-gradient(135deg, hsl(var(--success) / 0.1) 0%, hsl(var(--success) / 0.05) 100%);
-  }
-  
-  .bg-gradient-warning {
-    background: linear-gradient(135deg, hsl(var(--warning) / 0.1) 0%, hsl(var(--warning) / 0.05) 100%);
-  }
-  
-  .bg-gradient-error {
-    background: linear-gradient(135deg, hsl(var(--error) / 0.1) 0%, hsl(var(--error) / 0.05) 100%);
-  }
-  
-  /* Mobile-first responsive container */
-  .mobile-container {
-    @apply max-w-md mx-auto bg-white min-h-screen relative overflow-hidden;
-  }
-  
-  /* Card hover effects */
-  .card-hover {
-    @apply transition-all duration-200 hover:shadow-md hover:-translate-y-1;
-  }
-  
-  /* Primary button style matching design */
-  .btn-primary {
-    @apply bg-primary text-primary-foreground hover:bg-primary/90 transition-colors font-medium rounded-xl px-6 py-3;
-  }
-  
-  .btn-secondary {
-    @apply bg-secondary text-white hover:bg-secondary/90 transition-colors font-medium rounded-xl px-6 py-3;
-  }
-}
 
-@keyframes fadeIn {
-  from {
-    opacity: 0;
+  .gradient-bg {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   }
-  to {
-    opacity: 1;
+
+  .medical-gradient {
+    background: linear-gradient(135deg, #4f46e5 0%, #06b6d4 50%, #10b981 100%);
   }
-}
 
-@keyframes slideUp {
-  from {
-    transform: translateY(20px);
-    opacity: 0;
+  .health-card-hover {
+    transition: all 0.3s ease;
   }
-  to {
-    transform: translateY(0);
-    opacity: 1;
+
+  .health-card-hover:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
   }
-}
 
-/* Custom scrollbar for mobile */
-::-webkit-scrollbar {
-  width: 4px;
-}
-
-::-webkit-scrollbar-track {
-  background: hsl(var(--muted));
-}
-
-::-webkit-scrollbar-thumb {
-  background: hsl(var(--primary));
-  border-radius: 2px;
-}
-
-::-webkit-scrollbar-thumb:hover {
-  background: hsl(var(--primary) / 0.8);
-}
-
-/* Heart rate visualization */
-.heartbeat-line {
-  stroke-dasharray: 100;
-  stroke-dashoffset: 100;
-  animation: heartbeat 2s ease-in-out infinite;
-}
-
-@keyframes heartbeat {
-  0% {
-    stroke-dashoffset: 100;
+  .pulse-slow {
+    animation: pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite;
   }
-  50% {
-    stroke-dashoffset: 0;
-  }
-  100% {
-    stroke-dashoffset: -100;
-  }
-}
 
-/* Voice recording pulse effect */
-.recording-pulse {
-  animation: recordingPulse 1.5s ease-in-out infinite;
-}
+  .floating {
+    animation: floating 6s ease-in-out infinite;
+  }
 
-@keyframes recordingPulse {
-  0% {
-    transform: scale(1);
-    box-shadow: 0 0 0 0 hsl(var(--error) / 0.7);
+  @keyframes floating {
+    0%, 100% { transform: translateY(0px); }
+    50% { transform: translateY(-10px); }
   }
-  70% {
-    transform: scale(1.05);
-    box-shadow: 0 0 0 10px hsl(var(--error) / 0);
+
+  .glow-effect {
+    box-shadow: 0 0 20px rgba(59, 130, 246, 0.3);
   }
-  100% {
-    transform: scale(1);
-    box-shadow: 0 0 0 0 hsl(var(--error) / 0);
+
+  .medical-pattern {
+    background-image: 
+      radial-gradient(circle at 1px 1px, rgba(255,255,255,0.15) 1px, transparent 0);
+    background-size: 20px 20px;
+  }
+
+  .health-border {
+    border-image: linear-gradient(45deg, #4f46e5, #06b6d4, #10b981) 1;
   }
 }

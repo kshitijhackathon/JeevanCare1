@@ -132,7 +132,7 @@ export default function Home() {
           
           {/* Row 1 */}
           <div className="grid grid-cols-3 gap-2 mb-3">
-            <Link href="/ai-consultation">
+            <Link href="/ai-doctor-video">
               <div className="bg-white rounded-xl p-2 text-center shadow-sm hover:shadow-md transition-shadow">
                 <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-1">
                   <Bot className="w-5 h-5 text-blue-600" />
@@ -150,7 +150,7 @@ export default function Home() {
               </div>
             </Link>
             
-            <Link href="/face-scan">
+            <Link href="/medical-scan">
               <div className="bg-white rounded-xl p-2 text-center shadow-sm hover:shadow-md transition-shadow">
                 <div className="w-10 h-10 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-1">
                   <ScanFace className="w-5 h-5 text-purple-600" />
@@ -181,19 +181,19 @@ export default function Home() {
               </div>
             </Link>
             
-            <Link href="/symptom-checker">
+            <Link href="/medical-records">
               <div className="bg-white rounded-xl p-2 text-center shadow-sm hover:shadow-md transition-shadow">
                 <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-1">
                   <Search className="w-5 h-5 text-green-600" />
                 </div>
-                <p className="text-xs font-medium text-gray-700 leading-tight">Symptom Check</p>
+                <p className="text-xs font-medium text-gray-700 leading-tight">Records</p>
               </div>
             </Link>
           </div>
           
           {/* Row 3 */}
           <div className="grid grid-cols-3 gap-2">
-            <Link href="/prescription">
+            <Link href="/prescription-upload">
               <div className="bg-white rounded-xl p-2 text-center shadow-sm hover:shadow-md transition-shadow">
                 <div className="w-10 h-10 bg-pink-100 rounded-full flex items-center justify-center mx-auto mb-1">
                   <FileText className="w-5 h-5 text-pink-600" />
@@ -202,21 +202,21 @@ export default function Home() {
               </div>
             </Link>
             
-            <Link href="/doctor-escalation">
+            <Link href="/global-health-map">
               <div className="bg-white rounded-xl p-2 text-center shadow-sm hover:shadow-md transition-shadow">
                 <div className="w-10 h-10 bg-indigo-100 rounded-full flex items-center justify-center mx-auto mb-1">
                   <UserRound className="w-5 h-5 text-indigo-600" />
                 </div>
-                <p className="text-xs font-medium text-gray-700 leading-tight">Real Doctor</p>
+                <p className="text-xs font-medium text-gray-700 leading-tight">Health Map</p>
               </div>
             </Link>
             
-            <Link href="/notifications">
+            <Link href="/delivery-tracking">
               <div className="bg-white rounded-xl p-2 text-center shadow-sm hover:shadow-md transition-shadow">
                 <div className="w-10 h-10 bg-yellow-100 rounded-full flex items-center justify-center mx-auto mb-1">
                   <Bell className="w-5 h-5 text-yellow-600" />
                 </div>
-                <p className="text-xs font-medium text-gray-700 leading-tight">Alerts</p>
+                <p className="text-xs font-medium text-gray-700 leading-tight">Tracking</p>
               </div>
             </Link>
           </div>

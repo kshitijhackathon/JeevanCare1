@@ -69,6 +69,7 @@ function Router() {
     }
   }, []);
 
+  // Always render the same structure to avoid hook order issues
   if (isLoading) {
     return (
       <div className="mobile-container flex items-center justify-center">

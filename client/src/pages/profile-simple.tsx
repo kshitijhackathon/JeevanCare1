@@ -87,6 +87,8 @@ export default function Profile() {
     }
   }, []);
 
+  const { logout } = useAuth();
+  
   const handleLogout = () => {
     // Show logout message
     toast({
@@ -96,14 +98,7 @@ export default function Profile() {
     
     // Use the logout function from auth hook
     setTimeout(() => {
-      if (user && typeof user === 'object' && 'logout' in user) {
-        (user as any).logout();
-      } else {
-        // Fallback logout
-        localStorage.removeItem('authToken');
-        localStorage.removeItem('userData');
-        window.location.href = '/';
-      }
+      logout();
     }, 1000);
   };
 

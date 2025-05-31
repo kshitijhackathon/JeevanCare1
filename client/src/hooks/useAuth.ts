@@ -29,47 +29,39 @@ export function useAuth() {
     return () => window.removeEventListener('storage', handleStorageChange);
   }, []);
   
-  // If we have token and user data in localStorage, use it directly
-  if (isReady && token && userData) {
-    try {
-      const user = JSON.parse(userData);
-      return {
-        user,
-        isLoading: false,
-        isAuthenticated: true,
-        logout: () => {
-          localStorage.removeItem('authToken');
-          localStorage.removeItem('userData');
-          setToken(null);
-          setUserData(null);
-          window.location.href = '/';
-        }
-      };
-    } catch (error) {
-      // If parsing fails, clear storage
-      localStorage.removeItem('authToken');
-      localStorage.removeItem('userData');
-      setToken(null);
-      setUserData(null);
-    }
-  }
-  
-  const { data: user, isLoading } = useQuery<User>({
+  const { data: apiUser, isLoading: queryLoading } = useQuery<User>({
     queryKey: ["/api/auth/user"],
-    enabled: isReady && !!token,
+    enabled: isReady && !!token && !userData,
     retry: false,
   });
 
-  return {
-    user,
-    isLoading: !isReady || isLoading,
-    isAuthenticated: !!(token && user),
-    logout: () => {
+  // Parse user data
+  let user = null;
+  if (userData) {
+    try {
+      user = JSON.parse(userData);
+    } catch (error) {
       localStorage.removeItem('authToken');
       localStorage.removeItem('userData');
       setToken(null);
       setUserData(null);
-      window.location.href = '/';
     }
+  } else if (apiUser) {
+    user = apiUser;
+  }
+
+  const logout = () => {
+    localStorage.removeItem('authToken');
+    localStorage.removeItem('userData');
+    setToken(null);
+    setUserData(null);
+    window.location.href = '/';
+  };
+
+  return {
+    user,
+    isLoading: !isReady || queryLoading,
+    isAuthenticated: !!(token && user),
+    logout
   };
 }

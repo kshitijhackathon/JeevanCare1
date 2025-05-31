@@ -38,7 +38,7 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
 const demoCart = new Map();
 
 export async function registerRoutes(app: Express): Promise<Server> {
-  // Local Whisper STT endpoint for accurate voice recognition
+  // OpenAI Whisper API endpoint for accurate voice recognition
   app.post('/api/whisper-transcribe', async (req, res) => {
     try {
       const { audioData, language } = req.body;
@@ -47,27 +47,62 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ error: 'Audio data is required' });
       }
 
-      // Use local Whisper service for transcription
-      const result = await whisperSTTService.transcribeAudio({
-        audioData,
-        languageHint: language
-      });
-
-      if (result.success) {
-        res.json({
-          text: result.text,
-          language: result.language,
-          confidence: result.confidence
-        });
-      } else {
-        res.status(500).json({
-          error: 'Transcription failed',
-          message: result.error || 'Unknown error'
-        });
+      if (!process.env.OPENAI_API_KEY) {
+        return res.status(500).json({ error: 'OpenAI API key not configured' });
       }
 
+      // Convert base64 to blob and create FormData
+      const audioBuffer = Buffer.from(audioData, 'base64');
+      const formData = new FormData();
+      
+      // Create a blob from the buffer
+      const audioBlob = new Blob([audioBuffer], { type: 'audio/webm' });
+      formData.append('file', audioBlob, 'audio.webm');
+      formData.append('model', 'whisper-1');
+      
+      // Map language codes to Whisper supported languages
+      const languageMap: { [key: string]: string } = {
+        'eng_Latn': 'en',
+        'hin_Deva': 'hi',
+        'ben_Beng': 'bn',
+        'tam_Taml': 'ta',
+        'tel_Telu': 'te',
+        'mar_Deva': 'mr',
+        'guj_Gujr': 'gu',
+        'kan_Knda': 'kn',
+        'mal_Mlym': 'ml',
+        'pan_Guru': 'pa',
+        'urd_Arab': 'ur'
+      };
+
+      if (language && languageMap[language]) {
+        formData.append('language', languageMap[language]);
+      }
+
+      // Call OpenAI Whisper API
+      const response = await fetch('https://api.openai.com/v1/audio/transcriptions', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${process.env.OPENAI_API_KEY}`,
+        },
+        body: formData
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`Whisper API error: ${response.status} - ${errorText}`);
+      }
+
+      const result = await response.json();
+      
+      res.json({
+        text: result.text,
+        language: result.language || 'unknown',
+        confidence: 0.9 // OpenAI Whisper typically has high confidence
+      });
+
     } catch (error) {
-      console.error('Local Whisper transcription error:', error);
+      console.error('OpenAI Whisper transcription error:', error);
       res.status(500).json({ 
         error: 'Transcription service unavailable',
         message: error instanceof Error ? error.message : 'Unknown error'

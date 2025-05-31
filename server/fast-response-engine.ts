@@ -152,8 +152,13 @@ export class FastResponseEngine {
   // Call Groq API for medical responses
   private async callGroqAPI(userText: string, language: string): Promise<{response: string, followUp: string} | null> {
     try {
+      if (!process.env.GROQ_API_KEY) {
+        console.log('GROQ_API_KEY not found, using fallback responses');
+        return null;
+      }
+
       const languageInstruction = language === 'hin_Deva' ? 
-        'Respond in Hindi (Devanagari script)' : 'Respond in English';
+        'Respond only in Hindi (Devanagari script)' : 'Respond only in English';
 
       const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
         method: 'POST',
@@ -162,41 +167,59 @@ export class FastResponseEngine {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          model: 'llama-3.1-70b-versatile',
+          model: 'llama-3.1-8b-instant',
           messages: [
             {
               role: 'system',
-              content: `You are Dr. AI, a professional medical assistant. ${languageInstruction}. 
-              Provide quick, empathetic medical responses. Keep responses under 50 words. 
-              Always ask a relevant follow-up question about symptoms, duration, or severity.
-              Be culturally sensitive for Indian patients.`
+              content: `You are Dr. AI, a medical assistant. ${languageInstruction}. Give brief medical advice in 30-40 words. Always ask ONE follow-up question. If patient says bye/goodbye/dhanyawad/thank you, respond with goodbye message. Be professional and caring.`
             },
             {
               role: 'user',
               content: userText
             }
           ],
-          temperature: 0.3,
-          max_tokens: 150
+          temperature: 0.2,
+          max_tokens: 100,
+          top_p: 0.9
         })
       });
 
       if (!response.ok) {
-        throw new Error(`Groq API error: ${response.statusText}`);
+        const errorText = await response.text();
+        console.error(`Groq API error: ${response.status} - ${errorText}`);
+        return null;
       }
 
       const data = await response.json();
-      const fullResponse = data.choices[0].message.content;
+      const fullResponse = data.choices[0]?.message?.content;
       
-      // Split response and follow-up (if available)
-      const parts = fullResponse.split('?');
-      const mainResponse = parts[0] + (parts.length > 1 ? '?' : '');
-      const followUp = parts.length > 1 ? parts.slice(1).join('?').trim() : 
-        (language === 'hin_Deva' ? 'कुछ और बताना चाहेंगे?' : 'Anything else you\'d like to share?');
+      if (!fullResponse) {
+        return null;
+      }
+
+      // Check if it's a goodbye/conclusion
+      const isGoodbye = /bye|goodbye|धन्यवाद|thanks|समाप्त|खत्म|बंद/i.test(userText);
+      
+      if (isGoodbye) {
+        const goodbyeMsg = language === 'hin_Deva' ? 
+          'धन्यवाद! स्वस्थ रहें। यदि कोई और समस्या हो तो डॉक्टर से मिलें।' :
+          'Thank you! Stay healthy. Please consult a doctor if you have any concerns.';
+        
+        return {
+          response: goodbyeMsg,
+          followUp: ''
+        };
+      }
+
+      // Split response and follow-up
+      const sentences = fullResponse.split(/[।?!.]/);
+      const mainResponse = sentences[0] + (sentences.length > 1 ? '।' : '');
+      const followUp = sentences.slice(1).join('').trim() || 
+        (language === 'hin_Deva' ? 'कब से यह समस्या है?' : 'How long have you had this?');
 
       return {
         response: mainResponse.trim(),
-        followUp: followUp || (language === 'hin_Deva' ? 'और कोई समस्या है?' : 'Any other concerns?')
+        followUp: followUp.trim()
       };
 
     } catch (error) {
@@ -208,6 +231,24 @@ export class FastResponseEngine {
   // Pattern-based fallback response
   private generatePatternBasedResponse(userText: string, detectedLang: string): FastResponse {
     const lowerText = userText.toLowerCase();
+
+    // Check for goodbye/completion signals
+    const isGoodbye = /bye|goodbye|धन्यवाद|thanks|समाप्त|खत्म|बंद|ठीक है|ok|fine/i.test(userText);
+    
+    if (isGoodbye) {
+      const goodbyeResponses = {
+        'hin_Deva': 'धन्यवाद! स्वस्थ रहें। यदि कोई और समस्या हो तो डॉक्टर से मिलें।',
+        'eng_Latn': 'Thank you! Stay healthy. Please consult a doctor if you have any concerns.'
+      };
+      
+      return {
+        text: goodbyeResponses[detectedLang] || goodbyeResponses['eng_Latn'],
+        confidence: 0.95,
+        followUpQuestion: '',
+        urgency: 'low',
+        category: 'goodbye'
+      };
+    }
 
     // Find best matching pattern
     let bestMatch: SymptomPattern | null = null;
@@ -228,8 +269,11 @@ export class FastResponseEngine {
     }
 
     if (bestMatch && maxScore > 0) {
-      const response = bestMatch.responses[detectedLang] || bestMatch.responses['eng_Latn'];
-      const followUp = bestMatch.followUps[detectedLang] || bestMatch.followUps['eng_Latn'];
+      const responses = bestMatch.responses as any;
+      const followUps = bestMatch.followUps as any;
+      
+      const response = responses[detectedLang] || responses['eng_Latn'];
+      const followUp = followUps[detectedLang] || followUps['eng_Latn'];
       
       return {
         text: response,
@@ -240,19 +284,19 @@ export class FastResponseEngine {
       };
     }
 
-    // Generic response for unknown symptoms
-    const genericResponses = {
-      'hin_Deva': 'मैं आपकी बात समझ गया। कृपया अपने लक्षणों के बारे में और बताएं।',
-      'eng_Latn': 'I understand. Please tell me more about your symptoms.'
+    // Enhanced generic responses with continuity
+    const continuationResponses = {
+      'hin_Deva': 'मैं समझ गया। कृपया अधिक विस्तार से बताएं - यह कब से शुरू हुआ है?',
+      'eng_Latn': 'I understand. Please tell me more details - when did this start?'
     };
 
     return {
-      text: genericResponses[detectedLang] || genericResponses['eng_Latn'],
-      confidence: 0.7,
+      text: continuationResponses[detectedLang] || continuationResponses['eng_Latn'],
+      confidence: 0.8,
       followUpQuestion: detectedLang === 'hin_Deva' ? 
-        'आपको कोई और परेशानी भी है?' : 
-        'Do you have any other problems?',
-      urgency: 'low',
+        'कितना तेज़ दर्द/परेशानी है?' : 
+        'How severe is the pain/discomfort?',
+      urgency: 'medium',
       category: 'general'
     };
   }

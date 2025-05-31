@@ -550,6 +550,25 @@ function VideoConsultationInterface({ patientDetails }: { patientDetails: any })
       return;
     }
 
+    // Request microphone permission first
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      stream.getTracks().forEach(track => track.stop()); // Stop immediately after permission granted
+      
+      toast({
+        title: "Microphone Ready",
+        description: "Starting voice recognition...",
+        variant: "default"
+      });
+    } catch (error) {
+      toast({
+        title: "Microphone Permission Required",
+        description: "Please allow microphone access to use voice input.",
+        variant: "destructive"
+      });
+      return;
+    }
+
     // Try Web Speech API first for real-time recognition
     if (('webkitSpeechRecognition' in window) || ('SpeechRecognition' in window)) {
       const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;

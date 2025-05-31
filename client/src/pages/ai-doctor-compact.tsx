@@ -271,177 +271,152 @@ const CompactAIDoctorConsultation = () => {
         </div>
       </div>
 
-      {/* Main Content - Single Unified Interface */}
-      <div className="max-w-7xl mx-auto p-4">
-        <Card className="h-[calc(100vh-120px)] flex">
-          {/* Left Side - Compact Doctor Video */}
-          <div className="w-80 flex-shrink-0 border-r">
-            <CardHeader className="pb-3 border-b">
-              <CardTitle className="text-lg flex items-center justify-between">
-                <div className="flex items-center space-x-2">
-                  <Video className="h-5 w-5" />
-                  <span>Video Call</span>
-                </div>
-                
-                {/* Video Controls */}
-                <div className="flex items-center space-x-1">
-                  <Button
-                    variant={isVideoOn ? "default" : "secondary"}
-                    size="sm"
-                    onClick={() => setIsVideoOn(!isVideoOn)}
-                  >
-                    {isVideoOn ? <Video className="h-4 w-4" /> : <VideoOff className="h-4 w-4" />}
-                  </Button>
-                  
-                  <Button
-                    variant={isMuted ? "secondary" : "default"}
-                    size="sm"
-                    onClick={toggleMicrophone}
-                  >
-                    {isMuted ? <MicOff className="h-4 w-4" /> : <Mic className="h-4 w-4" />}
-                  </Button>
-
-                  <Button
-                    onClick={() => setIsAudioEnabled(!isAudioEnabled)}
-                    variant="outline"
-                    size="sm"
-                  >
-                    {isAudioEnabled ? <Volume2 className="h-4 w-4" /> : <VolumeX className="h-4 w-4" />}
-                  </Button>
-                </div>
-              </CardTitle>
-            </CardHeader>
-            
-            <CardContent className="p-4">
-              {/* Doctor Video Area */}
-              <div className="h-64 bg-gradient-to-br from-blue-900 via-purple-900 to-green-900 rounded-lg relative overflow-hidden mb-4">
-                {/* Virtual Doctor Avatar */}
-                <div className="absolute inset-0 flex items-center justify-center">
-                  <div className="text-center">
-                    <div className="h-24 w-24 bg-gradient-to-br from-blue-500 to-green-500 rounded-full mx-auto mb-2 flex items-center justify-center shadow-xl border-2 border-white/20">
-                      <User className="h-12 w-12 text-white" />
-                    </div>
-                    <h3 className="text-lg font-bold text-white mb-1">Dr. AI</h3>
-                    <p className="text-blue-200 text-sm">Virtual Physician</p>
-                    <div className="flex items-center justify-center space-x-1 text-green-300 mt-2">
-                      <Activity className="h-3 w-3 animate-pulse" />
-                      <span className="text-xs">Available</span>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Patient Video (Picture-in-Picture) */}
-                <div className="absolute top-2 right-2 w-20 h-16 bg-gray-800 rounded border border-white/20 overflow-hidden">
-                  <video
-                    ref={videoRef}
-                    autoPlay
-                    muted
-                    playsInline
-                    className="w-full h-full object-cover"
-                  />
-                  {!isVideoOn && (
-                    <div className="absolute inset-0 bg-gray-700 flex items-center justify-center">
-                      <User className="h-6 w-6 text-gray-400" />
-                    </div>
-                  )}
+      {/* Mobile-First Chat Interface */}
+      <div className="max-w-7xl mx-auto p-2 md:p-4">
+        {/* Full Screen Chat with Doctor in Background */}
+        <Card className="h-[calc(100vh-100px)] relative overflow-hidden">
+          {/* Background Doctor Video - Behind Chat */}
+          <div className="absolute inset-0 bg-gradient-to-br from-blue-900/20 via-purple-900/20 to-green-900/20">
+            <div className="absolute inset-0 flex items-center justify-center opacity-10">
+              <div className="text-center">
+                <div className="h-32 w-32 md:h-48 md:w-48 bg-gradient-to-br from-blue-500 to-green-500 rounded-full mx-auto flex items-center justify-center">
+                  <User className="h-16 w-16 md:h-24 md:w-24 text-white" />
                 </div>
               </div>
-
-              {/* Language and Status */}
-              <div className="space-y-2 text-sm">
-                <div className="flex justify-between">
-                  <span className="text-gray-600 dark:text-gray-400">Language:</span>
-                  <span className="font-medium">{selectedLanguage.native}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-600 dark:text-gray-400">Status:</span>
-                  <span className="text-green-600 font-medium">Connected</span>
-                </div>
-              </div>
-            </CardContent>
+            </div>
           </div>
 
-          {/* Right Side - Chat Interface (Scrollable) */}
-          <div className="flex-1 flex flex-col">
-            <CardHeader className="pb-3 border-b">
-              <CardTitle className="text-lg flex items-center space-x-2">
-                <MessageSquare className="h-5 w-5" />
-                <span>Medical Consultation Chat</span>
-              </CardTitle>
-            </CardHeader>
+          {/* Video Controls - Top Right */}
+          <div className="absolute top-3 right-3 z-10 flex items-center space-x-2">
+            <Button
+              variant={isVideoOn ? "default" : "secondary"}
+              size="sm"
+              onClick={() => setIsVideoOn(!isVideoOn)}
+              className="bg-black/50 backdrop-blur-sm border-white/20"
+            >
+              {isVideoOn ? <Video className="h-4 w-4" /> : <VideoOff className="h-4 w-4" />}
+            </Button>
             
-            <CardContent className="flex-1 flex flex-col p-4">
-              {/* Messages Area - Scrollable */}
-              <div 
-                className="flex-1 overflow-y-auto space-y-3 pr-2 mb-4"
-                style={{ minHeight: '0' }}
-              >
-                {chatMessages.map((message, index) => (
-                  <div
-                    key={index}
-                    className={`flex ${message.sender === 'user' ? 'justify-end' : 'justify-start'}`}
-                  >
-                    <div
-                      className={`max-w-md px-4 py-3 rounded-lg text-sm ${
-                        message.sender === 'user'
-                          ? 'bg-blue-500 text-white'
-                          : 'bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-white'
-                      }`}
-                    >
-                      <p className="whitespace-pre-wrap">{message.text}</p>
-                      <span className="text-xs opacity-70 block mt-1">
-                        {message.timestamp}
-                      </span>
-                    </div>
-                  </div>
-                ))}
-                
-                {isTyping && (
-                  <div className="flex justify-start">
-                    <div className="bg-gray-200 dark:bg-gray-700 px-4 py-3 rounded-lg">
-                      <div className="flex space-x-1">
-                        <div className="w-2 h-2 bg-gray-500 rounded-full animate-bounce"></div>
-                        <div className="w-2 h-2 bg-gray-500 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
-                        <div className="w-2 h-2 bg-gray-500 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
-                      </div>
-                    </div>
-                  </div>
-                )}
-                
-                <div ref={messagesEndRef} />
-              </div>
+            <Button
+              variant={isMuted ? "secondary" : "default"}
+              size="sm"
+              onClick={toggleMicrophone}
+              className="bg-black/50 backdrop-blur-sm border-white/20"
+            >
+              {isMuted ? <MicOff className="h-4 w-4" /> : <Mic className="h-4 w-4" />}
+            </Button>
 
-              {/* Input Area - Fixed at bottom */}
-              <div className="space-y-3 border-t pt-4">
-                <div className="flex space-x-2">
-                  <Input
-                    value={currentMessage}
-                    onChange={(e) => setCurrentMessage(e.target.value)}
-                    placeholder="अपने लक्षण बताएं... / Type your symptoms..."
-                    onKeyPress={(e) => e.key === 'Enter' && !e.shiftKey && sendMessage()}
-                    className="flex-1"
-                  />
-                  <Button
-                    onClick={sendMessage}
-                    disabled={!currentMessage.trim()}
-                    size="sm"
-                  >
-                    <Send className="h-4 w-4" />
-                  </Button>
-                </div>
-                
-                <Button
-                  onClick={toggleRecording}
-                  variant={isRecording ? "destructive" : "outline"}
-                  size="sm"
-                  className="w-full"
+            <Button
+              onClick={() => setIsAudioEnabled(!isAudioEnabled)}
+              variant="outline"
+              size="sm"
+              className="bg-black/50 backdrop-blur-sm border-white/20"
+            >
+              {isAudioEnabled ? <Volume2 className="h-4 w-4" /> : <VolumeX className="h-4 w-4" />}
+            </Button>
+          </div>
+
+          {/* Patient Video - Top Left */}
+          <div className="absolute top-3 left-3 w-16 h-12 md:w-24 md:h-18 bg-gray-800 rounded border border-white/20 overflow-hidden z-10">
+            <video
+              ref={videoRef}
+              autoPlay
+              muted
+              playsInline
+              className="w-full h-full object-cover"
+            />
+            {!isVideoOn && (
+              <div className="absolute inset-0 bg-gray-700 flex items-center justify-center">
+                <User className="h-4 w-4 md:h-6 md:w-6 text-gray-400" />
+              </div>
+            )}
+          </div>
+
+          {/* Main Chat Interface */}
+          <CardContent className="h-full flex flex-col p-3 md:p-4 relative z-20">
+            {/* Chat Header */}
+            <div className="flex items-center justify-between mb-3 bg-white/90 dark:bg-gray-900/90 backdrop-blur-sm rounded-lg px-3 py-2">
+              <div className="flex items-center space-x-2">
+                <MessageSquare className="h-4 w-4" />
+                <span className="font-medium text-sm">Dr. AI - Medical Chat</span>
+              </div>
+              <Badge variant="outline" className="text-xs">
+                <div className="h-2 w-2 bg-green-500 rounded-full animate-pulse mr-1"></div>
+                {selectedLanguage.native}
+              </Badge>
+            </div>
+
+            {/* Messages Area - Full Screen Scrollable */}
+            <div 
+              className="flex-1 overflow-y-auto space-y-3 pr-2 mb-3"
+              style={{ minHeight: '0' }}
+            >
+              {chatMessages.map((message, index) => (
+                <div
+                  key={index}
+                  className={`flex ${message.sender === 'user' ? 'justify-end' : 'justify-start'}`}
                 >
-                  {isRecording ? <MicOff className="h-4 w-4 mr-2" /> : <Mic className="h-4 w-4 mr-2" />}
-                  {isRecording ? 'रिकॉर्डिंग बंद करें / Stop Recording' : 'बोलकर बताएं / Voice Input'}
+                  <div
+                    className={`max-w-[85%] md:max-w-md px-3 py-2 rounded-lg text-sm shadow-lg ${
+                      message.sender === 'user'
+                        ? 'bg-blue-500 text-white'
+                        : 'bg-white/95 dark:bg-gray-800/95 text-gray-900 dark:text-white backdrop-blur-sm border border-gray-200/50 dark:border-gray-700/50'
+                    }`}
+                  >
+                    <p className="whitespace-pre-wrap leading-relaxed">{message.text}</p>
+                    <span className="text-xs opacity-70 block mt-1">
+                      {message.timestamp}
+                    </span>
+                  </div>
+                </div>
+              ))}
+              
+              {isTyping && (
+                <div className="flex justify-start">
+                  <div className="bg-white/95 dark:bg-gray-800/95 backdrop-blur-sm px-3 py-2 rounded-lg border border-gray-200/50 dark:border-gray-700/50 shadow-lg">
+                    <div className="flex space-x-1">
+                      <div className="w-2 h-2 bg-gray-500 rounded-full animate-bounce"></div>
+                      <div className="w-2 h-2 bg-gray-500 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
+                      <div className="w-2 h-2 bg-gray-500 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
+                    </div>
+                  </div>
+                </div>
+              )}
+              
+              <div ref={messagesEndRef} />
+            </div>
+
+            {/* Input Area - Fixed at bottom */}
+            <div className="space-y-2 bg-white/95 dark:bg-gray-900/95 backdrop-blur-sm rounded-lg p-3 border border-gray-200/50 dark:border-gray-700/50">
+              <div className="flex space-x-2">
+                <Input
+                  value={currentMessage}
+                  onChange={(e) => setCurrentMessage(e.target.value)}
+                  placeholder="अपने लक्षण बताएं... / Type your symptoms..."
+                  onKeyPress={(e) => e.key === 'Enter' && !e.shiftKey && sendMessage()}
+                  className="flex-1 bg-white/90 dark:bg-gray-800/90"
+                />
+                <Button
+                  onClick={sendMessage}
+                  disabled={!currentMessage.trim()}
+                  size="sm"
+                  className="px-3"
+                >
+                  <Send className="h-4 w-4" />
                 </Button>
               </div>
-            </CardContent>
-          </div>
+              
+              <Button
+                onClick={toggleRecording}
+                variant={isRecording ? "destructive" : "outline"}
+                size="sm"
+                className="w-full bg-white/90 dark:bg-gray-800/90"
+              >
+                {isRecording ? <MicOff className="h-4 w-4 mr-2" /> : <Mic className="h-4 w-4 mr-2" />}
+                {isRecording ? 'रिकॉर्डिंग बंद करें' : 'बोलकर बताएं'}
+              </Button>
+            </div>
+          </CardContent>
         </Card>
       </div>
     </div>

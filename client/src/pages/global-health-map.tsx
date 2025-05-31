@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef, Suspense } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -6,6 +6,9 @@ import { Input } from "@/components/ui/input";
 import { ArrowLeft, Globe, Filter, Search, Info, TrendingUp } from "lucide-react";
 import { Link } from "wouter";
 import { useQuery } from "@tanstack/react-query";
+import { Canvas, useFrame } from "@react-three/fiber";
+import { OrbitControls, Sphere, Text } from "@react-three/drei";
+import * as THREE from "three";
 
 interface DiseaseData {
   disease: string;
@@ -54,33 +57,142 @@ export default function GlobalHealthMap() {
     { value: 'tuberculosis', label: 'Tuberculosis' }
   ];
 
-  // Enhanced Interactive 3D Globe with Realistic Earth
+  // Earth Globe 3D Component
+  const EarthGlobe = ({ healthData }: { healthData: RegionData[] }) => {
+    const meshRef = useRef<THREE.Mesh>(null);
+    const [hovered, setHovered] = useState(false);
+
+    useFrame((state, delta) => {
+      if (meshRef.current) {
+        meshRef.current.rotation.y += hovered ? delta * 0.2 : delta * 0.5;
+      }
+    });
+
+    // Create earth texture using canvas
+    const createEarthTexture = () => {
+      const canvas = document.createElement('canvas');
+      canvas.width = 512;
+      canvas.height = 256;
+      const ctx = canvas.getContext('2d')!;
+
+      // Ocean blue background
+      const gradient = ctx.createLinearGradient(0, 0, 512, 256);
+      gradient.addColorStop(0, '#1e40af');
+      gradient.addColorStop(0.5, '#2563eb');
+      gradient.addColorStop(1, '#3b82f6');
+      ctx.fillStyle = gradient;
+      ctx.fillRect(0, 0, 512, 256);
+
+      // Add continent shapes
+      ctx.fillStyle = '#22c55e';
+      // North America
+      ctx.beginPath();
+      ctx.ellipse(80, 80, 40, 30, 0, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Europe & Asia
+      ctx.beginPath();
+      ctx.ellipse(300, 70, 80, 25, 0, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Africa
+      ctx.fillStyle = '#eab308';
+      ctx.beginPath();
+      ctx.ellipse(280, 130, 25, 40, 0, 0, Math.PI * 2);
+      ctx.fill();
+
+      // India highlighted
+      ctx.fillStyle = '#f97316';
+      ctx.beginPath();
+      ctx.ellipse(350, 120, 8, 12, 0, 0, Math.PI * 2);
+      ctx.fill();
+
+      // South America
+      ctx.fillStyle = '#8b5cf6';
+      ctx.beginPath();
+      ctx.ellipse(120, 180, 20, 35, 0, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Australia
+      ctx.fillStyle = '#06b6d4';
+      ctx.beginPath();
+      ctx.ellipse(420, 200, 25, 15, 0, 0, Math.PI * 2);
+      ctx.fill();
+
+      return new THREE.CanvasTexture(canvas);
+    };
+
+    const earthTexture = createEarthTexture();
+
+    return (
+      <group>
+        <Sphere
+          ref={meshRef}
+          args={[2, 64, 32]}
+          onPointerOver={() => setHovered(true)}
+          onPointerOut={() => setHovered(false)}
+        >
+          <meshStandardMaterial
+            map={earthTexture}
+            roughness={0.8}
+            metalness={0.1}
+          />
+        </Sphere>
+
+        {/* Disease Hotspots as 3D markers */}
+        {healthData?.map((region, index) => {
+          const phi = (region.coordinates[0] + 90) * (Math.PI / 180);
+          const theta = (region.coordinates[1] + 180) * (Math.PI / 180);
+          const radius = 2.1;
+
+          const x = radius * Math.sin(phi) * Math.cos(theta);
+          const y = radius * Math.cos(phi);
+          const z = radius * Math.sin(phi) * Math.sin(theta);
+
+          const getColor = (riskLevel: string) => {
+            switch (riskLevel) {
+              case 'critical': return '#ef4444';
+              case 'high': return '#f97316';
+              case 'medium': return '#eab308';
+              case 'low': return '#22c55e';
+              default: return '#3b82f6';
+            }
+          };
+
+          return (
+            <group key={region.id} position={[x, y, z]}>
+              <Sphere args={[0.05, 16, 16]}>
+                <meshBasicMaterial color={getColor(region.riskLevel)} />
+              </Sphere>
+              <pointLight
+                color={getColor(region.riskLevel)}
+                intensity={0.5}
+                distance={1}
+              />
+            </group>
+          );
+        })}
+
+        {/* Atmosphere glow */}
+        <Sphere args={[2.2, 32, 16]}>
+          <meshBasicMaterial
+            color="#60a5fa"
+            transparent
+            opacity={0.1}
+            side={THREE.BackSide}
+          />
+        </Sphere>
+      </group>
+    );
+  };
+
+  // Enhanced Interactive 3D Globe with React Three Fiber
   const Interactive3DGlobe = () => {
-    const [rotation, setRotation] = useState(0);
-    const [isHovering, setIsHovering] = useState(false);
-    
-    useEffect(() => {
-      const interval = setInterval(() => {
-        setRotation(prev => (prev + (isHovering ? 0.2 : 0.8)) % 360);
-      }, 50);
-      return () => clearInterval(interval);
-    }, [isHovering]);
-
-    // Continent shapes as SVG paths (simplified for performance)
-    const continents = [
-      { name: "Asia", path: "M180,120 Q200,100 220,120 Q240,140 220,160 Q200,180 180,160 Q160,140 180,120", color: "#22c55e" },
-      { name: "Europe", path: "M140,110 Q150,100 160,110 Q170,120 160,130 Q150,140 140,130 Q130,120 140,110", color: "#3b82f6" },
-      { name: "Africa", path: "M150,130 Q170,120 180,140 Q190,160 180,180 Q170,200 150,190 Q130,180 140,160 Q150,140 150,130", color: "#f59e0b" },
-      { name: "North America", path: "M80,100 Q100,90 120,100 Q140,110 130,130 Q120,150 100,140 Q80,130 70,110 Q80,100 80,100", color: "#ef4444" },
-      { name: "South America", path: "M90,150 Q110,140 120,160 Q130,180 120,200 Q110,220 90,210 Q70,200 80,180 Q90,160 90,150", color: "#8b5cf6" },
-      { name: "Australia", path: "M220,180 Q240,170 250,180 Q260,190 250,200 Q240,210 220,200 Q200,190 210,180 Q220,180 220,180", color: "#06b6d4" }
-    ];
-
     return (
       <div className="relative bg-gradient-to-br from-slate-900 via-blue-900 to-black rounded-lg h-96 overflow-hidden">
         {/* Stars Background */}
         <div className="absolute inset-0">
-          {[...Array(80)].map((_, i) => (
+          {[...Array(100)].map((_, i) => (
             <div
               key={i}
               className="absolute w-px h-px bg-white rounded-full animate-pulse"
@@ -94,222 +206,63 @@ export default function GlobalHealthMap() {
           ))}
         </div>
 
-        {/* Professional 3D Earth Globe */}
-        <div 
-          className="absolute inset-0 flex items-center justify-center cursor-pointer"
-          onMouseEnter={() => setIsHovering(true)}
-          onMouseLeave={() => setIsHovering(false)}
+        {/* 3D Canvas */}
+        <Canvas
+          className="w-full h-full"
+          camera={{ position: [0, 0, 5], fov: 60 }}
         >
-          <div 
-            className="relative w-80 h-80 rounded-full transform-gpu transition-transform duration-700 hover:scale-105"
-            style={{
-              background: `
-                radial-gradient(circle at 25% 25%, rgba(255,255,255,0.8) 0%, rgba(255,255,255,0.3) 20%, transparent 40%),
-                radial-gradient(circle at 75% 75%, rgba(0,0,0,0.6) 0%, rgba(0,0,0,0.2) 30%, transparent 50%),
-                radial-gradient(ellipse at center, 
-                  #1e40af 0%, 
-                  #1e3a8a 20%, 
-                  #1d4ed8 40%, 
-                  #2563eb 60%, 
-                  #3b82f6 80%, 
-                  #60a5fa 100%
-                )
-              `,
-              transform: `rotateY(${rotation * 0.3}deg) rotateX(-15deg) rotateZ(${rotation * 0.1}deg)`,
-              boxShadow: `
-                inset -60px -60px 120px rgba(0,0,0,0.7),
-                inset 40px 40px 120px rgba(255,255,255,0.1),
-                0 0 120px rgba(59, 130, 246, 0.6),
-                0 0 240px rgba(34, 197, 94, 0.3),
-                0 40px 80px rgba(0,0,0,0.4)
-              `,
-              border: '2px solid rgba(255,255,255,0.1)',
-              filter: 'contrast(1.1) saturate(1.2)'
-            }}
-          >
-            {/* Realistic Ocean Layer */}
-            <div 
-              className="absolute inset-0 rounded-full overflow-hidden"
-              style={{
-                background: `
-                  radial-gradient(ellipse 60% 40% at 30% 25%, #0ea5e9 0%, #0284c7 25%, #0369a1 50%, #075985 75%, #0c4a6e 100%),
-                  radial-gradient(ellipse 40% 60% at 70% 75%, #0891b2 0%, #0e7490 30%, #155e75 60%, #164e63 100%),
-                  conic-gradient(from ${rotation}deg at 50% 50%, 
-                    #1e40af 0deg, #0ea5e9 60deg, #0284c7 120deg, #0369a1 180deg, #075985 240deg, #0c4a6e 300deg, #1e40af 360deg)
-                `,
-                transform: `rotate(${rotation * 0.2}deg)`,
-                opacity: 0.95
-              }}
+          <Suspense fallback={null}>
+            <ambientLight intensity={0.3} />
+            <directionalLight position={[5, 5, 5]} intensity={1} />
+            <EarthGlobe healthData={healthData || []} />
+            <OrbitControls
+              enableZoom={true}
+              enablePan={false}
+              minDistance={3}
+              maxDistance={10}
+              autoRotate
+              autoRotateSpeed={0.5}
             />
+          </Suspense>
+        </Canvas>
 
-            {/* Earth Continents - Photo-realistic */}
-            <div 
-              className="absolute inset-0 rounded-full overflow-hidden"
-              style={{
-                background: `
-                  radial-gradient(ellipse 25% 15% at 35% 30%, #654321 0%, #8b7355 30%, transparent 70%),
-                  radial-gradient(ellipse 20% 12% at 55% 40%, #8b7355 0%, #a0875f 40%, transparent 80%),
-                  radial-gradient(ellipse 18% 25% at 25% 50%, #cd853f 0%, #d2b48c 50%, transparent 90%),
-                  radial-gradient(ellipse 30% 20% at 45% 25%, #556b2f 0%, #6b8e23 40%, transparent 85%),
-                  radial-gradient(ellipse 15% 10% at 65% 35%, #8fbc8f 0%, #9acd32 60%, transparent 95%)
-                `,
-                transform: `rotate(${rotation * 0.15}deg)`,
-                opacity: 0.8
-              }}
-            />
-
-            {/* India Subcontinent - Detailed */}
-            <div 
-              className="absolute inset-0 rounded-full overflow-hidden"
-              style={{
-                background: `
-                  radial-gradient(ellipse 12% 18% at 52% 45%, #8b7355 0%, #cd853f 40%, #d2b48c 70%, transparent 100%),
-                  radial-gradient(ellipse 8% 6% at 48% 42%, #556b2f 0%, #6b8e23 50%, transparent 90%),
-                  radial-gradient(ellipse 6% 4% at 50% 40%, #daa520 0%, #f4a460 60%, transparent 100%)
-                `,
-                transform: `rotate(${rotation * 0.1}deg)`,
-                opacity: 0.9
-              }}
-            />
-
-            {/* Atmospheric Cloud Cover */}
-            <div 
-              className="absolute inset-0 rounded-full overflow-hidden"
-              style={{
-                background: `
-                  radial-gradient(ellipse 30% 15% at 25% 30%, rgba(255,255,255,0.6) 0%, rgba(255,255,255,0.3) 50%, transparent 80%),
-                  radial-gradient(ellipse 25% 12% at 65% 50%, rgba(255,255,255,0.5) 0%, rgba(255,255,255,0.2) 60%, transparent 90%),
-                  radial-gradient(ellipse 20% 8% at 40% 70%, rgba(255,255,255,0.4) 0%, rgba(255,255,255,0.1) 70%, transparent 100%),
-                  linear-gradient(45deg, transparent 40%, rgba(255,255,255,0.1) 50%, transparent 60%)
-                `,
-                transform: `rotate(${rotation * 0.4}deg)`,
-                opacity: 0.7
-              }}
-            />
-
-            {/* Polar Ice Caps */}
-            <div 
-              className="absolute inset-0 rounded-full overflow-hidden"
-              style={{
-                background: `
-                  radial-gradient(ellipse 40% 8% at 50% 10%, rgba(255,255,255,0.9) 0%, rgba(240,248,255,0.6) 60%, transparent 100%),
-                  radial-gradient(ellipse 35% 6% at 50% 90%, rgba(255,255,255,0.8) 0%, rgba(240,248,255,0.5) 70%, transparent 100%)
-                `,
-                opacity: 0.8
-              }}
-            />
-
-            {/* Disease Hotspots */}
-            {healthData?.map((region, index) => {
-              const angle = (index * 60 + rotation) % 360;
-              const radius = 35;
-              const x = 50 + radius * Math.cos(angle * Math.PI / 180);
-              const y = 50 + radius * Math.sin(angle * Math.PI / 180);
-              const depth = Math.cos(angle * Math.PI / 180);
-              const isVisible = depth > -0.5;
-              const scale = Math.max(0.3, (depth + 1) / 2);
-              
-              const getHotspotColor = (riskLevel: string) => {
-                switch (riskLevel) {
-                  case 'critical': return 'bg-red-500 shadow-red-500/50';
-                  case 'high': return 'bg-orange-500 shadow-orange-500/50';
-                  case 'medium': return 'bg-yellow-500 shadow-yellow-500/50';
-                  case 'low': return 'bg-green-500 shadow-green-500/50';
-                  default: return 'bg-blue-500 shadow-blue-500/50';
-                }
-              };
-              
-              if (!isVisible) return null;
-              
-              return (
-                <div
-                  key={region.id}
-                  className={`absolute w-3 h-3 rounded-full ${getHotspotColor(region.riskLevel)} animate-ping cursor-pointer transform-gpu`}
-                  style={{
-                    left: `${x}%`,
-                    top: `${y}%`,
-                    transform: `translate(-50%, -50%) scale(${scale})`,
-                    opacity: scale * 0.9,
-                    zIndex: Math.floor(scale * 10),
-                    boxShadow: `0 0 20px ${getHotspotColor(region.riskLevel).includes('red') ? '#ef4444' : 
-                                            getHotspotColor(region.riskLevel).includes('orange') ? '#f97316' :
-                                            getHotspotColor(region.riskLevel).includes('yellow') ? '#eab308' :
-                                            getHotspotColor(region.riskLevel).includes('green') ? '#22c55e' : '#3b82f6'}`
-                  }}
-                  onClick={() => setSelectedRegion(region)}
-                  title={`${region.name} - ${region.riskLevel.toUpperCase()} risk`}
-                />
-              );
-            })}
-
-            {/* Globe Grid Lines */}
-            <svg className="absolute inset-0 w-full h-full opacity-20" viewBox="0 0 320 320">
-              {/* Longitude lines */}
-              {[0, 30, 60, 90, 120, 150].map(angle => (
-                <ellipse
-                  key={angle}
-                  cx="160"
-                  cy="160"
-                  rx={Math.cos(angle * Math.PI / 180) * 140}
-                  ry="140"
-                  fill="none"
-                  stroke="rgba(255,255,255,0.3)"
-                  strokeWidth="1"
-                  transform={`rotate(${angle} 160 160)`}
-                />
-              ))}
-              {/* Latitude lines */}
-              {[-60, -30, 0, 30, 60].map(lat => (
-                <ellipse
-                  key={lat}
-                  cx="160"
-                  cy="160"
-                  rx="140"
-                  ry={Math.cos(lat * Math.PI / 180) * 140}
-                  fill="none"
-                  stroke="rgba(255,255,255,0.2)"
-                  strokeWidth="1"
-                />
-              ))}
-            </svg>
-
-            {/* Atmospheric glow */}
-            <div
-              className="absolute inset-0 rounded-full"
-              style={{
-                background: `radial-gradient(circle, transparent 70%, rgba(59, 130, 246, 0.3) 85%, rgba(34, 197, 94, 0.2) 100%)`,
-                filter: 'blur(2px)'
-              }}
-            />
+        {/* Globe Info Display */}
+        <div className="absolute top-4 left-4 bg-black/70 backdrop-blur text-white p-3 rounded-lg">
+          <h3 className="font-bold text-sm flex items-center">
+            <Globe className="w-4 h-4 mr-2" />
+            Global Health Monitor
+          </h3>
+          <p className="text-xs opacity-80">Real-time Disease Tracking</p>
+          <div className="flex items-center space-x-2 mt-2">
+            <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
+            <span className="text-xs">Active Monitoring</span>
           </div>
+        </div>
 
-          {/* Globe Info Display */}
-          <div className="absolute top-4 left-4 bg-black/50 backdrop-blur text-white p-3 rounded-lg">
-            <h3 className="font-bold text-sm">🌍 Global Health Monitor</h3>
-            <p className="text-xs opacity-80">Live Disease Tracking</p>
-            <div className="flex items-center space-x-2 mt-2">
-              <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
-              <span className="text-xs">Active Monitoring</span>
-            </div>
+        {/* Risk Level Legend */}
+        <div className="absolute bottom-4 right-4 bg-black/70 backdrop-blur text-white p-3 rounded-lg">
+          <h4 className="text-xs font-semibold mb-2 flex items-center">
+            <Info className="w-3 h-3 mr-1" />
+            Risk Levels
+          </h4>
+          <div className="space-y-1">
+            {[
+              { level: 'Critical', color: 'bg-red-500', count: healthData?.filter(r => r.riskLevel === 'critical').length || 0 },
+              { level: 'High', color: 'bg-orange-500', count: healthData?.filter(r => r.riskLevel === 'high').length || 0 },
+              { level: 'Medium', color: 'bg-yellow-500', count: healthData?.filter(r => r.riskLevel === 'medium').length || 0 },
+              { level: 'Low', color: 'bg-green-500', count: healthData?.filter(r => r.riskLevel === 'low').length || 0 }
+            ].map(item => (
+              <div key={item.level} className="flex items-center space-x-2 text-xs">
+                <div className={`w-2 h-2 rounded-full ${item.color} animate-pulse`}></div>
+                <span>{item.level} ({item.count})</span>
+              </div>
+            ))}
           </div>
+        </div>
 
-          {/* Risk Level Legend */}
-          <div className="absolute bottom-4 right-4 bg-black/50 backdrop-blur text-white p-3 rounded-lg">
-            <h4 className="text-xs font-semibold mb-2">Risk Levels</h4>
-            <div className="space-y-1">
-              {[
-                { level: 'Critical', color: 'bg-red-500', count: healthData?.filter(r => r.riskLevel === 'critical').length || 0 },
-                { level: 'High', color: 'bg-orange-500', count: healthData?.filter(r => r.riskLevel === 'high').length || 0 },
-                { level: 'Medium', color: 'bg-yellow-500', count: healthData?.filter(r => r.riskLevel === 'medium').length || 0 },
-                { level: 'Low', color: 'bg-green-500', count: healthData?.filter(r => r.riskLevel === 'low').length || 0 }
-              ].map(item => (
-                <div key={item.level} className="flex items-center space-x-2 text-xs">
-                  <div className={`w-2 h-2 rounded-full ${item.color} animate-pulse`}></div>
-                  <span>{item.level} ({item.count})</span>
-                </div>
-              ))}
-            </div>
-          </div>
+        {/* Controls Hint */}
+        <div className="absolute bottom-4 left-4 bg-black/70 backdrop-blur text-white p-2 rounded-lg">
+          <p className="text-xs opacity-80">Drag to rotate • Scroll to zoom</p>
         </div>
       </div>
     );

@@ -48,7 +48,7 @@ interface Medicine {
 }
 
 export default function MedicineDelivery() {
-  const [, navigate] = useLocation();
+  const [, setLocation] = useLocation();
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("all");
   const [cartItems, setCartItems] = useState<{[key: number]: number}>({});
@@ -131,7 +131,7 @@ export default function MedicineDelivery() {
           <Button 
             variant="ghost" 
             size="sm"
-            onClick={() => navigate("/")}
+            onClick={() => setLocation("/")}
             className="text-white hover:bg-white/20"
           >
             <ArrowLeft className="w-5 h-5" />

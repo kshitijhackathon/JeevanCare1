@@ -12,7 +12,7 @@ import { useToast } from "@/hooks/use-toast";
 import { ArrowLeft, User as UserIcon, Edit2, Save } from "lucide-react";
 
 export default function Profile() {
-  const [, navigate] = useLocation();
+  const [, setLocation] = useLocation();
   const { user } = useAuth();
   const { toast } = useToast();
   const [isEditing, setIsEditing] = useState(false);
@@ -122,7 +122,7 @@ export default function Profile() {
           <Button
             variant="ghost"
             size="sm"
-            onClick={() => navigate("/")}
+            onClick={() => setLocation("/")}
             className="p-2"
           >
             <ArrowLeft className="w-5 h-5" />

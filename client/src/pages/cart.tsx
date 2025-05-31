@@ -10,7 +10,7 @@ import { ArrowLeft, Minus, Plus, Trash2, CreditCard } from "lucide-react";
 import type { CartItemWithProduct } from "@/lib/types";
 
 export default function Cart() {
-  const [, navigate] = useLocation();
+  const [, setLocation] = useLocation();
   const { toast } = useToast();
 
   const { data: cartItems, isLoading } = useQuery<CartItemWithProduct[]>({
@@ -73,7 +73,7 @@ export default function Cart() {
       <div className="mobile-container">
         <header className="sticky top-0 bg-white shadow-sm border-b border-gray-100 px-4 py-4">
           <div className="flex items-center justify-between">
-            <Button variant="ghost" size="sm" onClick={() => navigate("/pharmacy")}>
+            <Button variant="ghost" size="sm" onClick={() => setLocation("/pharmacy")}>
               <ArrowLeft className="w-5 h-5" />
             </Button>
             <h2 className="font-semibold text-lg text-gray-800">My Cart</h2>
@@ -88,7 +88,7 @@ export default function Cart() {
             </div>
             <h3 className="text-xl font-semibold text-gray-800 mb-2">Your cart is empty</h3>
             <p className="text-gray-600 mb-6">Add some medicines to get started</p>
-            <Button onClick={() => navigate("/pharmacy")} className="btn-primary">
+            <Button onClick={() => setLocation("/pharmacy")} className="btn-primary">
               Browse Pharmacy
             </Button>
           </div>
@@ -101,7 +101,7 @@ export default function Cart() {
     <div className="mobile-container">
       <header className="sticky top-0 bg-white shadow-sm border-b border-gray-100 px-4 py-4 z-10">
         <div className="flex items-center justify-between">
-          <Button variant="ghost" size="sm" onClick={() => navigate("/pharmacy")}>
+          <Button variant="ghost" size="sm" onClick={() => setLocation("/pharmacy")}>
             <ArrowLeft className="w-5 h-5" />
           </Button>
           <h2 className="font-semibold text-lg text-gray-800">My Cart</h2>
@@ -221,7 +221,7 @@ export default function Cart() {
       {/* Fixed Bottom Action */}
       <div className="p-4 bg-white border-t border-gray-100">
         <Button 
-          onClick={() => navigate("/checkout")}
+          onClick={() => setLocation("/checkout")}
           className="btn-primary w-full text-lg py-4"
         >
           Checkout

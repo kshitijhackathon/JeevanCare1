@@ -32,7 +32,7 @@ interface DeliveryStatus {
 }
 
 export default function DeliveryTracking() {
-  const [, navigate] = useLocation();
+  const [, setLocation] = useLocation();
   const [deliveryStatus, setDeliveryStatus] = useState<DeliveryStatus>({
     id: "DEL-2025-001",
     status: "on_the_way",
@@ -90,7 +90,7 @@ export default function DeliveryTracking() {
         <Button 
           variant="ghost" 
           size="sm" 
-          onClick={() => navigate(-1)}
+          onClick={() => setLocation(-1)}
           className="p-2"
         >
           <ArrowLeft className="w-5 h-5" />

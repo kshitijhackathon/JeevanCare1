@@ -51,7 +51,7 @@ interface SymptomCheck {
 }
 
 export default function SymptomChecker() {
-  const [, navigate] = useLocation();
+  const [, setLocation] = useLocation();
   const { user } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -153,7 +153,7 @@ export default function SymptomChecker() {
           <Button 
             variant="ghost" 
             size="sm"
-            onClick={() => navigate("/")}
+            onClick={() => setLocation("/")}
             className="text-white hover:bg-white/20"
           >
             <ArrowLeft className="w-5 h-5" />

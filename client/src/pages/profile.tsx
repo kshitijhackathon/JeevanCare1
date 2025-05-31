@@ -13,7 +13,7 @@ import { ArrowLeft, User as UserIcon, Edit2, Save } from "lucide-react";
 import type { User } from "@shared/schema";
 
 export default function Profile() {
-  const [, navigate] = useLocation();
+  const [, setLocation] = useLocation();
   const { user } = useAuth();
   const { toast } = useToast();
   const [isEditing, setIsEditing] = useState(false);
@@ -57,7 +57,7 @@ export default function Profile() {
     <div className="mobile-container">
       <header className="sticky top-0 bg-white shadow-sm border-b border-gray-100 px-4 py-4">
         <div className="flex items-center justify-between">
-          <Button variant="ghost" size="sm" onClick={() => navigate("/")}>
+          <Button variant="ghost" size="sm" onClick={() => setLocation("/")}>
             <ArrowLeft className="w-5 h-5" />
           </Button>
           <h2 className="font-semibold text-lg text-gray-800">Profile</h2>

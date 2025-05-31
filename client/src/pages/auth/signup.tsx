@@ -8,7 +8,7 @@ import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 
 export default function SignUp() {
-  const [, navigate] = useLocation();
+  const [, setLocation] = useLocation();
   const { toast } = useToast();
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -54,7 +54,7 @@ export default function SignUp() {
         sessionStorage.setItem('pendingEmail', formData.email);
         
         // Navigate to OTP verification
-        navigate('/auth/otp-verification');
+        setLocation('/auth/otp-verification');
       } else {
         toast({
           title: "Signup Failed",
@@ -107,7 +107,7 @@ export default function SignUp() {
         <Button
           variant="ghost"
           size="sm"
-          onClick={() => navigate("/auth/get-started")}
+          onClick={() => setLocation("/auth/get-started")}
           className="p-2 mr-2"
         >
           <ArrowLeft className="w-5 h-5" />

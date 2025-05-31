@@ -22,7 +22,7 @@ interface ExtractedMedicine {
 }
 
 export default function PrescriptionUpload() {
-  const [, navigate] = useLocation();
+  const [, setLocation] = useLocation();
   const { toast } = useToast();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [uploadedImage, setUploadedImage] = useState<string | null>(null);
@@ -179,7 +179,7 @@ export default function PrescriptionUpload() {
         <Button 
           variant="ghost" 
           size="sm" 
-          onClick={() => navigate(-1)}
+          onClick={() => setLocation(-1)}
           className="p-2"
         >
           <ArrowLeft className="w-5 h-5" />

@@ -11,7 +11,7 @@ import type { Product } from "@shared/schema";
 
 export default function ProductDetail() {
   const [, params] = useRoute("/product/:id");
-  const [, navigate] = useLocation();
+  const [, setLocation] = useLocation();
   const [quantity, setQuantity] = useState(1);
   const [isFavorite, setIsFavorite] = useState(false);
   const { toast } = useToast();
@@ -33,7 +33,7 @@ export default function ProductDetail() {
         title: "Added to Cart",
         description: `${product?.name} has been added to your cart.`,
       });
-      navigate("/cart");
+      setLocation("/cart");
     },
     onError: () => {
       toast({
@@ -57,7 +57,7 @@ export default function ProductDetail() {
       <div className="mobile-container flex items-center justify-center">
         <div className="text-center">
           <h2 className="text-xl font-semibold text-gray-800 mb-2">Product Not Found</h2>
-          <Button onClick={() => navigate("/pharmacy")}>
+          <Button onClick={() => setLocation("/pharmacy")}>
             Back to Pharmacy
           </Button>
         </div>
@@ -78,7 +78,7 @@ export default function ProductDetail() {
     <div className="mobile-container">
       <header className="sticky top-0 bg-white shadow-sm border-b border-gray-100 px-4 py-4 z-10">
         <div className="flex items-center justify-between">
-          <Button variant="ghost" size="sm" onClick={() => navigate("/pharmacy")}>
+          <Button variant="ghost" size="sm" onClick={() => setLocation("/pharmacy")}>
             <ArrowLeft className="w-5 h-5" />
           </Button>
           <h2 className="font-semibold text-lg text-gray-800">{product.name}</h2>

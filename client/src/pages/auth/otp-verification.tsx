@@ -7,7 +7,7 @@ import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 
 export default function OTPVerification() {
-  const [, navigate] = useLocation();
+  const [, setLocation] = useLocation();
   const { toast } = useToast();
   const [otp, setOtp] = useState(['', '', '', '', '', '']);
   const [isLoading, setIsLoading] = useState(false);
@@ -21,7 +21,7 @@ export default function OTPVerification() {
       setEmail(storedEmail);
     } else {
       // Redirect back to signup if no email found
-      navigate('/auth/signup');
+      setLocation('/auth/signup');
     }
   }, [navigate]);
 
@@ -122,7 +122,7 @@ export default function OTPVerification() {
         <Button
           variant="ghost"
           size="sm"
-          onClick={() => navigate("/auth/signup")}
+          onClick={() => setLocation("/auth/signup")}
           className="p-2 mr-2"
         >
           <ArrowLeft className="w-5 h-5" />

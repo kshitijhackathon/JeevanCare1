@@ -57,7 +57,7 @@ interface PrescriptionForm {
 }
 
 export default function Prescription() {
-  const [, navigate] = useLocation();
+  const [, setLocation] = useLocation();
   const { user } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -152,7 +152,7 @@ export default function Prescription() {
           <Button 
             variant="ghost" 
             size="sm"
-            onClick={() => navigate("/")}
+            onClick={() => setLocation("/")}
             className="text-white hover:bg-white/20"
           >
             <ArrowLeft className="w-5 h-5" />

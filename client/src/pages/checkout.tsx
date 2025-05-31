@@ -23,7 +23,7 @@ const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLIC_KEY);
 const CheckoutForm = ({ total }: { total: number }) => {
   const stripe = useStripe();
   const elements = useElements();
-  const [, navigate] = useLocation();
+  const [, setLocation] = useLocation();
   const { toast } = useToast();
   const [isProcessing, setIsProcessing] = useState(false);
   const [deliveryAddress, setDeliveryAddress] = useState({
@@ -102,7 +102,7 @@ const CheckoutForm = ({ total }: { total: number }) => {
       });
       
       // Navigate to delivery tracking
-      navigate("/delivery-tracking");
+      setLocation("/delivery-tracking");
     }
   };
 
@@ -276,7 +276,7 @@ const PaymentSuccessModal = ({ isOpen, onClose }: { isOpen: boolean; onClose: ()
 };
 
 export default function Checkout() {
-  const [, navigate] = useLocation();
+  const [, setLocation] = useLocation();
   const [clientSecret, setClientSecret] = useState("");
   const [showSuccess, setShowSuccess] = useState(false);
 
@@ -326,7 +326,7 @@ export default function Checkout() {
       <div className="mobile-container">
         <header className="sticky top-0 bg-white shadow-sm border-b border-gray-100 px-4 py-4">
           <div className="flex items-center justify-between">
-            <Button variant="ghost" size="sm" onClick={() => navigate("/cart")}>
+            <Button variant="ghost" size="sm" onClick={() => setLocation("/cart")}>
               <ArrowLeft className="w-5 h-5" />
             </Button>
             <h2 className="font-semibold text-lg text-gray-800">Checkout</h2>
@@ -341,7 +341,7 @@ export default function Checkout() {
             </div>
             <h3 className="text-xl font-semibold text-gray-800 mb-2">No items to checkout</h3>
             <p className="text-gray-600 mb-6">Add some medicines to your cart first</p>
-            <Button onClick={() => navigate("/pharmacy")} className="btn-primary">
+            <Button onClick={() => setLocation("/pharmacy")} className="btn-primary">
               Browse Pharmacy
             </Button>
           </div>
@@ -365,7 +365,7 @@ export default function Checkout() {
     <div className="mobile-container">
       <header className="sticky top-0 bg-white shadow-sm border-b border-gray-100 px-4 py-4 z-10">
         <div className="flex items-center justify-between">
-          <Button variant="ghost" size="sm" onClick={() => navigate("/cart")}>
+          <Button variant="ghost" size="sm" onClick={() => setLocation("/cart")}>
             <ArrowLeft className="w-5 h-5" />
           </Button>
           <h2 className="font-semibold text-lg text-gray-800">Checkout</h2>
@@ -427,7 +427,7 @@ export default function Checkout() {
         isOpen={showSuccess}
         onClose={() => {
           setShowSuccess(false);
-          navigate("/");
+          setLocation("/");
         }}
       />
     </div>

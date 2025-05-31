@@ -18,6 +18,7 @@ import MultilingualConsultation from "@/pages/multilingual-consultation";
 import NaturalAIConsultation from "@/pages/natural-ai-consultation";
 import WhisperAIConsultation from "@/pages/whisper-ai-consultation";
 import AIDoctorVideoConsultation from "@/pages/ai-doctor-video-consultation";
+import AIDoctorVideoConsultationEnhanced from "@/pages/ai-doctor-video-consultation-enhanced";
 import BookTest from "@/pages/book-test";
 import MedicineDelivery from "@/pages/medicine-delivery";
 import Reports from "@/pages/reports";
@@ -82,7 +83,7 @@ function Router() {
       <Route path="/multilingual-consultation" component={MultilingualConsultation} />
       <Route path="/natural-consultation" component={NaturalAIConsultation} />
       <Route path="/whisper-consultation" component={WhisperAIConsultation} />
-      <Route path="/ai-doctor-video" component={AIDoctorVideoConsultation} />
+      <Route path="/ai-doctor-video" component={AIDoctorVideoConsultationEnhanced} />
       <Route path="/face-scan" component={MedicalScan} />
       <Route path="/medical-scan" component={MedicalScan} />
       

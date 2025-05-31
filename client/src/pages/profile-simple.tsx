@@ -88,18 +88,23 @@ export default function Profile() {
   }, []);
 
   const handleLogout = () => {
-    // Clear JWT token and user data
-    localStorage.removeItem('authToken');
-    localStorage.removeItem('userData');
-    
     // Show logout message
     toast({
       title: "Logged out",
       description: "You have been successfully logged out.",
     });
     
-    // Redirect to landing page (which will show signin option)
-    window.location.href = '/';
+    // Use the logout function from auth hook
+    setTimeout(() => {
+      if (user && typeof user === 'object' && 'logout' in user) {
+        (user as any).logout();
+      } else {
+        // Fallback logout
+        localStorage.removeItem('authToken');
+        localStorage.removeItem('userData');
+        window.location.href = '/';
+      }
+    }, 1000);
   };
 
   const handleSave = () => {

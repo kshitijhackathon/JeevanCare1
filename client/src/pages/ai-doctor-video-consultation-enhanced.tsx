@@ -34,6 +34,7 @@ import {
   VolumeX
 } from "lucide-react";
 import { Link, useLocation } from "wouter";
+import PrescriptionGenerator from "@/components/prescription-generator";
 
 // Indian languages with their codes
 const INDIAN_LANGUAGES = [
@@ -321,6 +322,9 @@ function VideoConsultationInterface({ patientDetails }: { patientDetails: any })
   const [conversation, setConversation] = useState<Array<{role: 'doctor' | 'patient', message: string, timestamp: Date}>>([]);
   const [currentMessage, setCurrentMessage] = useState('');
   const [videoStream, setVideoStream] = useState<MediaStream | null>(null);
+  const [showReview, setShowReview] = useState(false);
+  const [showPrescription, setShowPrescription] = useState(false);
+  const [prescriptionData, setPrescriptionData] = useState(null);
   const { toast } = useToast();
   
   const selectedLanguage = INDIAN_LANGUAGES.find(lang => lang.code === patientDetails.language) || INDIAN_LANGUAGES[0];
@@ -713,14 +717,83 @@ function VideoConsultationInterface({ patientDetails }: { patientDetails: any })
     setIsSpeaking(false);
   };
 
-  const endCall = () => {
+  const endCall = async () => {
     ttsEngine.stop(); // Stop any ongoing speech
-    toast({
-      title: "Consultation Ended",
-      description: "Thank you for using AI Doctor Consultation. Your session summary will be sent to your registered email.",
-    });
-    setLocation('/');
+    
+    // Show reviewing screen first
+    setShowReview(true);
+    
+    // Simulate doctor review process
+    setTimeout(async () => {
+      try {
+        // Generate prescription based on conversation
+        const prescriptionResponse = await generatePrescription();
+        setPrescriptionData(prescriptionResponse);
+        setShowReview(false);
+        setShowPrescription(true);
+      } catch (error) {
+        console.error('Error generating prescription:', error);
+        toast({
+          title: "Error",
+          description: "Could not generate prescription. Please contact support.",
+          variant: "destructive"
+        });
+        setShowReview(false);
+      }
+    }, 3000); // 3 seconds review time
   };
+
+  const generatePrescription = async () => {
+    // Extract symptoms from conversation
+    const symptoms = conversation
+      .filter(msg => msg.role === 'patient')
+      .map(msg => msg.message)
+      .join('. ');
+
+    // Call prescription generation API
+    const response = await fetch('/api/generate-prescription', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        patientDetails,
+        symptoms,
+        conversation,
+        language: selectedLanguage.code
+      })
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to generate prescription');
+    }
+
+    return await response.json();
+  };
+
+  // Show reviewing screen
+  if (showReview) {
+    return (
+      <div className="min-h-screen bg-gray-900 text-white flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-16 h-16 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <h2 className="text-2xl font-semibold mb-2">Reviewing by Dr. AI</h2>
+          <p className="text-gray-300">Analyzing your consultation and preparing prescription...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Show prescription screen
+  if (showPrescription && prescriptionData) {
+    return (
+      <PrescriptionGenerator 
+        prescriptionData={prescriptionData}
+        onClose={() => {
+          setShowPrescription(false);
+          setLocation('/');
+        }}
+      />
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gray-900 text-white">

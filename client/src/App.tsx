@@ -80,41 +80,31 @@ function Router() {
 
   return (
     <Switch>
-      {!isAuthenticated ? (
-        <>
-          {/* When not logged in - show landing/auth pages */}
-          <Route path="/" component={Landing} />
-          <Route path="/auth/get-started" component={GetStarted} />
-          <Route path="/auth/signup" component={SignUp} />
-          <Route path="/auth/signin" component={SignIn} />
-          <Route path="/auth/otp-verification" component={OTPVerification} />
+      {/* Auth routes - always available */}
+      <Route path="/auth/get-started" component={GetStarted} />
+      <Route path="/auth/signup" component={SignUp} />
+      <Route path="/auth/signin" component={SignIn} />
+      <Route path="/auth/otp-verification" component={OTPVerification} />
+      
+      {/* Main app routes - protected */}
+      <Route path="/" component={isAuthenticated ? Home : Landing} />
+      <Route path="/pharmacy" component={isAuthenticated ? Pharmacy : Landing} />
+      <Route path="/product/:id" component={isAuthenticated ? ProductDetail : Landing} />
+      <Route path="/cart" component={isAuthenticated ? Cart : Landing} />
+      <Route path="/checkout" component={isAuthenticated ? Checkout : Landing} />
+      <Route path="/profile" component={isAuthenticated ? Profile : Landing} />
+      <Route path="/ai-doctor-video" component={isAuthenticated ? AIDoctorVideoConsultationEnhanced : Landing} />
+      <Route path="/book-test" component={isAuthenticated ? BookTest : Landing} />
+      <Route path="/medicine-delivery" component={isAuthenticated ? MedicineDelivery : Landing} />
+      <Route path="/reports" component={isAuthenticated ? Reports : Landing} />
+      <Route path="/medical-scan" component={isAuthenticated ? MedicalScan : Landing} />
+      <Route path="/medical-records" component={isAuthenticated ? MedicalRecords : Landing} />
+      <Route path="/global-health-map" component={isAuthenticated ? GlobalHealthMap : Landing} />
+      <Route path="/delivery-tracking" component={isAuthenticated ? DeliveryTracking : Landing} />
+      <Route path="/prescription-upload" component={isAuthenticated ? PrescriptionUpload : Landing} />
 
-          {/* Redirect to landing for any other route when not authenticated */}
-          <Route path="*" component={Landing} />
-        </>
-      ) : (
-        <>
-          {/* When logged in - show main app */}
-          <Route path="/" component={Home} />
-          <Route path="/pharmacy" component={Pharmacy} />
-          <Route path="/product/:id" component={ProductDetail} />
-          <Route path="/cart" component={Cart} />
-          <Route path="/checkout" component={Checkout} />
-          <Route path="/profile" component={Profile} />
-          <Route path="/ai-doctor-video" component={AIDoctorVideoConsultationEnhanced} />
-          <Route path="/book-test" component={BookTest} />
-          <Route path="/medicine-delivery" component={MedicineDelivery} />
-          <Route path="/reports" component={Reports} />
-          <Route path="/medical-scan" component={MedicalScan} />
-          <Route path="/medical-records" component={MedicalRecords} />
-          <Route path="/global-health-map" component={GlobalHealthMap} />
-          <Route path="/delivery-tracking" component={DeliveryTracking} />
-          <Route path="/prescription-upload" component={PrescriptionUpload} />
-
-          {/* Fallback to home for unmatched routes when authenticated */}
-          <Route path="*" component={Home} />
-        </>
-      )}
+      {/* Fallback route */}
+      <Route path="*" component={isAuthenticated ? Home : Landing} />
     </Switch>
   );
 }

@@ -1,6 +1,9 @@
 // IndicTrans2 Translation Service
-// This would integrate with AI4Bharat's IndicTrans2 model
-// For now, implementing a mock service that shows the structure
+// Integrates with AI4Bharat's IndicTrans2 model via Python subprocess
+
+import { spawn } from 'child_process';
+import path from 'path';
+import { fileURLToPath } from 'url';
 
 interface TranslationRequest {
   text: string;
@@ -16,12 +19,12 @@ interface TranslationResponse {
 }
 
 export class IndicTranslationService {
-  private apiKey: string | null;
-  private baseUrl: string;
+  private pythonServicePath: string;
 
   constructor() {
-    this.apiKey = process.env.INDICTRANS2_API_KEY || null;
-    this.baseUrl = 'https://api.ai4bharat.org/indictrans2'; // Hypothetical endpoint
+    const __filename = fileURLToPath(import.meta.url);
+    const __dirname = path.dirname(__filename);
+    this.pythonServicePath = path.join(__dirname, 'indictrans2-service.py');
   }
 
   // Language mapping for IndicTrans2
@@ -55,33 +58,76 @@ export class IndicTranslationService {
   };
 
   async translateText(request: TranslationRequest): Promise<TranslationResponse> {
-    try {
-      // For now, returning mock translations to demonstrate structure
-      // In production, this would call the actual IndicTrans2 API
-      
-      if (!this.apiKey) {
-        throw new Error('IndicTrans2 API key not provided');
-      }
+    return new Promise((resolve, reject) => {
+      const pythonProcess = spawn('python3', [
+        this.pythonServicePath,
+        request.text,
+        request.sourceLang,
+        request.targetLang
+      ]);
 
-      // Mock translation logic - replace with actual API call
-      const translatedText = await this.mockTranslate(request);
+      let output = '';
+      let errorOutput = '';
 
-      return {
-        translatedText,
-        sourceLang: request.sourceLang,
-        targetLang: request.targetLang,
-        confidence: 0.95
-      };
-    } catch (error) {
-      console.error('Translation error:', error);
-      // Fallback to original text if translation fails
-      return {
-        translatedText: request.text,
-        sourceLang: request.sourceLang,
-        targetLang: request.targetLang,
-        confidence: 0.0
-      };
-    }
+      pythonProcess.stdout.on('data', (data) => {
+        output += data.toString();
+      });
+
+      pythonProcess.stderr.on('data', (data) => {
+        errorOutput += data.toString();
+      });
+
+      pythonProcess.on('close', (code) => {
+        if (code === 0) {
+          try {
+            const result = JSON.parse(output.trim());
+            if (result.error) {
+              console.error('Python service error:', result.error);
+              // Return fallback response instead of rejecting
+              resolve({
+                translatedText: `[Translation unavailable] ${request.text}`,
+                sourceLang: request.sourceLang,
+                targetLang: request.targetLang,
+                confidence: 0.0
+              });
+            } else {
+              resolve({
+                translatedText: result.translated_text,
+                sourceLang: result.source_lang,
+                targetLang: result.target_lang,
+                confidence: result.confidence
+              });
+            }
+          } catch (parseError) {
+            console.error('Failed to parse translation result:', parseError);
+            resolve({
+              translatedText: `[Parse error] ${request.text}`,
+              sourceLang: request.sourceLang,
+              targetLang: request.targetLang,
+              confidence: 0.0
+            });
+          }
+        } else {
+          console.error('Python process failed:', errorOutput);
+          resolve({
+            translatedText: `[Service unavailable] ${request.text}`,
+            sourceLang: request.sourceLang,
+            targetLang: request.targetLang,
+            confidence: 0.0
+          });
+        }
+      });
+
+      pythonProcess.on('error', (error) => {
+        console.error('Failed to start Python process:', error);
+        resolve({
+          translatedText: `[Process error] ${request.text}`,
+          sourceLang: request.sourceLang,
+          targetLang: request.targetLang,
+          confidence: 0.0
+        });
+      });
+    });
   }
 
   private async mockTranslate(request: TranslationRequest): Promise<string> {

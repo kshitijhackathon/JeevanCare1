@@ -322,19 +322,45 @@ function VideoConsultationInterface({ patientDetails }: { patientDetails: any })
   
   const selectedLanguage = INDIAN_LANGUAGES.find(lang => lang.code === patientDetails.language) || INDIAN_LANGUAGES[0];
 
-  // Simulate doctor's initial greeting
+  // Simulate doctor's initial greeting with translation
   useEffect(() => {
-    const initialGreeting = `Namaste ${patientDetails.name}! I am Dr. AI, your virtual physician. I can see you're experiencing some symptoms. Let's discuss them in ${selectedLanguage.name}. How are you feeling today?`;
-    
-    setTimeout(() => {
+    const translateAndGreet = async () => {
+      const englishGreeting = `Namaste ${patientDetails.name}! I am Dr. AI, your virtual physician. I can see you're experiencing some symptoms. Let's discuss them in ${selectedLanguage.name}. How are you feeling today?`;
+      
+      let finalGreeting = englishGreeting;
+      
+      // Translate if not English
+      if (selectedLanguage.code !== 'eng_Latn') {
+        try {
+          const response = await fetch('/api/translate', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              text: englishGreeting,
+              sourceLang: 'eng_Latn',
+              targetLang: selectedLanguage.code
+            })
+          });
+          
+          if (response.ok) {
+            const result = await response.json();
+            finalGreeting = result.translatedText;
+          }
+        } catch (error) {
+          console.error('Translation failed:', error);
+        }
+      }
+      
       setConversation([{
         role: 'doctor',
-        message: initialGreeting,
+        message: finalGreeting,
         timestamp: new Date()
       }]);
       setIsSpeaking(true);
       setTimeout(() => setIsSpeaking(false), 3000);
-    }, 1000);
+    };
+    
+    setTimeout(translateAndGreet, 1000);
   }, [patientDetails, selectedLanguage]);
 
   // Mock translation function (would use IndicTrans2 in production)

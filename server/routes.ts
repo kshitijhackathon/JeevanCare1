@@ -2,6 +2,7 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import Stripe from "stripe";
 import { storage } from "./storage";
+import { indicTranslationService } from "./indic-translation-service";
 import { setupAuth, isAuthenticated } from "./replitAuth";
 import { emailService } from "./email";
 import jwt from "jsonwebtoken";
@@ -3827,6 +3828,39 @@ Respond helpfully and suggest relevant platform features.`;
       console.error("Error fetching medicines:", error);
       res.status(500).json({ message: "Failed to fetch medicines" });
     }
+  });
+
+  // Translation API endpoint
+  app.post("/api/translate", async (req, res) => {
+    try {
+      const { text, sourceLang, targetLang } = req.body;
+      
+      if (!text || !sourceLang || !targetLang) {
+        return res.status(400).json({ 
+          error: "Missing required fields: text, sourceLang, targetLang" 
+        });
+      }
+
+      const result = await indicTranslationService.translateText({
+        text,
+        sourceLang,
+        targetLang
+      });
+
+      res.json(result);
+    } catch (error: any) {
+      console.error('Translation API error:', error);
+      res.status(500).json({ 
+        error: "Translation service unavailable",
+        message: error.message 
+      });
+    }
+  });
+
+  // Get supported languages
+  app.get("/api/translate/languages", (req, res) => {
+    const languages = indicTranslationService.getSupportedLanguages();
+    res.json({ languages });
   });
 
   const httpServer = createServer(app);

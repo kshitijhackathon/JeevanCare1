@@ -116,6 +116,18 @@ Email: \href{mailto:kshitijsingh066@gmail.com}{\underline{kshitijsingh066@gmail.
 \resumeItemListStart
 \resumeItem{Implemented real-time data pipelines using Polygon API processing 500+ daily equity transactions at 99.9\% accuracy.}
 \resumeItem{Developed company website using WordPress, increasing lead generation by 45\% through custom themes and plugins.}
+\resumeItemListEnd
+
+\resumeSubHeadingListEnd
+
+\section{Achievements}
+\resumeSubHeadingListStart
+\resumeSubheading
+{HackHazards 25 - Top 100 Finalist}{April 2025}
+{NAMESPACE Community Hackathon}{Team Code Freak}
+\resumeItemListStart
+\resumeItem{Secured position among top 100 out of 2,900+ teams and 5,700+ solo hackers in world's largest independent community-run hackathon.}
+\resumeItem{Demonstrated exceptional problem-solving and collaboration skills in competitive programming environment.}
 \resumeItem{Automated 15+ data workflows using Airflow and CI/CD, eliminating 520+ annual engineering hours of manual work.}
 \resumeItem{Created analytics dashboards delivering actionable trading insights to 50+ portfolio managers.}
 \resumeItem{Reduced API latency by 40\% through concurrent request batching and cache-layer implementation techniques.}

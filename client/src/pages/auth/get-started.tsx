@@ -13,7 +13,7 @@ export default function GetStarted() {
           <img 
             src={vectorIcon} 
             alt="JeevanCare Logo" 
-            className="w-20 h-24 mx-auto mb-6"
+            className="w-32 h-32 mx-auto mb-6"
           />
         </div>
 

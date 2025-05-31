@@ -26,6 +26,7 @@ import { enhancedTTSEngine } from "./enhanced-tts-engine";
 import { indicMedicalEngine } from "./indic-medical-engine";
 import { humanVoiceEngine } from "./human-voice-engine";
 import { whisperSTTService } from "./whisper-stt-service";
+import { simpleAudioTranscription } from "./simple-audio-transcription";
 import multer from 'multer';
 
 if (!process.env.STRIPE_SECRET_KEY) {
@@ -51,6 +52,45 @@ export async function registerRoutes(app: Express): Promise<Server> {
         'mr-IN', 'gu-IN', 'kn-IN', 'ml-IN', 'pa-IN'
       ]
     });
+  });
+
+  // Whisper Audio Transcription endpoint
+  app.post('/api/whisper-transcribe', async (req, res) => {
+    try {
+      const { audioData, language } = req.body;
+      
+      if (!audioData) {
+        return res.status(400).json({ 
+          error: 'No audio data provided',
+          text: 'Please provide audio data for transcription.'
+        });
+      }
+
+      // Validate audio data format
+      if (!simpleAudioTranscription.validateAudioData(audioData)) {
+        return res.status(400).json({ 
+          error: 'Invalid audio format',
+          text: 'Audio format not supported. Please try again.'
+        });
+      }
+
+      // Attempt transcription with simple audio transcription service
+      const result = await simpleAudioTranscription.transcribeAudio(audioData, language);
+      
+      res.json({
+        text: result.text,
+        confidence: result.confidence,
+        language: result.language,
+        status: result.status
+      });
+
+    } catch (error) {
+      console.error('Whisper transcription error:', error);
+      res.status(500).json({ 
+        error: 'Transcription failed',
+        text: 'Audio transcription service is temporarily unavailable. Please type your message instead.'
+      });
+    }
   });
 
   // Auth middleware
@@ -4245,6 +4285,8 @@ What would you like to do today?`,
     ]
   };
 }
+
+
 
 // Simple AI response generator (legacy function for compatibility)
 function generateAIResponse(symptoms: string): string {

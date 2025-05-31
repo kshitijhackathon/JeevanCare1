@@ -69,6 +69,18 @@ service-account-key.json
 uploads/
 public/uploads/
 
+# Heavy assets that cause deployment size issues
+attached_assets/
+*.zip
+*.csv
+*.jpg
+*.jpeg
+*.png
+*.pdf
+*.ipynb
+medical_repo/
+*.egg-info/
+
 # Cache
 .cache/
 .parcel-cache/

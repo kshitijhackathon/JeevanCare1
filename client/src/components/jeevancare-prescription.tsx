@@ -2,7 +2,7 @@ import React from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Download, Printer } from 'lucide-react';
-import jsPDF from 'jspdf';
+// Using browser print API for PDF generation
 
 interface PrescriptionData {
   patientName: string;

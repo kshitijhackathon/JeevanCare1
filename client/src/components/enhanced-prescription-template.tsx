@@ -3,8 +3,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import { FileText, Printer, Download, Stethoscope, Calendar, User, Heart } from 'lucide-react';
-import jsPDF from 'jspdf';
-import html2canvas from 'html2canvas';
+// Using browser print API for lightweight PDF generation
 
 interface EnhancedPrescriptionTemplateProps {
   prescription: any;

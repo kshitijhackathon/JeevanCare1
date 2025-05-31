@@ -12,20 +12,12 @@ import ProductDetail from "@/pages/product-detail";
 import Cart from "@/pages/cart";
 import Checkout from "@/pages/checkout";
 import Profile from "@/pages/profile-simple";
-import AIDoctorConsultation from "@/pages/ai-doctor-consultation";
-// Removed problematic enhanced consultation
-import MultilingualConsultation from "@/pages/multilingual-consultation";
-import NaturalAIConsultation from "@/pages/natural-ai-consultation";
-import WhisperAIConsultation from "@/pages/whisper-ai-consultation";
-import AIDoctorVideoConsultation from "@/pages/ai-doctor-video-consultation";
-import AIDoctorVideoConsultationEnhanced from "@/pages/ai-doctor-video-consultation-enhanced";
 import CompactAIDoctorConsultation from "@/pages/ai-doctor-compact";
 import BookTest from "@/pages/book-test";
 import MedicineDelivery from "@/pages/medicine-delivery";
 import Reports from "@/pages/reports";
 import MedicalScan from "@/pages/medical-scan";
 import DoctorEscalation from "@/pages/doctor-escalation";
-import AIConsultation from "@/pages/ai-consultation";
 import MedicalRecords from "@/pages/medical-records";
 import GlobalHealthMap from "@/pages/global-health-map";
 import FraudHeatmap from "@/pages/fraud-heatmap";
@@ -33,10 +25,7 @@ import HealthAssistant from "@/pages/health-assistant";
 import Notifications from "@/pages/notifications";
 import Prescription from "@/pages/prescription";
 import SymptomChecker from "@/pages/symptom-checker";
-import VoiceCompanion from "@/pages/voice-companion";
-import VoiceToneTest from "@/pages/voice-tone-test";
-import GeminiGrokMedicalTest from "@/pages/gemini-grok-medical-test";
-import MedicalTest from "@/pages/medical-test";
+
 import DeliveryTracking from "@/pages/delivery-tracking";
 import PrescriptionUpload from "@/pages/prescription-upload";
 import NotFound from "@/pages/not-found";
@@ -80,12 +69,8 @@ function Router() {
   return (
     <Switch>
       {/* Allow direct access to consultation for testing */}
-      <Route path="/consultation" component={MultilingualConsultation} />
-      <Route path="/multilingual-consultation" component={MultilingualConsultation} />
-      <Route path="/natural-consultation" component={NaturalAIConsultation} />
-      <Route path="/whisper-consultation" component={WhisperAIConsultation} />
+      <Route path="/consultation" component={CompactAIDoctorConsultation} />
       <Route path="/ai-doctor-video" component={CompactAIDoctorConsultation} />
-      <Route path="/ai-doctor-video-consultation-enhanced" component={CompactAIDoctorConsultation} />
       <Route path="/ai-doctor-compact" component={CompactAIDoctorConsultation} />
       <Route path="/face-scan" component={MedicalScan} />
       <Route path="/medical-scan" component={MedicalScan} />
@@ -106,9 +91,8 @@ function Router() {
           <Route path="/cart" component={Cart} />
           <Route path="/checkout" component={Checkout} />
           <Route path="/profile" component={Profile} />
-          <Route path="/consultation" component={MultilingualConsultation} />
-          <Route path="/multilingual-consultation" component={MultilingualConsultation} />
-          <Route path="/ai-doctor" component={AIDoctorConsultation} />
+          <Route path="/consultation" component={CompactAIDoctorConsultation} />
+          <Route path="/ai-doctor" component={CompactAIDoctorConsultation} />
           <Route path="/book-test" component={BookTest} />
           <Route path="/medicine-delivery" component={MedicineDelivery} />
           <Route path="/delivery/:orderId" component={MedicineDelivery} />
@@ -116,7 +100,6 @@ function Router() {
           <Route path="/face-scan" component={MedicalScan} />
           <Route path="/medical-scan" component={MedicalScan} />
           <Route path="/doctor-escalation" component={DoctorEscalation} />
-          <Route path="/ai-consultation" component={AIConsultation} />
           <Route path="/medical-records" component={MedicalRecords} />
           <Route path="/global-health-map" component={GlobalHealthMap} />
           <Route path="/fraud-heatmap" component={FraudHeatmap} />
@@ -124,10 +107,7 @@ function Router() {
           <Route path="/notifications" component={Notifications} />
           <Route path="/prescription" component={Prescription} />
           <Route path="/symptom-checker" component={SymptomChecker} />
-          <Route path="/voice-companion" component={VoiceCompanion} />
-          <Route path="/voice-tone-test" component={VoiceToneTest} />
-          <Route path="/gemini-grok-test" component={GeminiGrokMedicalTest} />
-          <Route path="/medical-test" component={MedicalTest} />
+
           <Route path="/delivery-tracking" component={DeliveryTracking} />
           <Route path="/prescription-upload" component={PrescriptionUpload} />
         </>

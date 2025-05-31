@@ -271,16 +271,17 @@ const CompactAIDoctorConsultation = () => {
         </div>
       </div>
 
-      {/* Main Content - Single Unified Interface */}
-      <div className="max-w-7xl mx-auto p-4">
-        <Card className="h-[calc(100vh-120px)] flex">
-          {/* Left Side - Compact Doctor Video */}
-          <div className="w-80 flex-shrink-0 border-r">
-            <CardHeader className="pb-3 border-b">
-              <CardTitle className="text-lg flex items-center justify-between">
+      {/* Main Content - Responsive Layout */}
+      <div className="max-w-7xl mx-auto p-2 sm:p-4">
+        <Card className="h-[calc(100vh-100px)] sm:h-[calc(100vh-120px)] flex flex-col lg:flex-row">
+          {/* Doctor Video Section - Mobile: Top, Desktop: Left */}
+          <div className="w-full lg:w-80 lg:flex-shrink-0 lg:border-r border-b lg:border-b-0">
+            <CardHeader className="pb-2 sm:pb-3 border-b">
+              <CardTitle className="text-base sm:text-lg flex items-center justify-between">
                 <div className="flex items-center space-x-2">
-                  <Video className="h-5 w-5" />
-                  <span>Video Call</span>
+                  <Video className="h-4 w-4 sm:h-5 sm:w-5" />
+                  <span className="hidden sm:inline">Video Call</span>
+                  <span className="sm:hidden">Dr. AI</span>
                 </div>
                 
                 {/* Video Controls */}
@@ -290,7 +291,7 @@ const CompactAIDoctorConsultation = () => {
                     size="sm"
                     onClick={() => setIsVideoOn(!isVideoOn)}
                   >
-                    {isVideoOn ? <Video className="h-4 w-4" /> : <VideoOff className="h-4 w-4" />}
+                    {isVideoOn ? <Video className="h-3 w-3 sm:h-4 sm:w-4" /> : <VideoOff className="h-3 w-3 sm:h-4 sm:w-4" />}
                   </Button>
                   
                   <Button
@@ -298,7 +299,7 @@ const CompactAIDoctorConsultation = () => {
                     size="sm"
                     onClick={toggleMicrophone}
                   >
-                    {isMuted ? <MicOff className="h-4 w-4" /> : <Mic className="h-4 w-4" />}
+                    {isMuted ? <MicOff className="h-3 w-3 sm:h-4 sm:w-4" /> : <Mic className="h-3 w-3 sm:h-4 sm:w-4" />}
                   </Button>
 
                   <Button
@@ -306,32 +307,32 @@ const CompactAIDoctorConsultation = () => {
                     variant="outline"
                     size="sm"
                   >
-                    {isAudioEnabled ? <Volume2 className="h-4 w-4" /> : <VolumeX className="h-4 w-4" />}
+                    {isAudioEnabled ? <Volume2 className="h-3 w-3 sm:h-4 sm:w-4" /> : <VolumeX className="h-3 w-3 sm:h-4 sm:w-4" />}
                   </Button>
                 </div>
               </CardTitle>
             </CardHeader>
             
-            <CardContent className="p-4">
-              {/* Doctor Video Area */}
-              <div className="h-64 bg-gradient-to-br from-blue-900 via-purple-900 to-green-900 rounded-lg relative overflow-hidden mb-4">
+            <CardContent className="p-2 sm:p-4">
+              {/* Doctor Video Area - Responsive */}
+              <div className="h-40 sm:h-48 lg:h-64 bg-gradient-to-br from-blue-900 via-purple-900 to-green-900 rounded-lg relative overflow-hidden mb-2 sm:mb-4">
                 {/* Virtual Doctor Avatar */}
                 <div className="absolute inset-0 flex items-center justify-center">
                   <div className="text-center">
-                    <div className="h-24 w-24 bg-gradient-to-br from-blue-500 to-green-500 rounded-full mx-auto mb-2 flex items-center justify-center shadow-xl border-2 border-white/20">
-                      <User className="h-12 w-12 text-white" />
+                    <div className="h-16 w-16 sm:h-20 sm:w-20 lg:h-24 lg:w-24 bg-gradient-to-br from-blue-500 to-green-500 rounded-full mx-auto mb-1 sm:mb-2 flex items-center justify-center shadow-xl border-2 border-white/20">
+                      <User className="h-8 w-8 sm:h-10 sm:w-10 lg:h-12 lg:w-12 text-white" />
                     </div>
-                    <h3 className="text-lg font-bold text-white mb-1">Dr. AI</h3>
-                    <p className="text-blue-200 text-sm">Virtual Physician</p>
-                    <div className="flex items-center justify-center space-x-1 text-green-300 mt-2">
-                      <Activity className="h-3 w-3 animate-pulse" />
+                    <h3 className="text-sm sm:text-base lg:text-lg font-bold text-white mb-1">Dr. AI</h3>
+                    <p className="text-blue-200 text-xs sm:text-sm">Virtual Physician</p>
+                    <div className="flex items-center justify-center space-x-1 text-green-300 mt-1 sm:mt-2">
+                      <Activity className="h-2 w-2 sm:h-3 sm:w-3 animate-pulse" />
                       <span className="text-xs">Available</span>
                     </div>
                   </div>
                 </div>
 
                 {/* Patient Video (Picture-in-Picture) */}
-                <div className="absolute top-2 right-2 w-20 h-16 bg-gray-800 rounded border border-white/20 overflow-hidden">
+                <div className="absolute top-1 right-1 sm:top-2 sm:right-2 w-16 h-12 sm:w-20 sm:h-16 bg-gray-800 rounded border border-white/20 overflow-hidden">
                   <video
                     ref={videoRef}
                     autoPlay
@@ -341,14 +342,14 @@ const CompactAIDoctorConsultation = () => {
                   />
                   {!isVideoOn && (
                     <div className="absolute inset-0 bg-gray-700 flex items-center justify-center">
-                      <User className="h-6 w-6 text-gray-400" />
+                      <User className="h-4 w-4 sm:h-6 sm:w-6 text-gray-400" />
                     </div>
                   )}
                 </div>
               </div>
 
-              {/* Language and Status */}
-              <div className="space-y-2 text-sm">
+              {/* Language and Status - Hidden on mobile to save space */}
+              <div className="hidden lg:block space-y-2 text-sm">
                 <div className="flex justify-between">
                   <span className="text-gray-600 dark:text-gray-400">Language:</span>
                   <span className="font-medium">{selectedLanguage.native}</span>
@@ -361,19 +362,20 @@ const CompactAIDoctorConsultation = () => {
             </CardContent>
           </div>
 
-          {/* Right Side - Chat Interface (Scrollable) */}
-          <div className="flex-1 flex flex-col">
-            <CardHeader className="pb-3 border-b">
-              <CardTitle className="text-lg flex items-center space-x-2">
-                <MessageSquare className="h-5 w-5" />
-                <span>Medical Consultation Chat</span>
+          {/* Chat Interface - Mobile: Bottom, Desktop: Right (Scrollable) */}
+          <div className="flex-1 flex flex-col min-h-0">
+            <CardHeader className="pb-2 sm:pb-3 border-b">
+              <CardTitle className="text-base sm:text-lg flex items-center space-x-2">
+                <MessageSquare className="h-4 w-4 sm:h-5 sm:w-5" />
+                <span className="hidden sm:inline">Medical Consultation Chat</span>
+                <span className="sm:hidden">Chat</span>
               </CardTitle>
             </CardHeader>
             
-            <CardContent className="flex-1 flex flex-col p-4">
+            <CardContent className="flex-1 flex flex-col p-2 sm:p-4 min-h-0">
               {/* Messages Area - Scrollable */}
               <div 
-                className="flex-1 overflow-y-auto space-y-3 pr-2 mb-4"
+                className="flex-1 overflow-y-auto space-y-2 sm:space-y-3 pr-1 sm:pr-2 mb-3 sm:mb-4"
                 style={{ minHeight: '0' }}
               >
                 {chatMessages.map((message, index) => (
@@ -382,7 +384,7 @@ const CompactAIDoctorConsultation = () => {
                     className={`flex ${message.sender === 'user' ? 'justify-end' : 'justify-start'}`}
                   >
                     <div
-                      className={`max-w-md px-4 py-3 rounded-lg text-sm ${
+                      className={`max-w-xs sm:max-w-md px-3 sm:px-4 py-2 sm:py-3 rounded-lg text-xs sm:text-sm ${
                         message.sender === 'user'
                           ? 'bg-blue-500 text-white'
                           : 'bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-white'
@@ -398,7 +400,7 @@ const CompactAIDoctorConsultation = () => {
                 
                 {isTyping && (
                   <div className="flex justify-start">
-                    <div className="bg-gray-200 dark:bg-gray-700 px-4 py-3 rounded-lg">
+                    <div className="bg-gray-200 dark:bg-gray-700 px-3 sm:px-4 py-2 sm:py-3 rounded-lg">
                       <div className="flex space-x-1">
                         <div className="w-2 h-2 bg-gray-500 rounded-full animate-bounce"></div>
                         <div className="w-2 h-2 bg-gray-500 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
@@ -412,21 +414,21 @@ const CompactAIDoctorConsultation = () => {
               </div>
 
               {/* Input Area - Fixed at bottom */}
-              <div className="space-y-3 border-t pt-4">
+              <div className="space-y-2 sm:space-y-3 border-t pt-3 sm:pt-4">
                 <div className="flex space-x-2">
                   <Input
                     value={currentMessage}
                     onChange={(e) => setCurrentMessage(e.target.value)}
-                    placeholder="अपने लक्षण बताएं... / Type your symptoms..."
+                    placeholder="अपने लक्षण बताएं..."
                     onKeyPress={(e) => e.key === 'Enter' && !e.shiftKey && sendMessage()}
-                    className="flex-1"
+                    className="flex-1 text-sm"
                   />
                   <Button
                     onClick={sendMessage}
                     disabled={!currentMessage.trim()}
                     size="sm"
                   >
-                    <Send className="h-4 w-4" />
+                    <Send className="h-3 w-3 sm:h-4 sm:w-4" />
                   </Button>
                 </div>
                 
@@ -434,10 +436,10 @@ const CompactAIDoctorConsultation = () => {
                   onClick={toggleRecording}
                   variant={isRecording ? "destructive" : "outline"}
                   size="sm"
-                  className="w-full"
+                  className="w-full text-xs sm:text-sm"
                 >
-                  {isRecording ? <MicOff className="h-4 w-4 mr-2" /> : <Mic className="h-4 w-4 mr-2" />}
-                  {isRecording ? 'रिकॉर्डिंग बंद करें / Stop Recording' : 'बोलकर बताएं / Voice Input'}
+                  {isRecording ? <MicOff className="h-3 w-3 sm:h-4 sm:w-4 mr-2" /> : <Mic className="h-3 w-3 sm:h-4 sm:w-4 mr-2" />}
+                  {isRecording ? 'रिकॉर्डिंग बंद करें' : 'बोलकर बताएं'}
                 </Button>
               </div>
             </CardContent>

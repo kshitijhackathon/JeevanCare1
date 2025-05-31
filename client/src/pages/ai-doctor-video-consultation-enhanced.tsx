@@ -441,18 +441,41 @@ function VideoConsultationInterface({ patientDetails }: { patientDetails: any })
     setConversation(prev => [...prev, patientMessage]);
     setCurrentMessage('');
     
-    // Simulate AI doctor response
+    // Fast Response API call for real-time consultation
     setIsListening(true);
-    setTimeout(async () => {
+    
+    try {
+      const response = await fetch('/api/fast-response', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          message: userMessage
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Fast response failed');
+      }
+
+      const data = await response.json();
+      
       setIsListening(false);
       setIsSpeaking(true);
       
-      let aiResponse = `I understand your concern about "${userMessage}". Based on your symptoms, let me provide some guidance. Can you tell me more about when these symptoms started?`;
+      let aiResponse = data.response;
+      
+      // Auto-detect language and use appropriate response
+      if (data.detectedLanguage === 'hin_Deva') {
+        // Hindi response detected
+        aiResponse = data.response;
+      }
       
       // Translate response if needed
       if (selectedLanguage.code !== 'eng_Latn') {
         try {
-          const response = await fetch('/api/translate', {
+          const translateResponse = await fetch('/api/translate', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
@@ -462,12 +485,12 @@ function VideoConsultationInterface({ patientDetails }: { patientDetails: any })
             })
           });
           
-          if (response.ok) {
-            const result = await response.json();
+          if (translateResponse.ok) {
+            const result = await translateResponse.json();
             aiResponse = result.translatedText;
           }
-        } catch (error) {
-          console.error('Translation failed:', error);
+        } catch (translateError) {
+          console.error('Translation failed:', translateError);
         }
       }
       
@@ -482,8 +505,8 @@ function VideoConsultationInterface({ patientDetails }: { patientDetails: any })
       // Speak the doctor's response using enhanced TTS
       try {
         await ttsEngine.speakFollowUpQuestion(aiResponse, selectedLanguage.code);
-      } catch (error) {
-        console.error('TTS failed for response:', error);
+      } catch (ttsError) {
+        console.error('TTS failed for response:', ttsError);
         // Fallback to basic TTS
         try {
           await ttsEngine.speak({
@@ -498,7 +521,21 @@ function VideoConsultationInterface({ patientDetails }: { patientDetails: any })
       } finally {
         setIsSpeaking(false);
       }
-    }, 1500);
+      
+    } catch (error) {
+      console.error('Fast response failed:', error);
+      setIsListening(false);
+      setIsSpeaking(false);
+      
+      // Fallback to basic response
+      const fallbackResponse = {
+        role: 'doctor' as const,
+        message: 'मैं आपकी बात समझ गया। कृपया अपने लक्षणों के बारे में और बताएं।',
+        timestamp: new Date()
+      };
+      
+      setConversation(prev => [...prev, fallbackResponse]);
+    }
   };
 
   // Enhanced voice recording with Web Audio API

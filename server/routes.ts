@@ -27,6 +27,7 @@ import { indicMedicalEngine } from "./indic-medical-engine";
 import { humanVoiceEngine } from "./human-voice-engine";
 import { whisperSTTService } from "./whisper-stt-service";
 import { enhancedAudioTranscription } from "./simple-audio-transcription";
+import { fastResponseEngine } from "./fast-response-engine";
 import multer from 'multer';
 
 if (!process.env.STRIPE_SECRET_KEY) {
@@ -3902,6 +3903,47 @@ Respond helpfully and suggest relevant platform features.`;
     } catch (error) {
       console.error("Error fetching medicines:", error);
       res.status(500).json({ message: "Failed to fetch medicines" });
+    }
+  });
+
+  // Fast Response API for real-time consultation
+  app.post("/api/fast-response", async (req, res) => {
+    try {
+      const { message } = req.body;
+      
+      if (!message) {
+        return res.status(400).json({ error: "Message is required" });
+      }
+
+      // Generate instant acknowledgment first
+      const detectedLang = fastResponseEngine.detectLanguage(message);
+      const instantAck = fastResponseEngine.getInstantAck(detectedLang);
+
+      // Generate fast response
+      const fastResponse = await fastResponseEngine.generateFastResponse(message);
+      const responseTime = fastResponseEngine.getResponseTime(fastResponse.urgency);
+
+      // Simulate appropriate response delay based on urgency
+      await new Promise(resolve => setTimeout(resolve, responseTime));
+
+      res.json({
+        success: true,
+        instantAck,
+        response: fastResponse.text,
+        followUp: fastResponse.followUpQuestion,
+        urgency: fastResponse.urgency,
+        category: fastResponse.category,
+        confidence: fastResponse.confidence,
+        detectedLanguage: detectedLang,
+        responseTime
+      });
+
+    } catch (error: any) {
+      console.error('Fast Response API error:', error);
+      res.status(500).json({ 
+        error: "Fast response service unavailable",
+        message: error.message 
+      });
     }
   });
 

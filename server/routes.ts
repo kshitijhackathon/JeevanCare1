@@ -3989,6 +3989,127 @@ Respond helpfully and suggest relevant platform features.`;
     }
   });
 
+  // Symptom Checker API
+  app.post("/api/symptom-checker/analyze", async (req, res) => {
+    try {
+      const { symptoms, duration, severity, additionalInfo } = req.body;
+      
+      if (!symptoms || symptoms.length === 0) {
+        return res.status(400).json({ error: "Symptoms are required" });
+      }
+
+      console.log("Analyzing symptoms:", symptoms);
+
+      // Use Gemini AI for symptom analysis
+      if (!process.env.GOOGLE_AI_API_KEY) {
+        return res.status(500).json({ 
+          error: "Medical analysis service not configured",
+          message: "Google AI API key is required for symptom analysis"
+        });
+      }
+
+      const symptomText = symptoms.join(", ");
+      const analysisPrompt = `
+        Analyze these medical symptoms and provide a medical assessment:
+        
+        Symptoms: ${symptomText}
+        Duration: ${duration || 'Not specified'}
+        Severity: ${severity || 'Not specified'}
+        Additional Information: ${additionalInfo || 'None'}
+        
+        Please respond in JSON format with:
+        {
+          "possibleConditions": ["condition1", "condition2", "condition3"],
+          "urgencyLevel": "low|medium|high",
+          "recommendations": ["recommendation1", "recommendation2"],
+          "nextSteps": ["step1", "step2"],
+          "severity": "mild|moderate|severe",
+          "confidence": 0.8
+        }
+        
+        Consider the symptoms severity and duration to determine urgency level.
+        Provide practical recommendations and next steps for the patient.
+      `;
+
+      const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${process.env.GOOGLE_AI_API_KEY}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          contents: [{
+            parts: [{
+              text: analysisPrompt
+            }]
+          }],
+          generationConfig: {
+            temperature: 0.3,
+            maxOutputTokens: 1000,
+          }
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error(`Gemini API error: ${response.status}`);
+      }
+
+      const result = await response.json();
+      const analysisText = result.candidates?.[0]?.content?.parts?.[0]?.text;
+
+      if (!analysisText) {
+        throw new Error('No analysis generated');
+      }
+
+      // Parse JSON response
+      let analysisResult;
+      try {
+        const jsonMatch = analysisText.match(/\{[\s\S]*\}/);
+        if (jsonMatch) {
+          analysisResult = JSON.parse(jsonMatch[0]);
+        } else {
+          throw new Error('Invalid JSON response');
+        }
+      } catch (parseError) {
+        // Fallback response if parsing fails
+        analysisResult = {
+          possibleConditions: ["General health concern requiring medical evaluation"],
+          urgencyLevel: severity === "Severe" ? "high" : severity === "Moderate" ? "medium" : "low",
+          recommendations: [
+            "Monitor symptoms closely",
+            "Stay hydrated and rest",
+            "Consult healthcare provider if symptoms persist"
+          ],
+          nextSteps: [
+            "Schedule appointment with healthcare provider",
+            "Keep track of symptom progression",
+            "Seek immediate care if symptoms worsen"
+          ],
+          severity: severity?.toLowerCase() || "mild",
+          confidence: 0.7
+        };
+      }
+
+      res.json({
+        success: true,
+        results: analysisResult,
+        analysisText: analysisText.replace(/```json|```/g, '').trim()
+      });
+
+    } catch (error: any) {
+      console.error('Symptom analysis error:', error);
+      res.status(500).json({ 
+        error: "Symptom analysis failed",
+        message: error.message,
+        results: {
+          possibleConditions: ["Unable to analyze - please consult healthcare provider"],
+          urgencyLevel: "medium",
+          recommendations: ["Seek medical consultation for proper diagnosis"],
+          nextSteps: ["Visit healthcare provider or clinic"]
+        }
+      });
+    }
+  });
+
   // Fast Response API for real-time consultation
   app.post("/api/fast-response", async (req, res) => {
     try {

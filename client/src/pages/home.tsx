@@ -193,12 +193,7 @@ export default function Home() {
 
       <BottomNavigation />
       
-      {showConsultation && (
-        <ConsultationModal 
-          isOpen={showConsultation}
-          onClose={() => setShowConsultation(false)}
-        />
-      )}
+
       
       {showEmergency && (
         <EmergencyPanel 

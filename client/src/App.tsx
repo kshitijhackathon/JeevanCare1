@@ -90,7 +90,7 @@ function Router() {
           <Route path="/auth/otp-verification" component={OTPVerification} />
           
           {/* Redirect to landing for any other route when not authenticated */}
-          <Route component={Landing} />
+          <Route path="*" component={Landing} />
         </>
       ) : (
         <>
@@ -131,8 +131,8 @@ function Router() {
           <Route path="/delivery-tracking" component={DeliveryTracking} />
           <Route path="/prescription-upload" component={PrescriptionUpload} />
           
-          {/* 404 for authenticated users */}
-          <Route component={NotFound} />
+          {/* Fallback to home for unmatched routes when authenticated */}
+          <Route path="*" component={Home} />
         </>
       )}
     </Switch>

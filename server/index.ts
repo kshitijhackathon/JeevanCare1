@@ -1,6 +1,7 @@
 import express from "express";
 import cors from "cors";
 import { registerRoutes } from "./routes.js";
+import { setupVite, log } from "./vite.js";
 
 const app = express();
 const port = process.env.PORT || 5000;
@@ -25,7 +26,11 @@ app.get('/health', (req, res) => {
 });
 
 const server = app.listen(port, () => {
-  console.log(`Backend server running on port ${port}`);
+  log(`Backend server running on port ${port}`);
 });
+
+if (process.env.NODE_ENV === "development") {
+  await setupVite(app, server);
+}
 
 export default server;

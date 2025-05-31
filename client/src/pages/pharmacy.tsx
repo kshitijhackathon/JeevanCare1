@@ -3,6 +3,10 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Slider } from "@/components/ui/slider";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { 
   ArrowLeft, 
   Search, 
@@ -23,7 +27,10 @@ import {
   Thermometer,
   Upload,
   CheckCircle,
-  AlertCircle
+  AlertCircle,
+  SlidersHorizontal,
+  X,
+  ArrowUpDown
 } from "lucide-react";
 import { Link, useLocation } from "wouter";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -56,6 +63,16 @@ export default function Pharmacy() {
   const [cartItems, setCartItems] = useState<{[key: number]: number}>({});
   const { toast } = useToast();
   const queryClient = useQueryClient();
+
+  // Advanced filter states
+  const [priceRange, setPriceRange] = useState([0, 2000]);
+  const [minRating, setMinRating] = useState(0);
+  const [showInStockOnly, setShowInStockOnly] = useState(false);
+  const [showPrescriptionOnly, setShowPrescriptionOnly] = useState(false);
+  const [showDiscountedOnly, setShowDiscountedOnly] = useState(false);
+  const [sortBy, setSortBy] = useState("relevance");
+  const [selectedManufacturers, setSelectedManufacturers] = useState<string[]>([]);
+  const [isFilterOpen, setIsFilterOpen] = useState(false);
 
   // Fetch medicines
   const { data: medicines, isLoading } = useQuery<Medicine[]>({
@@ -97,12 +114,80 @@ export default function Pharmacy() {
     { id: 'medical_devices', name: 'Medical Devices', icon: Thermometer, color: 'bg-gray-100 text-gray-600' }
   ];
 
+  // Get unique manufacturers for filter
+  const uniqueManufacturers = Array.from(new Set(medicines?.map(m => m.manufacturer) || []));
+
+  // Advanced filtering logic
   const filteredMedicines = medicines?.filter(medicine => {
+    // Search filter
     const matchesSearch = medicine.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
                          medicine.genericName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                         medicine.manufacturer.toLowerCase().includes(searchQuery.toLowerCase());
-    return matchesSearch;
+                         medicine.manufacturer.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                         medicine.composition.toLowerCase().includes(searchQuery.toLowerCase());
+    
+    // Price range filter
+    const withinPriceRange = medicine.price >= priceRange[0] && medicine.price <= priceRange[1];
+    
+    // Rating filter
+    const meetsRating = medicine.rating >= minRating;
+    
+    // Stock filter
+    const stockFilter = !showInStockOnly || medicine.inStock;
+    
+    // Prescription filter
+    const prescriptionFilter = !showPrescriptionOnly || medicine.prescriptionRequired;
+    
+    // Discount filter
+    const discountFilter = !showDiscountedOnly || medicine.discount > 0;
+    
+    // Manufacturer filter
+    const manufacturerFilter = selectedManufacturers.length === 0 || selectedManufacturers.includes(medicine.manufacturer);
+
+    return matchesSearch && withinPriceRange && meetsRating && stockFilter && prescriptionFilter && discountFilter && manufacturerFilter;
   }) || [];
+
+  // Sorting logic
+  const sortedMedicines = [...filteredMedicines].sort((a, b) => {
+    switch (sortBy) {
+      case 'price-low':
+        return a.price - b.price;
+      case 'price-high':
+        return b.price - a.price;
+      case 'rating':
+        return b.rating - a.rating;
+      case 'discount':
+        return b.discount - a.discount;
+      case 'name':
+        return a.name.localeCompare(b.name);
+      case 'newest':
+        return b.id - a.id;
+      default:
+        return 0;
+    }
+  });
+
+  const clearAllFilters = () => {
+    setPriceRange([0, 2000]);
+    setMinRating(0);
+    setShowInStockOnly(false);
+    setShowPrescriptionOnly(false);
+    setShowDiscountedOnly(false);
+    setSortBy("relevance");
+    setSelectedManufacturers([]);
+    setSelectedCategory("all");
+    setSearchQuery("");
+  };
+
+  const activeFiltersCount = [
+    priceRange[0] > 0 || priceRange[1] < 2000,
+    minRating > 0,
+    showInStockOnly,
+    showPrescriptionOnly,
+    showDiscountedOnly,
+    selectedManufacturers.length > 0,
+    selectedCategory !== "all",
+    searchQuery.length > 0
+  ].filter(Boolean).length;
 
   const updateCartQuantity = (medicineId: number, newQuantity: number) => {
     if (newQuantity <= 0) {
@@ -159,15 +244,169 @@ export default function Pharmacy() {
         </div>
         
         {/* Search Bar */}
-        <div className="relative">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-          <Input
-            type="text"
-            placeholder="Search medicines, brands, categories..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="pl-10 bg-white border-0 rounded-lg shadow-sm"
-          />
+        <div className="space-y-3">
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+            <Input
+              type="text"
+              placeholder="Search medicines, brands, categories..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="pl-10 bg-white border-0 rounded-lg shadow-sm"
+            />
+          </div>
+          
+          {/* Filter and Sort Bar */}
+          <div className="flex items-center space-x-2">
+            <Sheet open={isFilterOpen} onOpenChange={setIsFilterOpen}>
+              <SheetTrigger asChild>
+                <Button variant="outline" size="sm" className="bg-white">
+                  <SlidersHorizontal className="w-4 h-4 mr-2" />
+                  Filter
+                  {activeFiltersCount > 0 && (
+                    <Badge className="ml-2 bg-blue-500 text-white text-xs">
+                      {activeFiltersCount}
+                    </Badge>
+                  )}
+                </Button>
+              </SheetTrigger>
+              <SheetContent side="bottom" className="h-[80vh] overflow-y-auto">
+                <SheetHeader>
+                  <SheetTitle className="flex items-center justify-between">
+                    <span>Filters</span>
+                    <Button 
+                      variant="ghost" 
+                      size="sm" 
+                      onClick={clearAllFilters}
+                      disabled={activeFiltersCount === 0}
+                    >
+                      Clear All
+                    </Button>
+                  </SheetTitle>
+                </SheetHeader>
+                
+                <div className="space-y-6 mt-6">
+                  {/* Price Range */}
+                  <div>
+                    <h4 className="font-medium mb-3">Price Range</h4>
+                    <div className="px-2">
+                      <Slider
+                        value={priceRange}
+                        onValueChange={setPriceRange}
+                        max={2000}
+                        step={10}
+                        className="mb-2"
+                      />
+                      <div className="flex justify-between text-sm text-gray-600">
+                        <span>₹{priceRange[0]}</span>
+                        <span>₹{priceRange[1]}</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Rating Filter */}
+                  <div>
+                    <h4 className="font-medium mb-3">Minimum Rating</h4>
+                    <div className="flex items-center space-x-2">
+                      {[0, 1, 2, 3, 4].map((rating) => (
+                        <Button
+                          key={rating}
+                          variant={minRating === rating ? "default" : "outline"}
+                          size="sm"
+                          onClick={() => setMinRating(rating)}
+                          className="flex items-center space-x-1"
+                        >
+                          <Star className="w-3 h-3" />
+                          <span>{rating}+</span>
+                        </Button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Quick Filters */}
+                  <div>
+                    <h4 className="font-medium mb-3">Quick Filters</h4>
+                    <div className="space-y-3">
+                      <div className="flex items-center space-x-2">
+                        <Checkbox
+                          id="instock"
+                          checked={showInStockOnly}
+                          onCheckedChange={(checked) => setShowInStockOnly(checked === true)}
+                        />
+                        <label htmlFor="instock" className="text-sm">In Stock Only</label>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <Checkbox
+                          id="prescription"
+                          checked={showPrescriptionOnly}
+                          onCheckedChange={(checked) => setShowPrescriptionOnly(checked === true)}
+                        />
+                        <label htmlFor="prescription" className="text-sm">Prescription Required</label>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <Checkbox
+                          id="discounted"
+                          checked={showDiscountedOnly}
+                          onCheckedChange={(checked) => setShowDiscountedOnly(checked === true)}
+                        />
+                        <label htmlFor="discounted" className="text-sm">On Sale/Discounted</label>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Manufacturer Filter */}
+                  <div>
+                    <h4 className="font-medium mb-3">Manufacturer</h4>
+                    <div className="space-y-2 max-h-40 overflow-y-auto">
+                      {uniqueManufacturers.map((manufacturer) => (
+                        <div key={manufacturer} className="flex items-center space-x-2">
+                          <Checkbox
+                            id={manufacturer}
+                            checked={selectedManufacturers.includes(manufacturer)}
+                            onCheckedChange={(checked) => {
+                              if (checked) {
+                                setSelectedManufacturers([...selectedManufacturers, manufacturer]);
+                              } else {
+                                setSelectedManufacturers(selectedManufacturers.filter(m => m !== manufacturer));
+                              }
+                            }}
+                          />
+                          <label htmlFor={manufacturer} className="text-sm">{manufacturer}</label>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              </SheetContent>
+            </Sheet>
+
+            <Select value={sortBy} onValueChange={setSortBy}>
+              <SelectTrigger className="w-32 bg-white border-gray-200">
+                <SelectValue placeholder="Sort by" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="relevance">Relevance</SelectItem>
+                <SelectItem value="price-low">Price: Low to High</SelectItem>
+                <SelectItem value="price-high">Price: High to Low</SelectItem>
+                <SelectItem value="rating">Highest Rated</SelectItem>
+                <SelectItem value="discount">Best Discount</SelectItem>
+                <SelectItem value="name">Name A-Z</SelectItem>
+                <SelectItem value="newest">Newest First</SelectItem>
+              </SelectContent>
+            </Select>
+
+            {activeFiltersCount > 0 && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={clearAllFilters}
+                className="text-blue-600 hover:text-blue-700"
+              >
+                <X className="w-4 h-4 mr-1" />
+                Clear
+              </Button>
+            )}
+          </div>
         </div>
       </div>
 
@@ -183,9 +422,11 @@ export default function Pharmacy() {
                 <h3 className="font-semibold text-green-800">Upload Prescription</h3>
                 <p className="text-sm text-green-600">Get medicines delivered to your doorstep</p>
               </div>
-              <Button className="bg-green-500 hover:bg-green-600 text-white">
-                Upload
-              </Button>
+              <Link href="/prescription-upload">
+                <Button className="bg-green-500 hover:bg-green-600 text-white">
+                  Upload
+                </Button>
+              </Link>
             </div>
           </CardContent>
         </Card>
@@ -246,18 +487,84 @@ export default function Pharmacy() {
           </CardContent>
         </Card>
 
-        {/* Featured Medicines */}
+        {/* Quick Filter Pills */}
+        <div className="flex flex-wrap gap-2">
+          <Button
+            variant={showInStockOnly ? "default" : "outline"}
+            size="sm"
+            onClick={() => setShowInStockOnly(!showInStockOnly)}
+            className="text-xs"
+          >
+            In Stock
+          </Button>
+          <Button
+            variant={showDiscountedOnly ? "default" : "outline"}
+            size="sm"
+            onClick={() => setShowDiscountedOnly(!showDiscountedOnly)}
+            className="text-xs"
+          >
+            On Sale
+          </Button>
+          <Button
+            variant={minRating >= 4 ? "default" : "outline"}
+            size="sm"
+            onClick={() => setMinRating(minRating >= 4 ? 0 : 4)}
+            className="text-xs"
+          >
+            4+ Rating
+          </Button>
+          <Button
+            variant={priceRange[1] <= 500 ? "default" : "outline"}
+            size="sm"
+            onClick={() => setPriceRange(priceRange[1] <= 500 ? [0, 2000] : [0, 500])}
+            className="text-xs"
+          >
+            Under ₹500
+          </Button>
+        </div>
+
+        {/* Search Results Header */}
+        {(searchQuery || activeFiltersCount > 0) && (
+          <Card>
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h3 className="font-medium text-gray-800">Search Results</h3>
+                  <p className="text-sm text-gray-600">
+                    {searchQuery && `"${searchQuery}" • `}
+                    {sortedMedicines.length} medicine{sortedMedicines.length !== 1 ? 's' : ''} found
+                    {activeFiltersCount > 0 && ` • ${activeFiltersCount} filter${activeFiltersCount !== 1 ? 's' : ''} applied`}
+                  </p>
+                </div>
+                {(searchQuery || activeFiltersCount > 0) && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      setSearchQuery("");
+                      clearAllFilters();
+                    }}
+                  >
+                    Clear All
+                  </Button>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Medicine List */}
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center justify-between">
-              <span>Featured Medicines</span>
-              <Badge variant="outline">{filteredMedicines.length} items</Badge>
+              <span>{searchQuery || activeFiltersCount > 0 ? 'Results' : 'Featured Medicines'}</span>
+              <Badge variant="outline">{sortedMedicines.length} items</Badge>
             </CardTitle>
           </CardHeader>
           <CardContent>
-            {filteredMedicines.length > 0 ? (
+            {sortedMedicines.length > 0 ? (
               <div className="space-y-4">
-                {filteredMedicines.map((medicine) => (
+                {sortedMedicines.map((medicine) => (
                   <Card key={medicine.id} className="border border-gray-200">
                     <CardContent className="p-4">
                       <div className="flex space-x-3">

@@ -485,13 +485,13 @@ function VideoConsultationInterface({ patientDetails }: { patientDetails: any })
 
     setIsRecording(true);
 
-    recognition.onresult = (event) => {
+    recognition.onresult = (event: any) => {
       const transcript = event.results[0][0].transcript;
       setCurrentMessage(transcript);
       setIsRecording(false);
     };
 
-    recognition.onerror = (event) => {
+    recognition.onerror = (event: any) => {
       console.error('Speech recognition error:', event.error);
       setIsRecording(false);
       toast({
@@ -625,10 +625,25 @@ function VideoConsultationInterface({ patientDetails }: { patientDetails: any })
               <Input
                 value={currentMessage}
                 onChange={(e) => setCurrentMessage(e.target.value)}
-                placeholder="Type your message..."
+                placeholder="Type your message or use voice..."
                 className="flex-1 bg-gray-700 border-gray-600 text-white"
                 onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
               />
+              <Button 
+                onClick={isRecording ? () => {} : startVoiceRecording} 
+                size="sm"
+                variant={isRecording ? "destructive" : "secondary"}
+                disabled={isRecording}
+              >
+                {isRecording ? (
+                  <div className="flex items-center space-x-1">
+                    <div className="w-2 h-2 bg-red-400 rounded-full animate-pulse"></div>
+                    <span className="text-xs">Recording...</span>
+                  </div>
+                ) : (
+                  <Mic className="h-4 w-4" />
+                )}
+              </Button>
               <Button onClick={handleSendMessage} size="sm">
                 <MessageSquare className="h-4 w-4" />
               </Button>
@@ -651,6 +666,16 @@ function VideoConsultationInterface({ patientDetails }: { patientDetails: any })
               >
                 {isVideoOn ? <Video className="h-4 w-4" /> : <VideoOff className="h-4 w-4" />}
               </Button>
+
+              {isSpeaking && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={stopSpeaking}
+                >
+                  <VolumeX className="h-4 w-4" />
+                </Button>
+              )}
               
               <Button
                 variant="destructive"

@@ -3,6 +3,10 @@
 
 [![Live Demo](https://img.shields.io/badge/Live%20Demo-Visit%20Now-blue?style=for-the-badge)](https://jeevancare.replit.app)
 
+## 📽️ Demo
+
+Watch the full demo on YouTube:  
+[![Watch Video](https://img.shields.io/badge/Watch%20on-YouTube-red?style=for-the-badge&logo=youtube)](https://youtu.be/5lP26Iu5-P4)
 
 ## 🌟 Overview
 

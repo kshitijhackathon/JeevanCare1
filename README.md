@@ -1,4 +1,8 @@
 # 🏥 Advanced AI Healthcare Assistant
+# 🏥 Advanced AI Healthcare Assistant
+
+[![Live Demo](https://img.shields.io/badge/Live%20Demo-Visit%20Now-blue?style=for-the-badge)](https://jeevancare.replit.app)
+
 
 ## 🌟 Overview
 
